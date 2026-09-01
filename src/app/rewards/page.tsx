@@ -110,12 +110,17 @@ export default function RewardsPage() {
             subtitle="إدارة الهدايا والمكافآت"
             backHref="/dashboard"
             action={
-              <button
-                onClick={() => setShowAdd(true)}
-                className="ghrs-btn-primary"
-              >
-                + إضافة هدية
-              </button>
+              <div className="flex gap-2">
+                <Link href="/reward-bank" className="ghrs-btn-secondary">
+                  بنك المكافآت
+                </Link>
+                <button
+                  onClick={() => setShowAdd(true)}
+                  className="ghrs-btn-primary"
+                >
+                  + إضافة هدية
+                </button>
+              </div>
             }
           />
 

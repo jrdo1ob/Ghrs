@@ -245,6 +245,30 @@ export default function DashboardPage() {
                   <p className="text-xs" style={{ color: 'var(--ghrs-text-secondary)' }}>الإنجازات</p>
                 </div>
               </Link>
+
+              <Link href="/stories" className="ghrs-card p-5 ghrs-card-interactive">
+                <div className="text-center">
+                  <span className="text-3xl">📖</span>
+                  <p className="font-bold mt-2" style={{ color: 'var(--ghrs-text-primary)' }}>القصص</p>
+                  <p className="text-xs" style={{ color: 'var(--ghrs-text-secondary)' }}>قصص ملهمة</p>
+                </div>
+              </Link>
+
+              <Link href="/reward-bank" className="ghrs-card p-5 ghrs-card-interactive">
+                <div className="text-center">
+                  <span className="text-3xl">🎁</span>
+                  <p className="font-bold mt-2" style={{ color: 'var(--ghrs-text-primary)' }}>بنك المكافآت</p>
+                  <p className="text-xs" style={{ color: 'var(--ghrs-text-secondary)' }}>المكافآت المتاحة</p>
+                </div>
+              </Link>
+
+              <Link href="/quran" className="ghrs-card p-5 ghrs-card-interactive">
+                <div className="text-center">
+                  <span className="text-3xl">📖</span>
+                  <p className="font-bold mt-2" style={{ color: 'var(--ghrs-text-primary)' }}>القرآن</p>
+                  <p className="text-xs" style={{ color: 'var(--ghrs-text-secondary)' }}>القرآن الكريم</p>
+                </div>
+              </Link>
             </div>
           </div>
 
