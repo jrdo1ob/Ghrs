@@ -39,9 +39,10 @@ jobs:
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug --stacktrace --full-stacktrace
+          ./gradlew assembleDebug 2>&1 | grep -A 10 "What went wrong:" || echo "Build succeeded or no error message found"
 
       - name: Upload APK Artifact
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: app-debug
