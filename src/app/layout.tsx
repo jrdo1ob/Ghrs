@@ -22,6 +22,28 @@ export const metadata: Metadata = {
     statusBarStyle: "default",
     title: "غرس",
   },
+  openGraph: {
+    title: "منصة غرس | GHRS",
+    description: "تطبيق تربوي تفاعلي لبناء عادات الأطفال وتطوير مهاراتهم بنظام النقاط والمكافآت.",
+    url: "https://ghrs-cyan.vercel.app",
+    siteName: "غرس - GHRS",
+    images: [
+      {
+        url: "https://ghrs-cyan.vercel.app/og-image.svg",
+        width: 1200,
+        height: 630,
+        alt: "منصة غرس العائلية",
+      },
+    ],
+    locale: "ar_BH",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "منصة غرس | GHRS",
+    description: "تطبيق تربوي تفاعلي لبناء عادات الأطفال وتطوير مهاراتهم بنظام النقاط والمكافآت.",
+    images: ["https://ghrs-cyan.vercel.app/og-image.svg"],
+  },
 };
 
 export default function RootLayout({

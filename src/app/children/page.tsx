@@ -300,6 +300,33 @@ export default function ChildrenPage() {
                     <button onClick={() => copyLoginLink(member.login_code)} className="w-full py-2 px-4 rounded-xl text-sm font-bold transition-colors" style={{ background: 'var(--ghrs-amber-500)', color: 'white' }}>
                       📋 نسخ رابط الدخول
                     </button>
+                    {member.role === 'child' && (
+                      <button
+                        onClick={() => {
+                          const baseUrl = window.location.origin
+                          const link = `${baseUrl}/family-login?code=${member.login_code}`
+                          const msg = encodeURIComponent(`🌱 بطلنا المبدع!\nحديقتك في منصة غرس بانتظارك اليوم! اضغط على رابطك المباشر للبدء في حل المهام، سقاية الحديقة، وجمع النقاط 🏆✨\n\n🔗 رابط دخولك المباشر:\n${link}`)
+                          window.open(`https://wa.me/?text=${msg}`, '_blank')
+                        }}
+                        className="w-full py-2 px-4 rounded-xl text-sm font-bold transition-colors mt-2"
+                        style={{ background: '#25D366', color: 'white' }}
+                      >
+                        💬 مشاركة رابط الدخول على الواتساب
+                      </button>
+                    )}
+                    {member.role !== 'child' && (
+                      <button
+                        onClick={() => {
+                          const baseUrl = window.location.origin
+                          const msg = encodeURIComponent(`🍃 مرحباً بك في تطبيق غرس العائلي!\nنرحب بك لتكون معنا في متابعة إنجازات أطفالنا، اعتماد المهام، وتشجيعهم نحو بناء عادات حسنة يومياً 🌟\n\n🔐 دخول صفحة الوالدين:\n${baseUrl}`)
+                          window.open(`https://wa.me/?text=${msg}`, '_blank')
+                        }}
+                        className="w-full py-2 px-4 rounded-xl text-sm font-bold transition-colors mt-2"
+                        style={{ background: '#25D366', color: 'white' }}
+                      >
+                        💬 مشاركة رابط الواتساب للوالدين
+                      </button>
+                    )}
                   </div>
                 )}
               </div>
