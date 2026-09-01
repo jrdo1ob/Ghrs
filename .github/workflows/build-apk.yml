@@ -29,8 +29,10 @@ jobs:
       - name: Install Dependencies
         run: npm install --legacy-peer-deps
 
-      - name: Sync Capacitor
-        run: npx cap sync android
+      - name: Create Assets Directory & Sync Capacitor
+        run: |
+          mkdir -p android/app/src/main/assets
+          npx cap sync android
 
       - name: Build Android APK
         run: |
