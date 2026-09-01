@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ParentBottomNav, ParentSidebar, PageHeader, EmptyState, Toast, Skeleton } from '@/components/layout'
 import { getCurrentUser, AuthUser } from '@/lib/auth/helper'
+import { ChildIcon, CrownIcon, MotherIcon, LeafIcon, CopyIcon, CheckIcon, DeleteIcon, EditIcon, UserIcon } from '@/components/icons'
 
 export default function ChildrenPage() {
   const [authUser, setAuthUser] = useState<AuthUser | null>(null)
@@ -207,7 +208,7 @@ export default function ChildrenPage() {
                 border: `2px solid ${activeTab === 'children' ? 'var(--ghrs-green-300)' : 'transparent'}`
               }}
             >
-              👶 الأطفال ({children.length})
+              <ChildIcon size={16} className="inline" /> الأطفال ({children.length})
             </button>
             <button
               onClick={() => { setActiveTab('parents'); setShowAdd(false); setEditingId(null) }}
@@ -218,7 +219,7 @@ export default function ChildrenPage() {
                 border: `2px solid ${activeTab === 'parents' ? 'var(--ghrs-blue-200)' : 'transparent'}`
               }}
             >
-              👨‍👩‍👧 أهل العائلة ({parents.length})
+              <UserIcon size={16} className="inline" /> أهل العائلة ({parents.length})
             </button>
           </div>
 
@@ -272,46 +273,46 @@ export default function ChildrenPage() {
                   <div>
                     <div className="flex justify-between items-start mb-4">
                       <div className="flex items-center gap-3">
-                        <span className="text-4xl">{member.role === 'child' ? '🌱' : member.role === 'owner' ? '👑' : '👩'}</span>
+                        <span className="text-4xl">{member.role === 'child' ? <LeafIcon size={32} /> : member.role === 'owner' ? <CrownIcon size={32} /> : <MotherIcon size={32} />}</span>
                         <div>
                           <h3 className="text-lg font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>{member.name}</h3>
                           <p className="text-xs" style={{ color: 'var(--ghrs-text-tertiary)' }}>{member.login_code}</p>
                           <span className="inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: member.role === 'owner' ? 'var(--ghrs-amber-50)' : member.role === 'parent' ? 'var(--ghrs-blue-50)' : 'var(--ghrs-green-50)', color: member.role === 'owner' ? 'var(--ghrs-amber-700)' : member.role === 'parent' ? 'var(--ghrs-blue-600)' : 'var(--ghrs-green-700)' }}>
-                            {member.role === 'owner' ? '👑 مالك' : member.role === 'parent' ? '👩 ولي أمر' : '🌱 طفل'}
+                            {member.role === 'owner' ? <><CrownIcon size={12} className="inline" /> مالك</> : member.role === 'parent' ? <><MotherIcon size={12} className="inline" /> ولي أمر</> : <><LeafIcon size={12} className="inline" /> طفل</>}
                           </span>
                         </div>
                       </div>
                       <div className="flex gap-2">
-                        <button onClick={() => { setEditingId(member.id); setEditName(member.name); setEditPin(''); setError('') }} className="p-2 rounded-lg" style={{ background: 'var(--ghrs-blue-50)', color: 'var(--ghrs-blue-600)' }}>✏️</button>
+                        <button onClick={() => { setEditingId(member.id); setEditName(member.name); setEditPin(''); setError('') }} className="p-2 rounded-lg" style={{ background: 'var(--ghrs-blue-50)', color: 'var(--ghrs-blue-600)' }}><EditIcon size={16} /></button>
                         {member.role !== 'owner' && (
-                          <button onClick={() => handleDelete(member.id, member.name)} className="p-2 rounded-lg" style={{ background: 'var(--ghrs-red-50)', color: 'var(--ghrs-red-500)' }}>🗑️</button>
+                          <button onClick={() => handleDelete(member.id, member.name)} className="p-2 rounded-lg" style={{ background: 'var(--ghrs-red-50)', color: 'var(--ghrs-red-500)' }}><DeleteIcon size={16} /></button>
                         )}
                       </div>
                     </div>
                     <div className="rounded-xl p-4 mb-3" style={{ background: 'var(--ghrs-green-50)', border: '1px solid var(--ghrs-green-200)' }}>
-                      <p className="text-sm font-semibold mb-2" style={{ color: 'var(--ghrs-text-secondary)' }}>👤 كود الدخول:</p>
+                      <p className="text-sm font-semibold mb-2" style={{ color: 'var(--ghrs-text-secondary)' }}><UserIcon size={14} className="inline" /> كود الدخول:</p>
                       <div className="flex items-center gap-3">
                         <span className="text-2xl font-bold font-mono tracking-widest px-4 py-2 rounded-xl" style={{ background: 'var(--ghrs-bg-card)', border: '2px solid var(--ghrs-green-200)', color: 'var(--ghrs-green-700)' }}>{member.login_code}</span>
                         <button onClick={() => copyLoginCode(member.login_code)} className="px-3 py-2 rounded-lg text-sm font-bold transition-colors" style={{ background: copiedId === member.login_code ? 'var(--ghrs-green-500)' : 'var(--ghrs-bg-card)', color: copiedId === member.login_code ? 'white' : 'var(--ghrs-green-700)', border: `1px solid ${copiedId === member.login_code ? 'var(--ghrs-green-500)' : 'var(--ghrs-green-300)'}` }}>
-                          {copiedId === member.login_code ? '✓ تم' : '📋 نسخ'}
+                          {copiedId === member.login_code ? <><CheckIcon size={12} className="inline" /> تم</> : <><CopyIcon size={12} className="inline" /> نسخ</>}
                         </button>
                       </div>
                     </div>
                     <button onClick={() => copyLoginLink(member.login_code)} className="w-full py-2 px-4 rounded-xl text-sm font-bold transition-colors" style={{ background: 'var(--ghrs-amber-500)', color: 'white' }}>
-                      📋 نسخ رابط الدخول
+                      <CopyIcon size={14} className="inline" /> نسخ رابط الدخول
                     </button>
                     {member.role === 'child' && (
                       <button
                         onClick={() => {
                           const baseUrl = window.location.origin
                           const link = `${baseUrl}/family-login?code=${member.login_code}`
-                          const msg = encodeURIComponent(`🌱 بطلنا المبدع!\nحديقتك في منصة غرس بانتظارك اليوم! اضغط على رابطك المباشر للبدء في حل المهام، سقاية الحديقة، وجمع النقاط 🏆✨\n\n🔗 رابط دخولك المباشر:\n${link}`)
+                          const msg = encodeURIComponent(`بطلنا المبدع!\nحديقتك في منصة غرس بانتظارك اليوم! اضغط على رابطك المباشر للبدء في حل المهام، سقاية الحديقة، وجمع النقاط\n\n🔗 رابط دخولك المباشر:\n${link}`)
                           window.open(`https://wa.me/?text=${msg}`, '_blank')
                         }}
                         className="w-full py-2 px-4 rounded-xl text-sm font-bold transition-colors mt-2"
                         style={{ background: '#25D366', color: 'white' }}
                       >
-                        💬 مشاركة رابط الدخول على الواتساب
+                        مشاركة رابط الدخول على الواتساب
                       </button>
                     )}
                     {member.role !== 'child' && (
@@ -319,13 +320,13 @@ export default function ChildrenPage() {
                         onClick={() => {
                           const baseUrl = window.location.origin
                           const link = `${baseUrl}/family-login?code=${member.login_code}`
-                          const msg = encodeURIComponent(`🍃 مرحباً بكِ في تطبيق غرس العائلي!\nتم إعداد رابط دخولكِ المباشر لمتابعة إنجازات الأبناء، اعتماد المهام، وإضافة المكافآت أو العقوبات التربوية 🌟\n\n🔐 رابط الدخول المباشر للوالدة:\n${link}`)
+                          const msg = encodeURIComponent(`مرحباً بكِ في تطبيق غرس العائلي!\nتم إعداد رابط دخولكِ المباشر لمتابعة إنجازات الأبناء، اعتماد المهام، وإضافة المكافآت أو العقوبات التربوية\n\n🔐 رابط الدخول المباشر للوالدة:\n${link}`)
                           window.open(`https://wa.me/?text=${msg}`, '_blank')
                         }}
                         className="w-full py-2 px-4 rounded-xl text-sm font-bold transition-colors mt-2"
                         style={{ background: '#25D366', color: 'white' }}
                       >
-                        💬 مشاركة رابط دخول الوالدة
+                        مشاركة رابط دخول الوالدة
                       </button>
                     )}
                   </div>
@@ -337,7 +338,7 @@ export default function ChildrenPage() {
           {/* Empty State */}
           {currentList.length === 0 && !showAdd && (
             <EmptyState
-              icon={activeTab === 'children' ? '👶' : '👨‍👩‍👧'}
+              icon={activeTab === 'children' ? <ChildIcon size={48} /> : <UserIcon size={48} />}
               title={`لم تتم إضافة أي ${emptyLabel} بعد`}
               description={activeTab === 'children' ? 'أضف أطفالك لبدء مغامرة النمو' : 'أضف أهل العائلة ل给他们 صلاحيات الإدارة'}
               action={<button onClick={() => setShowAdd(true)} className="ghrs-btn-primary">+ {addLabel}</button>}

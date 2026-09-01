@@ -8,6 +8,7 @@ import { ParentBottomNav, ParentSidebar, PageHeader, EmptyState, Toast, Skeleton
 import ConfirmDialog from '@/components/ConfirmDialog'
 import { getCurrentUser, AuthUser } from '@/lib/auth/helper'
 import { Story, PresetStory } from '@/lib/types'
+import { BookIcon, EditIcon, ChildIcon, StarIcon, SparkleIcon, DeleteIcon, FamilyIcon } from '@/components/icons'
 
 const MORAL_VALUES = ['الصدق', 'البر', 'النظام', 'الإيثار', 'العلم', 'التعاون', 'الشكر', 'الصبر']
 
@@ -74,7 +75,7 @@ export default function StoriesPage() {
     setCustomForm({ title: '', content: '', moral_value: 'الصدق', reward_xp: 5, assigned_to: '' })
     setShowAdd(false)
     setActiveTab('my')
-    setToast({ type: 'success', message: 'تم إنشاء القصة وتعيينها كمهمة قراءة! 📖' })
+    setToast({ type: 'success', message: 'تم إنشاء القصة وتعيينها كمهمة قراءة!' })
   }
 
   const handleAddPreset = async (preset: PresetStory) => {
@@ -94,7 +95,7 @@ export default function StoriesPage() {
       created_at: new Date().toISOString(),
     }
     setStories([newStory, ...stories])
-    setToast({ type: 'success', message: `تمت إضافة "${preset.title}" كمهمة قراءة! 📖` })
+    setToast({ type: 'success', message: `تمت إضافة "${preset.title}" كمهمة قراءة!` })
   }
 
   const handleDeleteStory = async () => {
@@ -127,18 +128,18 @@ export default function StoriesPage() {
       <ParentSidebar />
       <div className="md:mr-[var(--ghrs-sidebar-width)] pb-24 md:pb-8">
         <div className="p-4 md:p-8 max-w-4xl mx-auto">
-          <PageHeader title="📖 القصص التربوية" subtitle="مكتبة القصص وإنشاء قصص مخصصة" backHref="/tasks" action={
+          <PageHeader title="القصص التربوية" subtitle="مكتبة القصص وإنشاء قصص مخصصة" backHref="/tasks" action={
             <div className="flex gap-2">
-              <button onClick={() => setShowAdd(!showAdd)} className="ghrs-btn-primary">{showAdd ? '📚 المكتبة' : '✏️ قصة جديدة'}</button>
+              <button onClick={() => setShowAdd(!showAdd)} className="ghrs-btn-primary">{showAdd ? <><BookIcon size={16} className="inline" /> المكتبة</> : <><EditIcon size={16} className="inline" /> قصة جديدة</>}</button>
             </div>
           } />
 
           {/* Tabs */}
           <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
             {[
-              { id: 'library', label: '📚 المكتبة', count: presetStories.length },
-              { id: 'my', label: '📖 قصصي', count: stories.length },
-              { id: 'custom', label: '✏️ قصة جديدة', count: 0 },
+              { id: 'library', label: 'المكتبة', count: presetStories.length },
+              { id: 'my', label: 'قصصي', count: stories.length },
+              { id: 'custom', label: 'قصة جديدة', count: 0 },
             ].map(tab => (
               <button key={tab.id} onClick={() => setActiveTab(tab.id as any)} className="px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap" style={{ background: activeTab === tab.id ? 'var(--ghrs-green-100)' : 'var(--ghrs-bg-tertiary)', color: activeTab === tab.id ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)' }}>
                 {tab.label}
@@ -153,7 +154,7 @@ export default function StoriesPage() {
               <div className="flex gap-2">
                 <button onClick={() => setSelectedChild(null)} className="px-3 py-1 rounded-lg text-xs font-bold transition-all" style={{ background: !selectedChild ? 'var(--ghrs-green-100)' : 'var(--ghrs-bg-tertiary)', color: !selectedChild ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)' }}>الجميع</button>
                 {children.map(c => (
-                  <button key={c.id} onClick={() => setSelectedChild(c.id)} className="px-3 py-1 rounded-lg text-xs font-bold transition-all" style={{ background: selectedChild === c.id ? 'var(--ghrs-green-100)' : 'var(--ghrs-bg-tertiary)', color: selectedChild === c.id ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)' }}>👶 {c.name}</button>
+                  <button key={c.id} onClick={() => setSelectedChild(c.id)} className="px-3 py-1 rounded-lg text-xs font-bold transition-all" style={{ background: selectedChild === c.id ? 'var(--ghrs-green-100)' : 'var(--ghrs-bg-tertiary)', color: selectedChild === c.id ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)' }}><ChildIcon size={16} className="inline" /> {c.name}</button>
                 ))}
               </div>
             </div>
@@ -163,7 +164,7 @@ export default function StoriesPage() {
           {activeTab === 'library' && (
             <div className="space-y-4">
               {presetStories.length === 0 ? (
-                <EmptyState icon="📚" title="لا توجد قصص في المكتبة" description="جاري تحميل القصص..." />
+                <EmptyState icon={<BookIcon size={48} />} title="لا توجد قصص في المكتبة" description="جاري تحميل القصص..." />
               ) : presetStories.map(preset => (
                 <div key={preset.id} className="ghrs-card p-5">
                   <div className="flex justify-between items-start">
@@ -174,12 +175,12 @@ export default function StoriesPage() {
                       </div>
                       <p className="text-sm mb-2" style={{ color: 'var(--ghrs-text-secondary)', lineHeight: '1.8' }}>{preset.content.substring(0, 150)}...</p>
                       <div className="flex gap-2">
-                        <span className="px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: 'var(--ghrs-green-50)', color: 'var(--ghrs-green-700)' }}>🌟 {preset.moral_value}</span>
-                        <span className="px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: 'var(--ghrs-amber-50)', color: 'var(--ghrs-amber-700)' }}>⭐ 5 XP</span>
+                        <span className="px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: 'var(--ghrs-green-50)', color: 'var(--ghrs-green-700)' }}><SparkleIcon size={16} className="inline" /> {preset.moral_value}</span>
+                        <span className="px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: 'var(--ghrs-amber-50)', color: 'var(--ghrs-amber-700)' }}><StarIcon size={16} className="inline" /> 5 XP</span>
                       </div>
                     </div>
                     <button onClick={() => handleAddPreset(preset)} className="px-3 py-2 rounded-xl text-sm font-bold transition-all" style={{ background: 'var(--ghrs-green-500)', color: 'white' }}>
-                      📖 تعيين
+                      <BookIcon size={16} className="inline" /> تعيين
                     </button>
                   </div>
                 </div>
@@ -190,7 +191,7 @@ export default function StoriesPage() {
           {/* Custom Story Form */}
           {activeTab === 'custom' && (
             <div className="ghrs-card p-6 ghrs-animate-scale-in">
-              <h2 className="text-lg font-bold mb-4" style={{ color: 'var(--ghrs-text-primary)' }}>✏️ إنشاء قصة جديدة</h2>
+              <h2 className="text-lg font-bold mb-4" style={{ color: 'var(--ghrs-text-primary)' }}><EditIcon size={24} className="inline" /> إنشاء قصة جديدة</h2>
               <form onSubmit={handleCreateStory} className="space-y-4">
                 <div><label className="block text-sm font-semibold mb-1" style={{ color: 'var(--ghrs-text-secondary)' }}>عنوان القصة *</label><input type="text" value={customForm.title} onChange={e => setCustomForm({ ...customForm, title: e.target.value })} required className="ghrs-input w-full" placeholder="النحلة والوردة" /></div>
                 <div><label className="block text-sm font-semibold mb-1" style={{ color: 'var(--ghrs-text-secondary)' }}>نص القصة *</label><textarea value={customForm.content} onChange={e => setCustomForm({ ...customForm, content: e.target.value })} required className="ghrs-input w-full" rows={6} placeholder="كانت هناك نحلة صغيرة..." style={{ lineHeight: '2' }} /></div>
@@ -212,13 +213,13 @@ export default function StoriesPage() {
                   <div><label className="block text-sm font-semibold mb-1" style={{ color: 'var(--ghrs-text-secondary)' }}>تعيين لـ</label>
                     <select value={customForm.assigned_to} onChange={e => setCustomForm({ ...customForm, assigned_to: e.target.value })} className="ghrs-input w-full">
                       <option value="">الجميع</option>
-                      {children.map(c => <option key={c.id} value={c.id}>👶 {c.name}</option>)}
+                      {children.map(c => <option key={c.id} value={c.id}><ChildIcon size={16} className="inline" /> {c.name}</option>)}
                     </select>
                   </div>
                 </div>
 
                 <div className="flex gap-2">
-                  <button type="submit" className="ghrs-btn-primary">📖 إنشاء القصة وتعيينها</button>
+                  <button type="submit" className="ghrs-btn-primary"><BookIcon size={16} className="inline" /> إنشاء القصة وتعيينها</button>
                   <button type="button" onClick={() => setActiveTab('library')} className="ghrs-btn-secondary">إلغاء</button>
                 </div>
               </form>
@@ -229,25 +230,25 @@ export default function StoriesPage() {
           {activeTab === 'my' && (
             <div className="space-y-4">
               {stories.length === 0 ? (
-                <EmptyState icon="📖" title="لا توجد قصص بعد" description="أضف قصة من المكتبة أو أنشئ قصة مخصصة" action={<button onClick={() => setActiveTab('library')} className="ghrs-btn-primary">📚 تصفح المكتبة</button>} />
+                <EmptyState icon={<BookIcon size={48} />} title="لا توجد قصص بعد" description="أضف قصة من المكتبة أو أنشئ قصة مخصصة" action={<button onClick={() => setActiveTab('library')} className="ghrs-btn-primary"><BookIcon size={16} className="inline" /> تصفح المكتبة</button>} />
               ) : stories.map(story => (
                 <div key={story.id} className="ghrs-card p-5">
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-lg">📖</span>
+                        <span className="text-lg"><BookIcon size={20} className="inline" /></span>
                         <h3 className="text-lg font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>{story.title}</h3>
                         {story.is_preset && <span className="px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: 'var(--ghrs-blue-50)', color: 'var(--ghrs-blue-700)' }}>مكتبة</span>}
                       </div>
                       <p className="text-sm mb-2" style={{ color: 'var(--ghrs-text-secondary)', lineHeight: '1.8' }}>{story.content.substring(0, 120)}...</p>
                       <div className="flex gap-2">
-                        {story.moral_value && <span className="px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: 'var(--ghrs-green-50)', color: 'var(--ghrs-green-700)' }}>🌟 {story.moral_value}</span>}
-                        <span className="px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: 'var(--ghrs-amber-50)', color: 'var(--ghrs-amber-700)' }}>⭐ {story.reward_xp} XP</span>
-                        {story.assigned_to && <span className="px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: 'var(--ghrs-purple-50)', color: 'var(--ghrs-purple-700)' }}>👶 {children.find(c => c.id === story.assigned_to)?.name || '—'}</span>}
-                        {!story.assigned_to && <span className="px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: 'var(--ghrs-purple-50)', color: 'var(--ghrs-purple-700)' }}>👨‍👩‍👧‍👦 الجميع</span>}
+                        {story.moral_value && <span className="px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: 'var(--ghrs-green-50)', color: 'var(--ghrs-green-700)' }}><SparkleIcon size={16} className="inline" /> {story.moral_value}</span>}
+                        <span className="px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: 'var(--ghrs-amber-50)', color: 'var(--ghrs-amber-700)' }}><StarIcon size={16} className="inline" /> {story.reward_xp} XP</span>
+                        {story.assigned_to && <span className="px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: 'var(--ghrs-purple-50)', color: 'var(--ghrs-purple-700)' }}><ChildIcon size={16} className="inline" /> {children.find(c => c.id === story.assigned_to)?.name || '—'}</span>}
+                        {!story.assigned_to && <span className="px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: 'var(--ghrs-purple-50)', color: 'var(--ghrs-purple-700)' }}><FamilyIcon size={16} className="inline" /> الجميع</span>}
                       </div>
                     </div>
-                    <button onClick={() => setDeleteConfirm(story)} className="p-2 rounded-lg transition-all hover:bg-ghrs-bg-tertiary" style={{ color: 'var(--ghrs-red-500)' }}>🗑️</button>
+                    <button onClick={() => setDeleteConfirm(story)} className="p-2 rounded-lg transition-all hover:bg-ghrs-bg-tertiary" style={{ color: 'var(--ghrs-red-500)' }}><DeleteIcon size={16} className="inline" /></button>
                   </div>
                 </div>
               ))}

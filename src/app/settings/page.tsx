@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { ParentBottomNav, ParentSidebar, PageHeader, Toast } from '@/components/layout'
 import { useTheme } from '@/lib/theme/provider'
 import { getCurrentUser, clearAuth, AuthUser } from '@/lib/auth/helper'
+import { EditIcon } from '@/components/icons'
 
 export default function SettingsPage() {
   const [member, setMember] = useState<any>(null)
@@ -197,7 +198,7 @@ export default function SettingsPage() {
                         className="text-sm font-semibold"
                         style={{ color: 'var(--ghrs-green-600)' }}
                       >
-                        ✏️ تعديل
+                        <EditIcon size={14} className="inline" /> تعديل
                       </button>
                     </div>
                   )}
@@ -238,7 +239,7 @@ export default function SettingsPage() {
                         className="text-sm font-semibold"
                         style={{ color: 'var(--ghrs-green-600)' }}
                       >
-                        ✏️ تعديل
+                        <EditIcon size={14} className="inline" /> تعديل
                       </button>
                     </div>
                   )}

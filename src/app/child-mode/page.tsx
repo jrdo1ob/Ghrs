@@ -8,6 +8,7 @@ import { ChildBottomNav, EmptyState, Toast } from '@/components/layout'
 import { useFamilyCurrency } from '@/hooks/useFamilyCurrency'
 import { LEVELS, getLevel, getNextLevel, Level } from '@/lib/gamification'
 import CelebrationModal from '@/components/CelebrationModal'
+import { CopyIcon, StarIcon, CoinIcon, ClockIcon, CheckIcon, LeafIcon, FireIcon, PartyIcon } from '@/components/icons'
 
 export default function ChildModePage() {
   const [tasks, setTasks] = useState<any[]>([])
@@ -127,8 +128,8 @@ export default function ChildModePage() {
     setToast({ 
       type: 'success', 
       message: needsApproval 
-        ? 'تم إنجاز المهمة! بانتظار موافقة الوالد ⏳' 
-        : 'تم إنجاز المهمة وحصلت على المكافآت! 🎉' 
+        ? 'تم إنجاز المهمة! بانتظار موافقة الوالد'
+        : 'تم إنجاز المهمة وحصلت على المكافآت!'
     })
   }
 
@@ -142,7 +143,7 @@ export default function ChildModePage() {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--ghrs-bg-primary)' }}>
         <div className="text-center">
-          <div className="text-6xl mb-4 animate-bounce">🌱</div>
+          <div className="text-6xl mb-4 animate-bounce"><LeafIcon size={48} /></div>
           <p style={{ color: 'var(--ghrs-text-secondary)' }}>جاري التحميل...</p>
         </div>
       </div>
@@ -183,10 +184,10 @@ export default function ChildModePage() {
               {level.emoji}
             </div>
             <h1 className="text-2xl font-bold mb-1" style={{ color: 'var(--ghrs-text-primary)' }}>
-              مرحباً {member?.name}! 👋
+              مرحباً {member?.name}!
             </h1>
             <p className="text-sm mb-4" style={{ color: 'var(--ghrs-text-secondary)' }}>
-              اليوم يوم جديد للنمو 🌿
+              اليوم يوم جديد للنمو
             </p>
             
             {/* Level Badge */}
@@ -223,17 +224,17 @@ export default function ChildModePage() {
         {/* Stats Grid */}
         <div className="grid grid-cols-3 gap-3 mb-6">
           <div className="ghrs-card p-4 text-center">
-            <div className="text-2xl mb-1">⭐</div>
+            <div className="text-2xl mb-1"><StarIcon size={24} /></div>
             <p className="text-xl font-bold" style={{ color: 'var(--ghrs-amber-600)' }}>{xp}</p>
             <p className="text-xs" style={{ color: 'var(--ghrs-text-secondary)' }}>نقاط الخبرة</p>
           </div>
           <div className="ghrs-card p-4 text-center">
-            <div className="text-2xl mb-1">✅</div>
+            <div className="text-2xl mb-1"><CheckIcon size={24} /></div>
             <p className="text-xl font-bold" style={{ color: 'var(--ghrs-green-600)' }}>{completedToday.length}</p>
             <p className="text-xs" style={{ color: 'var(--ghrs-text-secondary)' }}>مهام اليوم</p>
           </div>
           <div className="ghrs-card p-4 text-center">
-            <div className="text-2xl mb-1">🔥</div>
+            <div className="text-2xl mb-1"><FireIcon size={24} /></div>
             <p className="text-xl font-bold" style={{ color: 'var(--ghrs-red-500)' }}>{streak}</p>
             <p className="text-xs" style={{ color: 'var(--ghrs-text-secondary)' }}>أيام متتالية</p>
           </div>
@@ -241,11 +242,11 @@ export default function ChildModePage() {
 
         {/* Tasks */}
         <div className="ghrs-card p-5 mb-6">
-          <h2 className="text-lg font-bold mb-4" style={{ color: 'var(--ghrs-text-primary)' }}>📋 مهام اليوم</h2>
+          <h2 className="text-lg font-bold mb-4" style={{ color: 'var(--ghrs-text-primary)' }}><CopyIcon size={20} className="inline" /> مهام اليوم</h2>
           
           {tasks.length === 0 ? (
             <EmptyState
-              icon="🎉"
+              icon={<PartyIcon size={48} />}
               title="ما في مهام اليوم"
               description="استرح وتمتّع بيومك!"
             />
@@ -272,12 +273,12 @@ export default function ChildModePage() {
                         {task.title}
                       </h3>
                       <div className="flex items-center gap-3 mt-1">
-                        <span className="text-xs font-semibold" style={{ color: 'var(--ghrs-amber-600)' }}>
-                          ⭐ {task.xp_reward} XP
+                          <span className="text-xs font-semibold" style={{ color: 'var(--ghrs-amber-600)' }}>
+                            <StarIcon size={14} className="inline" /> {task.xp_reward} XP
                         </span>
                         {task.money_reward > 0 && (
                           <span className="text-xs font-semibold" style={{ color: 'var(--ghrs-green-600)' }}>
-                            💰 {fmtMoney(task.money_reward)}
+                            <CoinIcon size={14} className="inline" /> {fmtMoney(task.money_reward)}
                           </span>
                         )}
                       </div>
@@ -299,7 +300,7 @@ export default function ChildModePage() {
                         opacity: isCompleted || isPending || completingTask === task.id ? 0.8 : 1
                       }}
                     >
-                      {isCompleted ? '✓ تم' : isPending ? '⏳ بانتظار' : completingTask === task.id ? '⏳ جاري...' : 'أنجزت!'}
+                      {isCompleted ? <><CheckIcon size={14} className="inline" /> تم</> : isPending ? <><ClockIcon size={14} className="inline" /> بانتظار</> : completingTask === task.id ? <><ClockIcon size={14} className="inline" /> جاري...</> : 'أنجزت!'}
                     </button>
                   </div>
                 )
@@ -315,7 +316,7 @@ export default function ChildModePage() {
             className="text-sm font-semibold"
             style={{ color: 'var(--ghrs-text-tertiary)' }}
           >
-            🚪 خروج
+            خروج
           </button>
         </div>
       </div>

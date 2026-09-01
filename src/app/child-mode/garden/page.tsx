@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { ChildBottomNav } from '@/components/layout'
 import { LEVELS, getLevel, getNextLevel, Level } from '@/lib/gamification'
+import { GardenIcon, PartyIcon, TrophyIcon, ShieldIcon, CheckIcon, LockIcon, LeafIcon, FireIcon, WaterIcon, SparkleIcon } from '@/components/icons'
 
 export default function ChildGardenPage() {
   const [xp, setXp] = useState(0)
@@ -63,7 +64,7 @@ export default function ChildGardenPage() {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--ghrs-bg-primary)' }}>
         <div className="text-center">
-          <div className="text-5xl mb-4 animate-bounce">🌱</div>
+          <div className="text-5xl mb-4 animate-bounce"><LeafIcon size={48} /></div>
           <p style={{ color: 'var(--ghrs-text-secondary)' }}>جاري تحميل حديقتك...</p>
         </div>
       </div>
@@ -73,7 +74,7 @@ export default function ChildGardenPage() {
   return (
     <div className="min-h-screen" style={{ background: 'var(--ghrs-bg-primary)' }}>
       <div className="p-4 md:p-8 max-w-2xl mx-auto pb-32">
-        <h1 className="text-2xl font-bold mb-6 text-center" style={{ color: 'var(--ghrs-text-primary)' }}>🌳 حديقتي</h1>
+        <h1 className="text-2xl font-bold mb-6 text-center" style={{ color: 'var(--ghrs-text-primary)' }}><GardenIcon size={24} className="inline" /> حديقتي</h1>
 
         {/* Garden Display */}
         <div className="ghrs-card p-8 mb-6 text-center relative overflow-hidden">
@@ -88,11 +89,11 @@ export default function ChildGardenPage() {
           {/* Sky */}
           <div className="relative">
             {/* Sun */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 text-6xl opacity-30">☀️</div>
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 opacity-30"><SparkleIcon size={48} className="text-amber-400" /></div>
 
             {/* Thirsty indicator */}
             {isThirsty && (
-              <div className="absolute top-2 right-2 text-3xl animate-bounce" title="حديقتك تنتظر الماء!">💧</div>
+              <div className="absolute top-2 right-2 animate-bounce" title="حديقتك تنتظر الماء!"><WaterIcon size={24} /></div>
             )}
 
             {/* Plant */}
@@ -103,7 +104,7 @@ export default function ChildGardenPage() {
             {/* Thirsty message */}
             {isThirsty && (
               <p className="text-xs font-bold mb-2" style={{ color: 'var(--ghrs-blue-600)' }}>
-                💧 حديقتك تنتظر الماء! أنجز مهمة لسقايتها
+                <WaterIcon size={14} className="inline" /> حديقتك تنتظر الماء! أنجز مهمة لسقايتها
               </p>
             )}
 
@@ -113,8 +114,8 @@ export default function ChildGardenPage() {
             </div>
 
             {/* Clouds */}
-            <div className="absolute top-4 right-4 text-3xl opacity-20">☁️</div>
-            <div className="absolute top-8 left-6 text-2xl opacity-20">☁️</div>
+            <div className="absolute top-4 right-4 opacity-20"><SparkleIcon size={24} /></div>
+            <div className="absolute top-8 left-6 opacity-20"><SparkleIcon size={16} /></div>
           </div>
         </div>
 
@@ -140,7 +141,7 @@ export default function ChildGardenPage() {
 
           {!nextLevel && (
             <p className="text-sm font-bold" style={{ color: 'var(--ghrs-green-600)' }}>
-              🎉 وصلت لأعلى مستوى! أنت حديقة مزهرة!
+              <PartyIcon size={20} className="inline" /> وصلت لأعلى مستوى! أنت حديقة مزهرة!
             </p>
           )}
         </div>
@@ -149,15 +150,15 @@ export default function ChildGardenPage() {
         <div className="ghrs-card p-4 mb-6">
           <div className="grid grid-cols-3 gap-4 text-center">
             <div>
-              <p className="text-2xl font-bold" style={{ color: 'var(--ghrs-amber-600)' }}>🔥 {member?.current_streak || 0}</p>
+              <p className="text-2xl font-bold" style={{ color: 'var(--ghrs-amber-600)' }}><FireIcon size={24} className="inline" /> {member?.current_streak || 0}</p>
               <p className="text-xs" style={{ color: 'var(--ghrs-text-secondary)' }}>السلسلة الحالية</p>
             </div>
             <div>
-              <p className="text-2xl font-bold" style={{ color: 'var(--ghrs-purple-600)' }}>🏆 {member?.longest_streak || 0}</p>
+              <p className="text-2xl font-bold" style={{ color: 'var(--ghrs-purple-600)' }}><TrophyIcon size={24} className="inline" /> {member?.longest_streak || 0}</p>
               <p className="text-xs" style={{ color: 'var(--ghrs-text-secondary)' }}>أطول سلسلة</p>
             </div>
             <div>
-              <p className="text-2xl font-bold" style={{ color: 'var(--ghrs-blue-600)' }}>🛡️ {member?.grace_shields || 0}</p>
+              <p className="text-2xl font-bold" style={{ color: 'var(--ghrs-blue-600)' }}><ShieldIcon size={24} className="inline" /> {member?.grace_shields || 0}</p>
               <p className="text-xs" style={{ color: 'var(--ghrs-text-secondary)' }}>دروع الحماية</p>
             </div>
           </div>
@@ -185,8 +186,8 @@ export default function ChildGardenPage() {
                     <p className="font-bold text-sm" style={{ color: 'var(--ghrs-text-primary)' }}>{l.name}</p>
                     <p className="text-xs" style={{ color: 'var(--ghrs-text-tertiary)' }}>{l.minXp} XP</p>
                   </div>
-                  {isUnlocked && <span className="text-lg">✅</span>}
-                  {!isUnlocked && <span className="text-lg">🔒</span>}
+                  {isUnlocked && <CheckIcon size={20} />}
+                  {!isUnlocked && <LockIcon size={20} />}
                 </div>
               )
             })}

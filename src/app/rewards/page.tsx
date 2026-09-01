@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { ParentBottomNav, ParentSidebar, PageHeader, EmptyState, Toast, Skeleton } from '@/components/layout'
 import { getCurrentUser, clearAuth, AuthUser } from '@/lib/auth/helper'
 import { useFamilyCurrency } from '@/hooks/useFamilyCurrency'
+import { StarIcon, CoinIcon, GiftsIcon } from '@/components/icons'
 
 export default function RewardsPage() {
   const [gifts, setGifts] = useState<any[]>([])
@@ -187,7 +188,7 @@ export default function RewardsPage() {
               <div key={gift.id} className="ghrs-card p-5">
                 <div className="flex justify-between items-start mb-3">
                   <div className="flex items-center gap-3">
-                    <span className="text-3xl">🎁</span>
+                    <span className="text-3xl"><GiftsIcon size={28} /></span>
                     <div>
                       <h3 className="font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>{gift.title}</h3>
                       {gift.description && (
@@ -206,9 +207,9 @@ export default function RewardsPage() {
                   </span>
                 </div>
                 <div className="flex gap-4 text-sm">
-                  <span className="font-semibold" style={{ color: 'var(--ghrs-amber-600)' }}>⭐ {gift.cost_xp} XP</span>
+                  <span className="font-semibold" style={{ color: 'var(--ghrs-amber-600)' }}><StarIcon size={14} className="inline" /> {gift.cost_xp} XP</span>
                   {gift.cost_money > 0 && (
-                    <span className="font-semibold" style={{ color: 'var(--ghrs-green-600)' }}>💰 {fmtMoney(gift.cost_money)}</span>
+                    <span className="font-semibold" style={{ color: 'var(--ghrs-green-600)' }}><CoinIcon size={14} className="inline" /> {fmtMoney(gift.cost_money)}</span>
                   )}
                 </div>
               </div>
@@ -218,7 +219,7 @@ export default function RewardsPage() {
           {/* Empty State */}
           {gifts.length === 0 && (
             <EmptyState
-              icon="🎁"
+              icon={<GiftsIcon size={48} />}
               title="لم تتم إضافة أي هدايا بعد"
               description="أضف هدايا ومكافآت لتحفيز أطفالك"
               action={

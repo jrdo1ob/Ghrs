@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import GHRSLogo from '@/components/GHRSLogo'
-import { TasksIcon, GiftsIcon, XPIcon, StreakIcon, GardenIcon } from '@/components/icons'
+import { TasksIcon, GiftsIcon, XPIcon, StreakIcon, GardenIcon, StarIcon, LeafIcon, WaterIcon, CopyIcon, CoinIcon, TrophyIcon, UserIcon, ChildIcon } from '@/components/icons'
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -31,7 +31,14 @@ export default function Home() {
         <div className="absolute inset-0 opacity-15" style={{ background: 'linear-gradient(135deg, var(--ghrs-green-200) 0%, var(--ghrs-amber-100) 50%, var(--ghrs-green-100) 100%)' }} />
 
         {/* Floating emojis */}
-        {['🌱','🌿','🌳','🏡','⭐','💧'].map((e, i) => (
+        {[
+          <LeafIcon key="e0" size={32} />,
+          <LeafIcon key="e1" size={28} />,
+          <GardenIcon key="e2" size={32} />,
+          <StarIcon key="e3" size={32} />,
+          <StarIcon key="e4" size={28} />,
+          <WaterIcon key="e5" size={32} />,
+        ].map((e, i) => (
           <motion.div
             key={i}
             className="absolute text-4xl md:text-6xl opacity-15 select-none pointer-events-none"
@@ -99,9 +106,9 @@ export default function Home() {
                 boxShadow: '0 8px 32px rgba(245, 158, 11, 0.4)',
               }}
             >
-              <span className="text-4xl md:text-5xl group-hover:animate-bounce">🧒</span>
+              <span className="text-4xl md:text-5xl group-hover:animate-bounce"><ChildIcon size={40} /></span>
               <span>ادخل يا بطل!</span>
-              <span className="text-3xl">🚀</span>
+              <span className="text-3xl">→</span>
             </Link>
           </motion.div>
 
@@ -122,7 +129,7 @@ export default function Home() {
                 color: 'var(--ghrs-green-600)',
               }}
             >
-              <span className="text-2xl">👨‍👩‍👧</span>
+              <span className="text-2xl"><UserIcon size={24} /></span>
               <span>دخول ولي الأمر</span>
             </Link>
           </motion.div>
@@ -134,7 +141,7 @@ export default function Home() {
             className="text-sm mt-4 font-semibold"
             style={{ color: 'var(--ghrs-amber-600)' }}
           >
-            ⭐ أدخل كودك و PIN وابدأ مغامرك
+            <StarIcon size={16} className="inline" /> أدخل كودك و PIN وابدأ مغامرك
           </motion.p>
 
           {/* Garden Progression */}
@@ -145,18 +152,18 @@ export default function Home() {
             className="mt-14 flex items-center justify-center gap-3 md:gap-6"
           >
             {[
-              { emoji: '🌰', name: 'البذرة' },
-              { emoji: '🌱', name: 'البرعم' },
-              { emoji: '🌿', name: 'النبتة' },
-              { emoji: '🌳', name: 'الشجرة' },
-              { emoji: '🏡', name: 'الحديقة' },
+              { icon: <LeafIcon size={28} />, name: 'البذرة' },
+              { icon: <LeafIcon size={32} />, name: 'البرعم' },
+              { icon: <GardenIcon size={28} />, name: 'النبتة' },
+              { icon: <GardenIcon size={32} />, name: 'الشجرة' },
+              { icon: <GardenIcon size={36} />, name: 'الحديقة' },
             ].map((level, i) => (
               <motion.div
                 key={i}
                 className="text-center"
                 whileHover={{ scale: 1.2, y: -5 }}
               >
-                <div className="text-3xl md:text-4xl mb-1">{level.emoji}</div>
+                <div className="mb-1">{level.icon}</div>
                 <p className="text-xs font-bold" style={{ color: 'var(--ghrs-text-tertiary)' }}>{level.name}</p>
               </motion.div>
             ))}
@@ -179,12 +186,12 @@ export default function Home() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
-              { icon: '📋', title: 'المهام اليومية', desc: 'أنشئ مهاماً مخصصة لكل طفل. كل مهمة تقربه من شجرته.' },
-              { icon: '⭐', title: 'نقاط الخبرة', desc: 'كل مهمة مكتملة تمنح الطفل نقاط خبرة. اجمع النقاط وارتقِ.' },
-              { icon: '🌳', title: 'الحديقة', desc: 'شاهد حديقتك تنمو مع كل إنجاز. من بذرة إلى حديقة مزهرة.' },
-              { icon: '💰', title: 'المكافآت المالية', desc: 'حوّل الخبرات إلى مكافآت حقيقية. طفلك يتعلم قيمة العمل.' },
-              { icon: '🏆', title: 'الإنجازات', desc: 'افتح شارات جديدة مع كل تحدٍ. عنصر المفاجأة والحماس.' },
-              { icon: '👨‍👩‍👧‍👦', title: 'للعائلات', desc: 'مصمم للعائلات العربية. دعم كامل للغة العربية وتجربة RTL.' },
+              { icon: <CopyIcon size={32} />, title: 'المهام اليومية', desc: 'أنشئ مهاماً مخصصة لكل طفل. كل مهمة تقربه من شجرته.' },
+              { icon: <StarIcon size={32} />, title: 'نقاط الخبرة', desc: 'كل مهمة مكتملة تمنح الطفل نقاط خبرة. اجمع النقاط وارتقِ.' },
+              { icon: <GardenIcon size={32} />, title: 'الحديقة', desc: 'شاهد حديقتك تنمو مع كل إنجاز. من بذرة إلى حديقة مزهرة.' },
+              { icon: <CoinIcon size={32} />, title: 'المكافآت المالية', desc: 'حوّل الخبرات إلى مكافآت حقيقية. طفلك يتعلم قيمة العمل.' },
+              { icon: <TrophyIcon size={32} />, title: 'الإنجازات', desc: 'افتح شارات جديدة مع كل تحدٍ. عنصر المفاجأة والحماس.' },
+              { icon: <UserIcon size={32} />, title: 'للعائلات', desc: 'مصمم للعائلات العربية. دعم كامل للغة العربية وتجربة RTL.' },
             ].map((f, i) => (
               <motion.div
                 key={i}
@@ -195,7 +202,7 @@ export default function Home() {
                 variants={fadeUp}
                 className="ghrs-card p-6 text-center ghrs-card-interactive"
               >
-                <div className="text-4xl mb-3">{f.icon}</div>
+                <div className="mb-3">{f.icon}</div>
                 <h3 className="text-lg font-bold mb-2" style={{ color: 'var(--ghrs-text-primary)' }}>{f.title}</h3>
                 <p className="text-sm" style={{ color: 'var(--ghrs-text-secondary)' }}>{f.desc}</p>
               </motion.div>
@@ -221,7 +228,7 @@ export default function Home() {
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
               <Link href="/owner-login" className="block ghrs-card p-6 ghrs-card-interactive">
                 <div className="flex items-center gap-3 mb-3">
-                  <span className="text-3xl">👨‍👩‍👧</span>
+                  <span className="text-3xl"><UserIcon size={28} /></span>
                   <div>
                     <h3 className="text-lg font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>ولي الأمر</h3>
                     <p className="text-sm" style={{ color: 'var(--ghrs-text-secondary)' }}>إدارة العائلة والمهمات</p>
@@ -236,7 +243,7 @@ export default function Home() {
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
               <Link href="/family-login" className="block ghrs-card p-6 ghrs-card-interactive" style={{ border: '2px solid var(--ghrs-amber-400)' }}>
                 <div className="flex items-center gap-3 mb-3">
-                  <span className="text-3xl">🧒</span>
+                  <span className="text-3xl"><ChildIcon size={28} /></span>
                   <div>
                     <h3 className="text-lg font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>الطفل</h3>
                     <p className="text-sm" style={{ color: 'var(--ghrs-text-secondary)' }}>لإنجاز المهام وجمع النقاط</p>
@@ -254,7 +261,7 @@ export default function Home() {
       {/* ═══════ FOOTER ═══════ */}
       <footer className="px-4 py-8 text-center" style={{ background: 'var(--ghrs-bg-secondary)', borderTop: '1px solid var(--ghrs-border-default)' }}>
         <p className="text-sm" style={{ color: 'var(--ghrs-text-tertiary)' }}>
-          🌱 غرس — ازرع العادة، واحصد الإنجاز
+          <LeafIcon size={14} className="inline" /> غرس — ازرع العادة، واحصد الإنجاز
         </p>
       </footer>
     </main>

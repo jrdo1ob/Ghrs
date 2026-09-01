@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { ChildBottomNav, EmptyState, Toast } from '@/components/layout'
 import { useFamilyCurrency } from '@/hooks/useFamilyCurrency'
+import { GiftsIcon, StarIcon, CoinIcon, ClockIcon, LockIcon } from '@/components/icons'
 
 export default function ChildGiftsPage() {
   const [gifts, setGifts] = useState<any[]>([])
@@ -82,14 +83,14 @@ export default function ChildGiftsPage() {
     const totalXp = xpData?.reduce((sum: number, t: any) => sum + t.amount, 0) || 0
     setXp(totalXp)
     setRedeeming(null)
-    setToast({ type: 'success', message: `تم طلب الهدية "${gift.title}"! انتظر موافقة الوالد 🎁` })
+    setToast({ type: 'success', message: `تم طلب الهدية "${gift.title}"! انتظر موافقة الوالد` })
   }
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--ghrs-bg-primary)' }}>
         <div className="text-center">
-          <div className="text-5xl mb-4 animate-bounce">🎁</div>
+          <div className="text-5xl mb-4 animate-bounce"><GiftsIcon size={48} /></div>
           <p style={{ color: 'var(--ghrs-text-secondary)' }}>جاري تحميل الهدايا...</p>
         </div>
       </div>
@@ -109,16 +110,16 @@ export default function ChildGiftsPage() {
       <div className="p-4 md:p-8 max-w-2xl mx-auto pb-32">
         {/* XP Display */}
         <div className="ghrs-card p-5 mb-6 text-center">
-          <div className="text-3xl mb-2">⭐</div>
+          <div className="text-3xl mb-2"><StarIcon size={32} /></div>
           <p className="text-3xl font-bold" style={{ color: 'var(--ghrs-amber-600)' }}>{xp}</p>
           <p className="text-sm" style={{ color: 'var(--ghrs-text-secondary)' }}>نقاط الخبرة المتاحة</p>
         </div>
 
-        <h1 className="text-2xl font-bold mb-6" style={{ color: 'var(--ghrs-text-primary)' }}>🎁 الهدايا</h1>
+        <h1 className="text-2xl font-bold mb-6" style={{ color: 'var(--ghrs-text-primary)' }}><GiftsIcon size={24} className="inline" /> الهدايا</h1>
 
         {gifts.length === 0 ? (
           <EmptyState
-            icon="🎁"
+            icon={<GiftsIcon size={48} />}
             title="ما في هدايا حالياً"
             description="الوالد لم يضف هدايا بعد. انتظر!"
           />
@@ -139,7 +140,7 @@ export default function ChildGiftsPage() {
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-2xl">🎁</span>
+                        <GiftsIcon size={24} />
                         <h3 className="font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>{gift.title}</h3>
                       </div>
                       {gift.description && (
@@ -147,11 +148,11 @@ export default function ChildGiftsPage() {
                       )}
                       <div className="flex items-center gap-3 mt-2">
                         <span className="text-sm font-bold" style={{ color: 'var(--ghrs-amber-600)' }}>
-                          ⭐ {gift.cost_xp} XP
+                          <StarIcon size={14} className="inline" /> {gift.cost_xp} XP
                         </span>
                         {gift.cost_money > 0 && (
                           <span className="text-sm font-bold" style={{ color: 'var(--ghrs-green-600)' }}>
-                            💰 {fmtMoney(gift.cost_money)}
+                            <CoinIcon size={14} className="inline" /> {fmtMoney(gift.cost_money)}
                           </span>
                         )}
                       </div>
@@ -167,7 +168,7 @@ export default function ChildGiftsPage() {
                         opacity: redeeming === gift.id ? 0.7 : 1
                       }}
                     >
-                      {redeeming === gift.id ? '⏳ جاري...' : canAfford ? 'اطلب!' : '🔒'}
+                      {redeeming === gift.id ? <><ClockIcon size={14} className="inline" /> جاري...</> : canAfford ? 'اطلب!' : <LockIcon size={14} className="inline" />}
                     </button>
                   </div>
                 </div>

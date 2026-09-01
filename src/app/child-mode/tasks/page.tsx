@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { ChildBottomNav, EmptyState, Toast } from '@/components/layout'
 import { useFamilyCurrency } from '@/hooks/useFamilyCurrency'
 import ParticleEffects from '@/components/ParticleEffects'
+import { ClockIcon, StarIcon, CoinIcon, CheckIcon, CopyIcon, PartyIcon } from '@/components/icons'
 
 const PRIORITY_MAP: Record<string, { emoji: string; color: string; label: string }> = {
   high: { emoji: '🔴', color: 'var(--ghrs-red-500)', label: 'عالية' },
@@ -89,7 +90,7 @@ export default function ChildTasksPage() {
 
     setToast({
       type: 'success',
-      message: needsApproval ? 'تم إنجاز المهمة! بانتظار موافقة الوالد ⏳' : 'تم إنجاز المهمة وحصلت على المكافآت! 🎉'
+      message: needsApproval ? 'تم إنجاز المهمة! بانتظار موافقة الوالد' : 'تم إنجاز المهمة وحصلت على المكافآت!'
     })
   }
 
@@ -113,11 +114,11 @@ export default function ChildTasksPage() {
       <ParticleEffects active={showConfetti} />
 
       <div className="p-4 md:p-8 max-w-2xl mx-auto pb-32">
-        <h1 className="text-2xl font-bold mb-2" style={{ color: 'var(--ghrs-text-primary)' }}>📋 مهامي</h1>
+        <h1 className="text-2xl font-bold mb-2" style={{ color: 'var(--ghrs-text-primary)' }}><CopyIcon size={24} className="inline" /> مهامي</h1>
         {childName && <p className="text-sm mb-6" style={{ color: 'var(--ghrs-text-secondary)' }}>مرحباً {childName}! أكمل مهامك اليومية</p>}
 
         {tasks.length === 0 ? (
-          <EmptyState icon="🎉" title="ما في مهام" description="استرح وتمتّع بيومك!" />
+          <EmptyState icon={<PartyIcon size={48} />} title="ما في مهام" description="استرح وتمتّع بيومك!" />
         ) : (
           <div className="space-y-3">
             {tasks.map((task) => {
@@ -143,9 +144,9 @@ export default function ChildTasksPage() {
                       </div>
                       {task.description && <p className="text-xs mb-2" style={{ color: 'var(--ghrs-text-tertiary)' }}>{task.description}</p>}
                       <div className="flex items-center gap-3">
-                        <span className="text-xs font-semibold" style={{ color: 'var(--ghrs-amber-600)' }}>⭐ {task.xp_reward} XP</span>
+                        <span className="text-xs font-semibold" style={{ color: 'var(--ghrs-amber-600)' }}><StarIcon size={16} className="inline" /> {task.xp_reward} XP</span>
                         {task.money_reward > 0 && (
-                          <span className="text-xs font-semibold" style={{ color: 'var(--ghrs-green-600)' }}>💰 {fmtMoney(task.money_reward)}</span>
+                          <span className="text-xs font-semibold" style={{ color: 'var(--ghrs-green-600)' }}><CoinIcon size={16} className="inline" /> {fmtMoney(task.money_reward)}</span>
                         )}
                         <span className="text-xs" style={{ color: 'var(--ghrs-text-tertiary)' }}>
                           {task.frequency === 'daily' ? 'يومي' : task.frequency === 'weekly' ? 'أسبوعي' : task.frequency === 'monthly' ? 'شهري' : task.frequency === 'once' ? 'مرة واحدة' : 'مخصص'}
@@ -163,7 +164,7 @@ export default function ChildTasksPage() {
                         opacity: completed || pending || completingTask === task.id ? 0.8 : 1
                       }}
                     >
-                      {completed ? '✓ تم' : pending ? '⏳ بانتظار' : completingTask === task.id ? '⏳...' : 'أنجزت!'}
+                      {completed ? <><CheckIcon size={16} className="inline" /> تم</> : pending ? <><ClockIcon size={16} className="inline" /> بانتظار</> : completingTask === task.id ? <><ClockIcon size={16} className="inline" />...</> : 'أنجزت!'}
                     </button>
                   </div>
                 </div>

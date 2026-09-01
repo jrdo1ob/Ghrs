@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { ParentBottomNav, ParentSidebar, PageHeader, Toast } from '@/components/layout'
 import { getCurrentUser, AuthUser } from '@/lib/auth/helper'
+import { StarIcon, CoinIcon, ClockIcon } from '@/components/icons'
 
 interface PresetTask {
   id: string
@@ -157,11 +158,11 @@ export default function PresetTasksPage() {
 
                 <div className="flex items-center gap-3 mb-3 text-sm">
                   <span className="font-semibold" style={{ color: 'var(--ghrs-amber-600)' }}>
-                    ⭐ {preset.xp_reward} XP
+                    <StarIcon size={14} className="inline" /> {preset.xp_reward} XP
                   </span>
                   {preset.money_reward > 0 && (
                     <span className="font-semibold" style={{ color: 'var(--ghrs-green-600)' }}>
-                      💰 {preset.money_reward}
+                      <CoinIcon size={14} className="inline" /> {preset.money_reward}
                     </span>
                   )}
                   <span className="px-2 py-0.5 rounded-full text-xs font-bold"
@@ -183,7 +184,7 @@ export default function PresetTasksPage() {
                     opacity: adding === preset.id ? 0.7 : 1
                   }}
                 >
-                  {adding === preset.id ? '⏳ جاري...' : '+ اضافة للعائلة'}
+                  {adding === preset.id ? <><ClockIcon size={14} className="inline" /> جاري...</> : '+ اضافة للعائلة'}
                 </button>
               </div>
             ))}

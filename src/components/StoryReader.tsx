@@ -2,6 +2,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState } from 'react'
+import { BookIcon, CheckIcon, PartyIcon } from '@/components/icons'
 
 interface StoryReaderProps {
   show: boolean
@@ -59,7 +60,7 @@ export default function StoryReader({ show, title, content, storyType, storyUrl,
             {/* Header */}
             <div className="p-4 flex items-center justify-between" style={{ background: 'var(--ghrs-green-500)' }}>
               <button onClick={onClose} className="text-white text-2xl" aria-label="إغلاق القصة">✕</button>
-              <h3 className="text-lg font-bold text-white truncate px-2">📖 {title}</h3>
+              <h3 className="text-lg font-bold text-white truncate px-2"><BookIcon size={20} className="inline" /> {title}</h3>
               <span className="text-sm text-white/80">{currentPage + 1}/{pages.length}</span>
             </div>
 
@@ -100,7 +101,7 @@ export default function StoryReader({ show, title, content, storyType, storyUrl,
                   animate={{ opacity: 1, scale: 1 }}
                   className="text-center py-8"
                 >
-                  <div className="text-6xl mb-4">🎉</div>
+                  <div className="mb-4"><PartyIcon size={48} /></div>
                   <h3 className="text-xl font-bold mb-2" style={{ color: 'var(--ghrs-green-700)' }}>
                     أحسنت! وصلت لنهاية القصة
                   </h3>
@@ -112,7 +113,7 @@ export default function StoryReader({ show, title, content, storyType, storyUrl,
                     className="px-8 py-3 rounded-xl text-lg font-bold text-white"
                     style={{ background: 'var(--ghrs-green-600)' }}
                   >
-                    ✅ أكملت القراءة! أنجزت
+                    <CheckIcon size={18} className="inline" /> أكملت القراءة! أنجزت
                   </button>
                 </motion.div>
               )}
@@ -152,7 +153,7 @@ export default function StoryReader({ show, title, content, storyType, storyUrl,
                   className="px-4 py-2 rounded-xl font-bold text-sm text-white transition-all"
                   style={{ background: 'var(--ghrs-green-500)' }}
                 >
-                  {currentPage < pages.length - 1 ? 'التالي' : 'النهاية 📖'}
+                  {currentPage < pages.length - 1 ? 'التالي' : 'النهاية'}
                 </button>
               </div>
             )}

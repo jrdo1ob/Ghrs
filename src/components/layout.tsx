@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { useTheme, Theme } from '@/lib/theme/provider'
 import GHRSLogo from '@/components/GHRSLogo'
-import { TasksIcon, GiftsIcon, XPIcon, StreakIcon, GardenIcon } from '@/components/icons'
+import { TasksIcon, GiftsIcon, XPIcon, StreakIcon, GardenIcon, ChildIcon, BookIcon, SettingsIcon, CheckIcon, RejectIcon, UserIcon, SparkleIcon } from '@/components/icons'
 
 /* ===== Parent Bottom Navigation (Mobile) ===== */
 export function ParentBottomNav() {
@@ -13,10 +13,10 @@ export function ParentBottomNav() {
 
   const tabs = [
     { href: '/dashboard', label: 'الرئيسية', icon: <GardenIcon size={22} /> },
-    { href: '/children', label: 'الأبناء', icon: <span className="text-xl">👶</span> },
+    { href: '/children', label: 'الأبناء', icon: <ChildIcon size={22} /> },
     { href: '/tasks', label: 'المهام', icon: <TasksIcon size={22} /> },
     { href: '/rewards', label: 'المكافآت', icon: <GiftsIcon size={22} /> },
-    { href: '/settings', label: 'المزيد', icon: <span className="text-xl">⋯</span> },
+    { href: '/settings', label: 'المزيد', icon: <SettingsIcon size={22} /> },
   ]
 
   return (
@@ -51,19 +51,19 @@ export function ParentSidebar() {
 
   const tabs = [
     { href: '/dashboard', label: 'الرئيسية', icon: <GardenIcon size={20} /> },
-    { href: '/children', label: 'الأبناء', icon: <span className="text-xl">👶</span> },
+    { href: '/children', label: 'الأبناء', icon: <ChildIcon size={20} /> },
     { href: '/tasks', label: 'المهام', icon: <TasksIcon size={20} /> },
     { href: '/rewards', label: 'المكافآت', icon: <GiftsIcon size={20} /> },
     { href: '/payments', label: 'الأموال', icon: <XPIcon size={20} /> },
     { href: '/achievements', label: 'الإنجازات', icon: <StreakIcon size={20} /> },
-    { href: '/quran', label: 'القرآن', icon: <span className="text-xl">📖</span> },
-    { href: '/settings', label: 'الإعدادات', icon: <span className="text-xl">⚙️</span> },
+    { href: '/quran', label: 'القرآن', icon: <BookIcon size={20} /> },
+    { href: '/settings', label: 'الإعدادات', icon: <SettingsIcon size={20} /> },
   ]
 
-  const themeOptions: { value: Theme; label: string; icon: string }[] = [
-    { value: 'light', label: 'فاتح', icon: '☀️' },
-    { value: 'dark', label: 'داكن', icon: '🌙' },
-    { value: 'system', label: 'النظام', icon: '💻' },
+  const themeOptions: { value: Theme; label: string; icon: React.ReactNode }[] = [
+    { value: 'light', label: 'فاتح', icon: <SparkleIcon size={16} /> },
+    { value: 'dark', label: 'داكن', icon: <SparkleIcon size={16} /> },
+    { value: 'system', label: 'النظام', icon: <SettingsIcon size={16} /> },
   ]
 
   return (
@@ -135,7 +135,7 @@ export function ChildBottomNav() {
     { href: '/child-mode/tasks', label: 'مهامي', icon: <TasksIcon size={22} /> },
     { href: '/child-mode/garden', label: 'حديقتي', icon: <GardenIcon size={22} /> },
     { href: '/child-mode/gifts', label: 'هداياي', icon: <GiftsIcon size={22} /> },
-    { href: '/child-mode/profile', label: 'ملفي', icon: <span className="text-xl">👤</span> },
+    { href: '/child-mode/profile', label: 'ملفي', icon: <UserIcon size={22} /> },
   ]
 
   return (
@@ -201,7 +201,7 @@ export function EmptyState({
   description,
   action
 }: {
-  icon: string
+  icon: React.ReactNode
   title: string
   description: string
   action?: React.ReactNode
@@ -275,7 +275,7 @@ export function Toast({
           ? 'bg-ghrs-green-50 border border-ghrs-green-200' 
           : 'bg-ghrs-red-50 border border-ghrs-red-200'
       }`}>
-        <span className="text-xl">{type === 'success' ? '✅' : '❌'}</span>
+        <span className="text-xl">{type === 'success' ? <CheckIcon size={20} /> : <RejectIcon size={20} />}</span>
         <p className={`flex-1 font-semibold ${type === 'success' ? 'text-ghrs-green-700' : 'text-ghrs-red-700'}`}>
           {message}
         </p>

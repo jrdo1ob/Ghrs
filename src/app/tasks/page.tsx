@@ -9,6 +9,7 @@ import ConfirmDialog from '@/components/ConfirmDialog'
 import { getCurrentUser, AuthUser } from '@/lib/auth/helper'
 import { useFamilyCurrency } from '@/hooks/useFamilyCurrency'
 import { Task } from '@/lib/types'
+import { CopyIcon, BookIcon, ChildIcon, StarIcon, CoinIcon, PauseIcon, PlayIcon, EditIcon, DeleteIcon, ClockIcon, FamilyIcon, CheckIcon, RejectIcon } from '@/components/icons'
 
 type TaskWithCompletions = Task & { completions: any[]; pendingCount: number }
 
@@ -165,7 +166,7 @@ export default function TasksPage() {
       ...t, completions: t.completions.filter((c: any) => c.id !== completionId),
       pendingCount: Math.max(0, (t.pendingCount || 1) - 1)
     } : t))
-    setToast({ type: 'success', message: 'تمت الموافقة! ⭐' })
+    setToast({ type: 'success', message: 'تمت الموافقة!' })
   }
 
   const handleReject = async (completionId: string, taskId: string) => {
@@ -241,8 +242,8 @@ export default function TasksPage() {
         <div className="p-4 md:p-8 max-w-4xl mx-auto">
           <PageHeader title="إدارة المهام" subtitle="إنشاء وتعديل وحذف المهام" backHref="/dashboard" action={
             <div className="flex gap-2">
-              <Link href="/presets" className="ghrs-btn-secondary text-sm">📋 بنك المهام</Link>
-              <Link href="/stories" className="ghrs-btn-secondary text-sm">📖 القصص</Link>
+              <Link href="/presets" className="ghrs-btn-secondary text-sm"><CopyIcon size={16} className="inline" /> بنك المهام</Link>
+              <Link href="/stories" className="ghrs-btn-secondary text-sm"><BookIcon size={16} className="inline" /> القصص</Link>
               <button onClick={openAdd} className="ghrs-btn-primary">+ إضافة مهمة</button>
             </div>
           } />
@@ -327,13 +328,13 @@ export default function TasksPage() {
                       <button type="button" onClick={() => setFormData({ ...formData, assigned_to: [] })}
                         className="px-3 py-2 rounded-xl text-sm font-bold transition-all border-2"
                         style={{ borderColor: formData.assigned_to.length === 0 ? 'var(--ghrs-green-500)' : 'var(--ghrs-border-default)', background: formData.assigned_to.length === 0 ? 'var(--ghrs-green-100)' : 'transparent', color: formData.assigned_to.length === 0 ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)' }}>
-                        👨‍👩‍👧‍👦 الجميع
+<FamilyIcon size={16} className="inline" /> الجميع
                       </button>
                       {children.map(child => (
                         <button key={child.id} type="button" onClick={() => toggleAssignedChild(child.id)}
                           className="px-3 py-2 rounded-xl text-sm font-bold transition-all border-2"
                           style={{ borderColor: formData.assigned_to.includes(child.id) ? 'var(--ghrs-green-500)' : 'var(--ghrs-border-default)', background: formData.assigned_to.includes(child.id) ? 'var(--ghrs-green-100)' : 'transparent', color: formData.assigned_to.includes(child.id) ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)' }}>
-                          👶 {child.name}
+                          <ChildIcon size={16} className="inline" /> {child.name}
                         </button>
                       ))}
                     </div>
@@ -366,41 +367,41 @@ export default function TasksPage() {
                       <div className="flex items-center gap-2">
                         <span className="text-lg">{priority.emoji}</span>
                         <h3 className="text-lg font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>{task.title}</h3>
-                        {task.is_paused && <span className="px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: 'var(--ghrs-bg-tertiary)', color: 'var(--ghrs-text-tertiary)' }}>⏸️ موقوفة</span>}
+                        {task.is_paused && <span className="px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: 'var(--ghrs-bg-tertiary)', color: 'var(--ghrs-text-tertiary)' }}><PauseIcon size={16} className="inline" /> موقوفة</span>}
                       </div>
                       {task.description && <p className="text-sm mt-1" style={{ color: 'var(--ghrs-text-secondary)' }}>{task.description}</p>}
                       <div className="flex flex-wrap gap-3 mt-2 text-sm">
-                        <span className="font-semibold" style={{ color: 'var(--ghrs-amber-600)' }}>⭐ {task.xp_reward} XP</span>
-                        {task.money_reward != null && task.money_reward > 0 && <span className="font-semibold" style={{ color: 'var(--ghrs-green-600)' }}>💰 {fmtMoney(task.money_reward)}</span>}
+                        <span className="font-semibold" style={{ color: 'var(--ghrs-amber-600)' }}><StarIcon size={16} className="inline" /> {task.xp_reward} XP</span>
+                        {task.money_reward != null && task.money_reward > 0 && <span className="font-semibold" style={{ color: 'var(--ghrs-green-600)' }}><CoinIcon size={16} className="inline" /> {fmtMoney(task.money_reward)}</span>}
                         <span style={{ color: 'var(--ghrs-text-tertiary)' }}>
                           {task.frequency === 'daily' ? 'يومي' : task.frequency === 'weekly' ? 'أسبوعي' : task.frequency === 'monthly' ? 'شهري' : task.frequency === 'once' ? 'مرة واحدة' : 'مخصص'}
                         </span>
                         {task.assigned_to && task.assigned_to.length > 0 && (
-                          <span style={{ color: 'var(--ghrs-text-tertiary)' }}>👶 {task.assigned_to.map(getChildName).join(', ')}</span>
+                          <span style={{ color: 'var(--ghrs-text-tertiary)' }}><ChildIcon size={16} className="inline" /> {task.assigned_to.map(getChildName).join(', ')}</span>
                         )}
-                        {!task.assigned_to && <span style={{ color: 'var(--ghrs-text-tertiary)' }}>👨‍👩‍👧‍👦 الجميع</span>}
+                        {!task.assigned_to && <span style={{ color: 'var(--ghrs-text-tertiary)' }}><FamilyIcon size={16} className="inline" /> الجميع</span>}
                       </div>
                     </div>
 
                     {/* Action Buttons */}
                     <div className="flex items-center gap-1">
-                      <button onClick={() => openEdit(task)} title="تعديل" className="p-2 rounded-lg transition-all hover:bg-ghrs-bg-tertiary" style={{ color: 'var(--ghrs-blue-500)' }}>✏️</button>
-                      <button onClick={() => handleTogglePause(task)} title={task.is_paused ? 'تفعيل' : 'إيقاف'} className="p-2 rounded-lg transition-all hover:bg-ghrs-bg-tertiary" style={{ color: task.is_paused ? 'var(--ghrs-green-500)' : 'var(--ghrs-amber-500)' }}>{task.is_paused ? '▶️' : '⏸️'}</button>
-                      <button onClick={() => setDeleteConfirm(task)} title="حذف" className="p-2 rounded-lg transition-all hover:bg-ghrs-bg-tertiary" style={{ color: 'var(--ghrs-red-500)' }}>🗑️</button>
+                      <button onClick={() => openEdit(task)} title="تعديل" className="p-2 rounded-lg transition-all hover:bg-ghrs-bg-tertiary" style={{ color: 'var(--ghrs-blue-500)' }}><EditIcon size={16} className="inline" /></button>
+                      <button onClick={() => handleTogglePause(task)} title={task.is_paused ? 'تفعيل' : 'إيقاف'} className="p-2 rounded-lg transition-all hover:bg-ghrs-bg-tertiary" style={{ color: task.is_paused ? 'var(--ghrs-green-500)' : 'var(--ghrs-amber-500)' }}>{task.is_paused ? <PlayIcon size={16} className="inline" /> : <PauseIcon size={16} className="inline" />}</button>
+                      <button onClick={() => setDeleteConfirm(task)} title="حذف" className="p-2 rounded-lg transition-all hover:bg-ghrs-bg-tertiary" style={{ color: 'var(--ghrs-red-500)' }}><DeleteIcon size={16} className="inline" /></button>
                     </div>
                   </div>
 
                   {/* Pending Completions */}
                   {task.completions && task.completions.length > 0 && (
                     <div className="mt-3 p-4 rounded-xl" style={{ background: 'var(--ghrs-amber-50)', border: '1px solid var(--ghrs-amber-200)' }}>
-                      <p className="text-sm font-bold mb-3" style={{ color: 'var(--ghrs-amber-700)' }}>⏳ بانتظار الموافقة ({task.completions.length})</p>
+                      <p className="text-sm font-bold mb-3" style={{ color: 'var(--ghrs-amber-700)' }}><ClockIcon size={16} className="inline" /> بانتظار الموافقة ({task.completions.length})</p>
                       <div className="space-y-2">
                         {task.completions.map((completion: any) => (
                           <div key={completion.id} className="flex items-center justify-between p-3 rounded-lg" style={{ background: 'var(--ghrs-bg-card)' }}>
                             <p className="text-sm font-semibold" style={{ color: 'var(--ghrs-text-primary)' }}>{new Date(completion.completed_at).toLocaleDateString('ar')}</p>
                             <div className="flex gap-2">
-                              <button onClick={() => handleApprove(completion.id, task.id)} className="px-3 py-1 rounded-lg text-xs font-bold" style={{ background: 'var(--ghrs-green-500)', color: 'white' }}>✓ موافقة</button>
-                              <button onClick={() => handleReject(completion.id, task.id)} className="px-3 py-1 rounded-lg text-xs font-bold" style={{ background: 'var(--ghrs-red-500)', color: 'white' }}>✕ رفض</button>
+                              <button onClick={() => handleApprove(completion.id, task.id)} className="px-3 py-1 rounded-lg text-xs font-bold" style={{ background: 'var(--ghrs-green-500)', color: 'white' }}><CheckIcon size={16} className="inline" /> موافقة</button>
+                              <button onClick={() => handleReject(completion.id, task.id)} className="px-3 py-1 rounded-lg text-xs font-bold" style={{ background: 'var(--ghrs-red-500)', color: 'white' }}><RejectIcon size={16} className="inline" /> رفض</button>
                             </div>
                           </div>
                         ))}
@@ -412,7 +413,7 @@ export default function TasksPage() {
             })}
           </div>
 
-          {sortedTasks.length === 0 && <EmptyState icon="📋" title="لا توجد مهام" description="أضف مهاماً جديدة" action={<button onClick={openAdd} className="ghrs-btn-primary">+ إضافة مهمة</button>} />}
+          {sortedTasks.length === 0 && <EmptyState icon={<CopyIcon size={48} />} title="لا توجد مهام" description="أضف مهاماً جديدة" action={<button onClick={openAdd} className="ghrs-btn-primary">+ إضافة مهمة</button>} />}
         </div>
       </div>
       <ParentBottomNav />
