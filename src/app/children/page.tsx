@@ -318,13 +318,14 @@ export default function ChildrenPage() {
                       <button
                         onClick={() => {
                           const baseUrl = window.location.origin
-                          const msg = encodeURIComponent(`🍃 مرحباً بك في تطبيق غرس العائلي!\nنرحب بك لتكون معنا في متابعة إنجازات أطفالنا، اعتماد المهام، وتشجيعهم نحو بناء عادات حسنة يومياً 🌟\n\n🔐 دخول صفحة الوالدين:\n${baseUrl}`)
+                          const link = `${baseUrl}/family-login?code=${member.login_code}`
+                          const msg = encodeURIComponent(`🍃 مرحباً بكِ في تطبيق غرس العائلي!\nتم إعداد رابط دخولكِ المباشر لمتابعة إنجازات الأبناء، اعتماد المهام، وإضافة المكافآت أو العقوبات التربوية 🌟\n\n🔐 رابط الدخول المباشر للوالدة:\n${link}`)
                           window.open(`https://wa.me/?text=${msg}`, '_blank')
                         }}
                         className="w-full py-2 px-4 rounded-xl text-sm font-bold transition-colors mt-2"
                         style={{ background: '#25D366', color: 'white' }}
                       >
-                        💬 مشاركة رابط الواتساب للوالدين
+                        💬 مشاركة رابط دخول الوالدة
                       </button>
                     )}
                   </div>

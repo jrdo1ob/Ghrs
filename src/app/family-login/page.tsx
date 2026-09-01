@@ -53,25 +53,20 @@ function FamilyLoginContent() {
       return
     }
 
-    // Then verify the PIN
-    const { data: pinValid, error: pinError } = await supabase
+    // Then verify the PIN (returns TABLE with member_id, member_name, member_role, family_id)
+    const { data: pinResult, error: pinError } = await supabase
       .rpc('verify_member_pin', {
         p_member_id: memberLookup.id,
         p_pin: pin,
       })
 
-    if (pinError || !pinValid) {
+    if (pinError || !pinResult || pinResult.length === 0) {
       setError('الرمز غير صحيح')
       setLoading(false)
       return
     }
 
-    const memberData = {
-      member_id: memberLookup.id,
-      family_id: memberLookup.family_id,
-      member_role: memberLookup.role,
-      member_name: memberLookup.name,
-    }
+    const memberData = pinResult[0]
 
     if (memberData.member_role === 'child') {
       // Child login
