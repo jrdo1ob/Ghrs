@@ -133,6 +133,8 @@ function FamilyLoginContent() {
               <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--ghrs-text-secondary)' }}>رمز PIN</label>
               <input
                 type="password"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 value={pin}
                 onChange={(e) => setPin(e.target.value)}
                 required
@@ -140,6 +142,7 @@ function FamilyLoginContent() {
                 placeholder="••••"
                 maxLength={6}
                 dir="ltr"
+                autoComplete="one-time-code"
               />
             </div>
 
