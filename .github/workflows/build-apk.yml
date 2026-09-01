@@ -27,10 +27,7 @@ jobs:
           node-version: '20'
 
       - name: Install Dependencies
-        run: npm ci
-
-      - name: Build Next.js
-        run: npm run build
+        run: npm install --legacy-peer-deps
 
       - name: Sync Capacitor
         run: npx cap sync android
@@ -39,7 +36,7 @@ jobs:
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug
+          ./gradlew assembleDebug --stacktrace
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
