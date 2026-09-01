@@ -9,7 +9,8 @@ import ConfirmDialog from '@/components/ConfirmDialog'
 import { getCurrentUser, AuthUser } from '@/lib/auth/helper'
 import { useFamilyCurrency } from '@/hooks/useFamilyCurrency'
 import { Task } from '@/lib/types'
-import { CopyIcon, BookIcon, ChildIcon, StarIcon, CoinIcon, PauseIcon, PlayIcon, EditIcon, DeleteIcon, ClockIcon, FamilyIcon, CheckIcon, RejectIcon, QuranIcon, SparkleIcon, TasksIcon } from '@/components/icons'
+import { CopyIcon, BookIcon, ChildIcon, StarIcon, CoinIcon, PauseIcon, PlayIcon, EditIcon, DeleteIcon, ClockIcon, FamilyIcon, CheckIcon, RejectIcon, QuranIcon, SparkleIcon, TasksIcon, PlusIcon } from '@/components/icons'
+import IconPicker, { getIconByName } from '@/components/IconPicker'
 import { JUZ_AMMA, fetchAyahRange, SurahInfo } from '@/lib/quran-api'
 
 type TaskWithCompletions = Task & { completions: any[]; pendingCount: number }
@@ -48,7 +49,7 @@ const emptyTask = {
   task_type: 'standard' as 'standard' | 'quran' | 'dua',
   quran_action_type: '' as '' | 'read' | 'memorize',
   surah_number: 0, from_ayah: 1, to_ayah: 1,
-  custom_title: '', custom_content_text: '',
+  custom_title: '', custom_content_text: '', icon: '',
 }
 
 export default function TasksPage() {
@@ -66,6 +67,7 @@ export default function TasksPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [fetchingQuran, setFetchingQuran] = useState(false)
   const [quranPreview, setQuranPreview] = useState('')
+  const [showIconPicker, setShowIconPicker] = useState(false)
   const router = useRouter()
   const supabase = createClient()
   const { format: fmtMoney, symbol: currencySymbol } = useFamilyCurrency()
@@ -139,6 +141,7 @@ export default function TasksPage() {
       surah_number: task.surah_number || 0,
       from_ayah: task.from_ayah || 1, to_ayah: task.to_ayah || 1,
       custom_title: task.custom_title || '', custom_content_text: task.custom_content_text || '',
+      icon: task.icon || '',
     })
     setShowAdd(true); setError('')
   }
@@ -429,6 +432,21 @@ export default function TasksPage() {
                 {/* Title */}
                 <div><label className="block text-sm font-semibold mb-1" style={{ color: 'var(--ghrs-text-secondary)' }}>{formData.task_type !== 'standard' ? 'عنوان المهمة / السورة' : 'اسم المهمة'} *</label><input type="text" value={formData.title} onChange={e => setFormData({ ...formData, title: e.target.value })} required className="ghrs-input w-full" placeholder={formData.task_type === 'quran' ? 'مثال: سورة النصر' : 'نظف الغرفة'} /></div>
 
+                {/* Icon Picker */}
+                <div>
+                  <label className="block text-sm font-semibold mb-1" style={{ color: 'var(--ghrs-text-secondary)' }}>الأيقونة</label>
+                  <button type="button" onClick={() => setShowIconPicker(true)}
+                    className="flex items-center gap-3 px-4 py-3 rounded-xl w-full transition-all border-2"
+                    style={{ borderColor: 'var(--ghrs-border-default)', background: 'var(--ghrs-bg-card)' }}>
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'var(--ghrs-bg-tertiary)' }}>
+                      {formData.icon ? (() => { const Icon = getIconByName(formData.icon); return <Icon size={20} color="var(--ghrs-green-600)" /> })() : <PlusIcon size={20} color="var(--ghrs-text-tertiary)" />}
+                    </div>
+                    <span className="text-sm font-semibold" style={{ color: formData.icon ? 'var(--ghrs-text-primary)' : 'var(--ghrs-text-tertiary)' }}>
+                      {formData.icon ? 'تغيير الأيقونة' : 'اختر أيقونة (اختياري)'}
+                    </span>
+                  </button>
+                </div>
+
                 {/* Custom Title (for quran/dua) */}
                 {formData.task_type !== 'standard' && !formData.surah_number && (
                   <div><label className="block text-sm font-semibold mb-1" style={{ color: 'var(--ghrs-text-secondary)' }}>العنوان التفصيلي (السورة/الدعاء)</label><input type="text" value={formData.custom_title} onChange={e => setFormData({ ...formData, custom_title: e.target.value })} className="ghrs-input w-full" placeholder="مثال: أذكار النوم، الرقية الشرعية" /></div>
@@ -521,6 +539,15 @@ export default function TasksPage() {
             </div>
           )}
 
+          {/* Icon Picker Modal */}
+          {showIconPicker && (
+            <IconPicker
+              selectedIcon={formData.icon || ''}
+              onSelect={(icon) => setFormData({ ...formData, icon })}
+              onClose={() => setShowIconPicker(false)}
+            />
+          )}
+
           {/* Task Cards */}
           <div className="space-y-4">
             {sortedTasks.map((task) => {
@@ -532,7 +559,7 @@ export default function TasksPage() {
                   <div className="flex justify-between items-start mb-3">
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: isQuran ? 'var(--ghrs-green-50)' : isDua ? 'var(--ghrs-amber-50)' : 'var(--ghrs-bg-tertiary)' }}>
-                        {isQuran ? <QuranIcon size={24} color="var(--ghrs-green-600)" /> : isDua ? <SparkleIcon size={24} color="var(--ghrs-amber-600)" /> : <TasksIcon size={24} color="var(--ghrs-text-secondary)" />}
+                        {task.icon ? (() => { const Icon = getIconByName(task.icon); return <Icon size={24} color="var(--ghrs-green-600)" /> })() : isQuran ? <QuranIcon size={24} color="var(--ghrs-green-600)" /> : isDua ? <SparkleIcon size={24} color="var(--ghrs-amber-600)" /> : <TasksIcon size={24} color="var(--ghrs-text-secondary)" />}
                       </div>
                       <div>
                         <div className="flex items-center gap-2">

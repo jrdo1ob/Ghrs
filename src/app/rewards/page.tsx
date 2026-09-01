@@ -8,7 +8,8 @@ import { ParentBottomNav, ParentSidebar, PageHeader, EmptyState, Toast, Skeleton
 import ConfirmDialog from '@/components/ConfirmDialog'
 import { getCurrentUser, AuthUser } from '@/lib/auth/helper'
 import { useFamilyCurrency } from '@/hooks/useFamilyCurrency'
-import { StarIcon, CoinIcon, GiftsIcon, EditIcon, DeleteIcon, CheckIcon, RejectIcon, CopyIcon } from '@/components/icons'
+import { StarIcon, CoinIcon, GiftsIcon, EditIcon, DeleteIcon, CheckIcon, RejectIcon, CopyIcon, PlusIcon } from '@/components/icons'
+import IconPicker, { getIconByName } from '@/components/IconPicker'
 
 export default function RewardsPage() {
   const [authUser, setAuthUser] = useState<AuthUser | null>(null)
@@ -16,10 +17,11 @@ export default function RewardsPage() {
   const [loading, setLoading] = useState(true)
   const [showAdd, setShowAdd] = useState(false)
   const [editingGift, setEditingGift] = useState<any | null>(null)
-  const [formData, setFormData] = useState({ title: '', description: '', cost_xp: 100, cost_money: 0 })
+  const [formData, setFormData] = useState({ title: '', description: '', cost_xp: 100, cost_money: 0, icon: '' })
   const [error, setError] = useState('')
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState<any | null>(null)
+  const [showIconPicker, setShowIconPicker] = useState(false)
   const router = useRouter()
   const supabase = createClient()
   const { format: fmtMoney, symbol: currencySymbol } = useFamilyCurrency()
@@ -39,10 +41,10 @@ export default function RewardsPage() {
     getGifts()
   }, [])
 
-  const openAdd = () => { setEditingGift(null); setFormData({ title: '', description: '', cost_xp: 100, cost_money: 0 }); setShowAdd(true); setError('') }
+  const openAdd = () => { setEditingGift(null); setFormData({ title: '', description: '', cost_xp: 100, cost_money: 0, icon: '' }); setShowAdd(true); setError('') }
   const openEdit = (gift: any) => {
     setEditingGift(gift)
-    setFormData({ title: gift.title, description: gift.description || '', cost_xp: gift.cost_xp, cost_money: gift.cost_money || 0 })
+    setFormData({ title: gift.title, description: gift.description || '', cost_xp: gift.cost_xp, cost_money: gift.cost_money || 0, icon: gift.icon || '' })
     setShowAdd(true); setError('')
   }
 
@@ -53,7 +55,7 @@ export default function RewardsPage() {
 
     if (editingGift) {
       const { error: updateError } = await supabase
-        .from('gifts').update({ title: formData.title, description: formData.description || null, cost_xp: formData.cost_xp, cost_money: formData.cost_money || null }).eq('id', editingGift.id)
+        .from('gifts').update({ title: formData.title, description: formData.description || null, cost_xp: formData.cost_xp, cost_money: formData.cost_money || null, icon: formData.icon || null }).eq('id', editingGift.id)
       if (updateError) { setError(updateError.message); return }
       setGifts(gifts.map(g => g.id === editingGift.id ? { ...g, ...formData } : g))
       setToast({ type: 'success', message: 'تم تعديل الهدية بنجاح!' })
@@ -62,13 +64,14 @@ export default function RewardsPage() {
         .from('gifts').insert({
           family_id: authUser.familyId, title: formData.title,
           description: formData.description || null, cost_xp: formData.cost_xp,
-          cost_money: formData.cost_money || null, is_active: true, created_by: authUser.memberId,
+          cost_money: formData.cost_money || null, icon: formData.icon || null,
+          is_active: true, created_by: authUser.memberId,
         }).select().single()
       if (insertError) { setError(insertError.message); return }
       setGifts([gift, ...gifts])
       setToast({ type: 'success', message: 'تم إضافة الهدية بنجاح!' })
     }
-    setShowAdd(false); setEditingGift(null); setFormData({ title: '', description: '', cost_xp: 100, cost_money: 0 })
+    setShowAdd(false); setEditingGift(null); setFormData({ title: '', description: '', cost_xp: 100, cost_money: 0, icon: '' })
   }
 
   const handleDeleteGift = async () => {
@@ -132,6 +135,20 @@ export default function RewardsPage() {
                   <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--ghrs-text-secondary)' }}>الوصف (اختياري)</label>
                   <input type="text" value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} className="ghrs-input w-full" placeholder="لعبة مميزة" />
                 </div>
+                {/* Icon Picker */}
+                <div>
+                  <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--ghrs-text-secondary)' }}>الأيقونة</label>
+                  <button type="button" onClick={() => setShowIconPicker(true)}
+                    className="flex items-center gap-3 px-4 py-3 rounded-xl w-full transition-all border-2"
+                    style={{ borderColor: 'var(--ghrs-border-default)', background: 'var(--ghrs-bg-card)' }}>
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'var(--ghrs-bg-tertiary)' }}>
+                      {formData.icon ? (() => { const Icon = getIconByName(formData.icon); return <Icon size={20} color="var(--ghrs-green-600)" /> })() : <PlusIcon size={20} color="var(--ghrs-text-tertiary)" />}
+                    </div>
+                    <span className="text-sm font-semibold" style={{ color: formData.icon ? 'var(--ghrs-text-primary)' : 'var(--ghrs-text-tertiary)' }}>
+                      {formData.icon ? 'تغيير الأيقونة' : 'اختر أيقونة (اختياري)'}
+                    </span>
+                  </button>
+                </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--ghrs-text-secondary)' }}>التكلفة (XP)</label>
@@ -150,6 +167,15 @@ export default function RewardsPage() {
             </div>
           )}
 
+          {/* Icon Picker Modal */}
+          {showIconPicker && (
+            <IconPicker
+              selectedIcon={formData.icon || ''}
+              onSelect={(icon) => setFormData({ ...formData, icon })}
+              onClose={() => setShowIconPicker(false)}
+            />
+          )}
+
           {/* Gifts Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {gifts.map(gift => (
@@ -157,7 +183,7 @@ export default function RewardsPage() {
                 <div className="flex justify-between items-start mb-3">
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: gift.is_active ? 'var(--ghrs-green-50)' : 'var(--ghrs-bg-tertiary)' }}>
-                      <GiftsIcon size={24} color={gift.is_active ? 'var(--ghrs-green-600)' : 'var(--ghrs-text-tertiary)'} />
+                      {gift.icon ? (() => { const Icon = getIconByName(gift.icon); return <Icon size={24} color={gift.is_active ? 'var(--ghrs-green-600)' : 'var(--ghrs-text-tertiary)'} /> })() : <GiftsIcon size={24} color={gift.is_active ? 'var(--ghrs-green-600)' : 'var(--ghrs-text-tertiary)'} />}
                     </div>
                     <div>
                       <h3 className="font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>{gift.title}</h3>
