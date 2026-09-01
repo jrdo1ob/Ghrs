@@ -320,14 +320,14 @@ export default function TasksPage() {
           </div>
 
           {/* Tabs */}
-          <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
+          <div className="flex gap-2 mb-4 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0">
             {[
               { id: 'all', label: 'الكل', count: tasks.length },
-              { id: 'pending', label: 'بانتظار الموافقة', count: tasks.filter(t => t.pendingCount > 0).length },
-              { id: 'completed', label: 'تمت الموافقة', count: tasks.filter(t => t.pendingCount === 0 && !t.is_paused).length },
+              { id: 'pending', label: 'بانتظار', count: tasks.filter(t => t.pendingCount > 0).length },
+              { id: 'completed', label: 'تمت', count: tasks.filter(t => t.pendingCount === 0 && !t.is_paused).length },
               { id: 'paused', label: 'موقوفة', count: tasks.filter(t => t.is_paused).length },
             ].map((tab) => (
-              <button key={tab.id} onClick={() => setActiveTab(tab.id as any)} className="px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap" style={{ background: activeTab === tab.id ? 'var(--ghrs-green-100)' : 'var(--ghrs-bg-tertiary)', color: activeTab === tab.id ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)' }}>
+              <button key={tab.id} onClick={() => setActiveTab(tab.id as any)} className="px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap flex-shrink-0" style={{ background: activeTab === tab.id ? 'var(--ghrs-green-100)' : 'var(--ghrs-bg-tertiary)', color: activeTab === tab.id ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)' }}>
                 {tab.label} ({tab.count})
               </button>
             ))}
@@ -555,35 +555,34 @@ export default function TasksPage() {
           )}
 
           {/* Task Cards */}
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             {sortedTasks.map((task) => {
               const priority = PRIORITY_OPTIONS.find(p => p.value === task.priority) || PRIORITY_OPTIONS[1]
               const isQuran = task.task_type === 'quran'
               const isDua = task.task_type === 'dua'
               return (
-                <div key={task.id} className="ghrs-card p-5 transition-all" style={{ opacity: task.is_paused ? 0.6 : 1 }}>
-                  <div className="flex justify-between items-start mb-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: isQuran ? 'var(--ghrs-green-50)' : isDua ? 'var(--ghrs-amber-50)' : 'var(--ghrs-bg-tertiary)' }}>
-                        {task.icon ? (() => { const Icon = getIconByName(task.icon); return <Icon size={24} color="var(--ghrs-green-600)" /> })() : isQuran ? <QuranIcon size={24} color="var(--ghrs-green-600)" /> : isDua ? <SparkleIcon size={24} color="var(--ghrs-amber-600)" /> : <TasksIcon size={24} color="var(--ghrs-text-secondary)" />}
+                <div key={task.id} className="ghrs-card p-3 sm:p-5 transition-all" style={{ opacity: task.is_paused ? 0.6 : 1 }}>
+                  {/* Card Header */}
+                  <div className="flex items-start gap-3 mb-3">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex-shrink-0 flex items-center justify-center" style={{ background: isQuran ? 'var(--ghrs-green-50)' : isDua ? 'var(--ghrs-amber-50)' : 'var(--ghrs-bg-tertiary)' }}>
+                      {task.icon ? (() => { const Icon = getIconByName(task.icon); return <Icon size={20} color="var(--ghrs-green-600)" /> })() : isQuran ? <QuranIcon size={20} color="var(--ghrs-green-600)" /> : isDua ? <SparkleIcon size={20} color="var(--ghrs-amber-600)" /> : <TasksIcon size={20} color="var(--ghrs-text-secondary)" />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="font-bold text-sm sm:text-base truncate" style={{ color: 'var(--ghrs-text-primary)' }}>{task.title}</h3>
+                        {task.is_paused && <span className="px-2 py-0.5 rounded-full text-xs font-bold flex-shrink-0" style={{ background: 'var(--ghrs-bg-tertiary)', color: 'var(--ghrs-text-tertiary)' }}>موقوفة</span>}
+                        {isQuran && task.quran_action_type && (
+                          <span className="px-2 py-0.5 rounded-full text-xs font-bold flex-shrink-0" style={{ background: 'var(--ghrs-green-50)', color: 'var(--ghrs-green-700)' }}>
+                            {task.quran_action_type === 'memorize' ? 'حفظ' : 'قراءة'}
+                          </span>
+                        )}
                       </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>{task.title}</h3>
-                          {task.is_paused && <span className="px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: 'var(--ghrs-bg-tertiary)', color: 'var(--ghrs-text-tertiary)' }}>موقوفة</span>}
-                          {isQuran && task.quran_action_type && (
-                            <span className="px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: 'var(--ghrs-green-50)', color: 'var(--ghrs-green-700)' }}>
-                              {task.quran_action_type === 'memorize' ? 'حفظ' : 'قراءة'}
-                            </span>
-                          )}
-                        </div>
-                        {task.description && <p className="text-sm" style={{ color: 'var(--ghrs-text-secondary)' }}>{task.description}</p>}
-                      </div>
+                      {task.description && <p className="text-xs sm:text-sm mt-1 line-clamp-2" style={{ color: 'var(--ghrs-text-secondary)' }}>{task.description}</p>}
                     </div>
                   </div>
 
                   {/* Price & Info */}
-                  <div className="flex flex-wrap gap-3 text-sm mb-3">
+                  <div className="flex flex-wrap gap-2 sm:gap-3 text-xs sm:text-sm mb-3">
                     <span className="font-semibold" style={{ color: 'var(--ghrs-amber-600)' }}><StarIcon size={14} className="inline" /> {task.xp_reward} XP</span>
                     {task.money_reward != null && task.money_reward > 0 && <span className="font-semibold" style={{ color: 'var(--ghrs-green-600)' }}><CoinIcon size={14} className="inline" /> {fmtMoney(task.money_reward)}</span>}
                     <span style={{ color: 'var(--ghrs-text-tertiary)' }}>
@@ -594,17 +593,17 @@ export default function TasksPage() {
                     )}
                   </div>
 
-                  {/* Action Buttons */}
-                  <div className="flex gap-2">
-                    <button onClick={() => openEdit(task)} className="flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-xl text-xs font-bold transition-all" style={{ background: 'var(--ghrs-blue-50)', color: 'var(--ghrs-blue-600)' }}>
-                      <EditIcon size={14} /> تعديل
+                  {/* Action Buttons - Grid on mobile */}
+                  <div className="grid grid-cols-3 gap-2">
+                    <button onClick={() => openEdit(task)} className="flex items-center justify-center gap-1 px-2 py-2.5 rounded-xl text-xs font-bold transition-all" style={{ background: 'var(--ghrs-blue-50)', color: 'var(--ghrs-blue-600)' }}>
+                      <EditIcon size={14} /> <span className="hidden sm:inline">تعديل</span><span className="sm:hidden">تعديل</span>
                     </button>
-                    <button onClick={() => handleTogglePause(task)} className="flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-xl text-xs font-bold transition-all"
+                    <button onClick={() => handleTogglePause(task)} className="flex items-center justify-center gap-1 px-2 py-2.5 rounded-xl text-xs font-bold transition-all"
                       style={{ background: task.is_paused ? 'var(--ghrs-green-50)' : 'var(--ghrs-amber-50)', color: task.is_paused ? 'var(--ghrs-green-600)' : 'var(--ghrs-amber-600)' }}>
-                      {task.is_paused ? <><PlayIcon size={14} /> تفعيل</> : <><PauseIcon size={14} /> إيقاف</>}
+                      {task.is_paused ? <><PlayIcon size={14} /> <span>تفعيل</span></> : <><PauseIcon size={14} /> <span>إيقاف</span></>}
                     </button>
-                    <button onClick={() => setDeleteConfirm(task)} className="px-3 py-2 rounded-xl text-xs font-bold transition-all" style={{ background: 'var(--ghrs-red-50)', color: 'var(--ghrs-red-500)' }}>
-                      <DeleteIcon size={14} />
+                    <button onClick={() => setDeleteConfirm(task)} className="flex items-center justify-center gap-1 px-2 py-2.5 rounded-xl text-xs font-bold transition-all" style={{ background: 'var(--ghrs-red-50)', color: 'var(--ghrs-red-500)' }}>
+                      <DeleteIcon size={14} /> <span>حذف</span>
                     </button>
                   </div>
 
