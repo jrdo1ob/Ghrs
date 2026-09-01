@@ -58,7 +58,7 @@ export default function StoryReader({ show, title, content, storyType, storyUrl,
           >
             {/* Header */}
             <div className="p-4 flex items-center justify-between" style={{ background: 'var(--ghrs-green-500)' }}>
-              <button onClick={onClose} className="text-white text-2xl">✕</button>
+              <button onClick={onClose} className="text-white text-2xl" aria-label="إغلاق القصة">✕</button>
               <h3 className="text-lg font-bold text-white truncate px-2">📖 {title}</h3>
               <span className="text-sm text-white/80">{currentPage + 1}/{pages.length}</span>
             </div>

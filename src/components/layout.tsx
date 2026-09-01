@@ -18,7 +18,7 @@ export function ParentBottomNav() {
   ]
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden" style={{ background: 'var(--ghrs-bg-card)', borderTop: '1px solid var(--ghrs-border-default)', boxShadow: '0 -4px 12px rgba(0,0,0,0.05)' }}>
+    <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden" style={{ background: 'var(--ghrs-bg-card)', borderTop: '1px solid var(--ghrs-border-default)', boxShadow: '0 -4px 12px rgba(0,0,0,0.05)' }} aria-label="التنقل السفلي للوالد">
       <div className="flex items-center justify-around h-[var(--ghrs-nav-height)] px-2">
         {tabs.map((tab) => {
           const isActive = pathname === tab.href || (tab.href === '/dashboard' && pathname === '/')
@@ -65,7 +65,7 @@ export function ParentSidebar() {
   ]
 
   return (
-    <aside className="hidden md:flex fixed right-0 top-0 bottom-0 w-[var(--ghrs-sidebar-width)] z-40 flex-col" style={{ background: 'var(--ghrs-bg-card)', borderLeft: '1px solid var(--ghrs-border-default)' }}>
+    <aside className="hidden md:flex fixed right-0 top-0 bottom-0 w-[var(--ghrs-sidebar-width)] z-40 flex-col" style={{ background: 'var(--ghrs-bg-card)', borderLeft: '1px solid var(--ghrs-border-default)' }} aria-label="القائمة الجانبية للوالد">
       {/* Logo */}
       <div className="p-6 border-b" style={{ borderColor: 'var(--ghrs-border-default)' }}>
         <Link href="/dashboard" className="flex items-center gap-3">
@@ -78,7 +78,7 @@ export function ParentSidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+      <nav className="flex-1 p-4 space-y-1 overflow-y-auto" aria-label="روابط التنقل">
         {tabs.map((tab) => {
           const isActive = pathname === tab.href || (tab.href === '/dashboard' && pathname === '/')
           return (
@@ -111,6 +111,8 @@ export function ParentSidebar() {
                   ? 'bg-ghrs-green-100 text-ghrs-green-700'
                   : 'text-ghrs-text-secondary hover:bg-ghrs-bg-tertiary'
               }`}
+              aria-label={`切换到${option.label}主题`}
+              aria-pressed={theme === option.value}
             >
               <span>{option.icon}</span>
               <span>{option.label}</span>
@@ -135,7 +137,7 @@ export function ChildBottomNav() {
   ]
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50" style={{ background: 'var(--ghrs-bg-card)', borderTop: '1px solid var(--ghrs-border-default)', boxShadow: '0 -4px 12px rgba(0,0,0,0.05)' }}>
+    <nav className="fixed bottom-0 left-0 right-0 z-50" style={{ background: 'var(--ghrs-bg-card)', borderTop: '1px solid var(--ghrs-border-default)', boxShadow: '0 -4px 12px rgba(0,0,0,0.05)' }} aria-label="التنقل السفلي للطفل">
       <div className="flex items-center justify-around h-[var(--ghrs-nav-height)] px-2">
         {tabs.map((tab) => {
           const isActive = pathname === tab.href || (tab.href === '/child-mode' && pathname === '/child-mode')
@@ -175,7 +177,7 @@ export function PageHeader({
     <header className="mb-6">
       {backHref && (
         <Link href={backHref} className="inline-flex items-center gap-1 text-sm font-semibold mb-2" style={{ color: 'var(--ghrs-green-600)' }}>
-          <span>←</span>
+          <span>→</span>
           <span>العودة</span>
         </Link>
       )}

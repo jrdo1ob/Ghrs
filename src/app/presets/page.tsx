@@ -65,10 +65,12 @@ export default function PresetTasksPage() {
     const { data, error } = await supabase.rpc('add_preset_task', {
       p_preset_id: preset.id,
       p_family_id: user.familyId,
+      p_created_by: user.memberId,
     })
 
     if (error) {
-      setToast({ type: 'error', message: 'حدث خطأ أثناء إضافة المهمة' })
+      console.error('Add preset error:', error)
+      setToast({ type: 'error', message: 'حدث خطأ أثناء إضافة المهمة: ' + error.message })
       setAdding(null)
       return
     }

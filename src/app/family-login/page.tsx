@@ -40,19 +40,38 @@ function FamilyLoginContent() {
     setLoading(true)
     setError('')
 
-    const { data: member, error: memberError } = await supabase
-      .rpc('verify_member_pin', {
-        p_login_code: loginCode.toUpperCase(),
-        p_pin: pin,
-      })
+    // First, look up the member by login_code
+    const { data: memberLookup, error: lookupError } = await supabase
+      .from('members')
+      .select('id, family_id, role, name')
+      .eq('login_code', loginCode.toUpperCase())
+      .single()
 
-    if (memberError || !member || member.length === 0) {
-      setError('الكود أو الرمز غير صحيح')
+    if (lookupError || !memberLookup) {
+      setError('الكود غير صحيح')
       setLoading(false)
       return
     }
 
-    const memberData = member[0]
+    // Then verify the PIN
+    const { data: pinValid, error: pinError } = await supabase
+      .rpc('verify_member_pin', {
+        p_member_id: memberLookup.id,
+        p_pin: pin,
+      })
+
+    if (pinError || !pinValid) {
+      setError('الرمز غير صحيح')
+      setLoading(false)
+      return
+    }
+
+    const memberData = {
+      member_id: memberLookup.id,
+      family_id: memberLookup.family_id,
+      member_role: memberLookup.role,
+      member_name: memberLookup.name,
+    }
 
     if (memberData.member_role === 'child') {
       // Child login

@@ -130,6 +130,7 @@ export default function CelebrationModal({ show, level, levelName, levelEmoji, o
               onClick={onClose}
               className="relative px-8 py-3 rounded-xl text-lg font-bold text-white"
               style={{ background: 'var(--ghrs-green-600)' }}
+              aria-label="إغلاق والعودة للمغامرة"
             >
               أكمل المغامرة! 🚀
             </motion.button>
