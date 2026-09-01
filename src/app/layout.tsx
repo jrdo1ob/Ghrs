@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { ThemeProvider } from "@/lib/theme/provider";
+import OfflineHandler from "@/components/OfflineHandler";
+import AppDownloadBanner from "@/components/AppDownloadBanner";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -55,6 +57,8 @@ export default function RootLayout({
     <html lang="ar" dir="rtl" suppressHydrationWarning>
       <body className="antialiased min-h-screen" style={{ fontFamily: "'Cairo', sans-serif" }}>
         <ThemeProvider>
+          <OfflineHandler />
+          <AppDownloadBanner />
           {children}
         </ThemeProvider>
         <script dangerouslySetInnerHTML={{ __html: `
