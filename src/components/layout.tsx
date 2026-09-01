@@ -4,17 +4,19 @@ import React from 'react'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { useTheme, Theme } from '@/lib/theme/provider'
+import GHRSLogo from '@/components/GHRSLogo'
+import { TasksIcon, GiftsIcon, XPIcon, StreakIcon, GardenIcon } from '@/components/icons'
 
 /* ===== Parent Bottom Navigation (Mobile) ===== */
 export function ParentBottomNav() {
   const pathname = usePathname()
 
   const tabs = [
-    { href: '/dashboard', label: 'الرئيسية', icon: '🏠' },
-    { href: '/children', label: 'الأبناء', icon: '👶' },
-    { href: '/tasks', label: 'المهام', icon: '📋' },
-    { href: '/rewards', label: 'المكافآت', icon: '🎁' },
-    { href: '/settings', label: 'المزيد', icon: '⋯' },
+    { href: '/dashboard', label: 'الرئيسية', icon: <GardenIcon size={22} /> },
+    { href: '/children', label: 'الأبناء', icon: <span className="text-xl">👶</span> },
+    { href: '/tasks', label: 'المهام', icon: <TasksIcon size={22} /> },
+    { href: '/rewards', label: 'المكافآت', icon: <GiftsIcon size={22} /> },
+    { href: '/settings', label: 'المزيد', icon: <span className="text-xl">⋯</span> },
   ]
 
   return (
@@ -48,14 +50,14 @@ export function ParentSidebar() {
   const { theme, setTheme, resolvedTheme } = useTheme()
 
   const tabs = [
-    { href: '/dashboard', label: 'الرئيسية', icon: '🏠' },
-    { href: '/children', label: 'الأبناء', icon: '👶' },
-    { href: '/tasks', label: 'المهام', icon: '📋' },
-    { href: '/rewards', label: 'المكافآت', icon: '🎁' },
-    { href: '/payments', label: 'الأموال', icon: '💰' },
-    { href: '/achievements', label: 'الإنجازات', icon: '🏆' },
-    { href: '/quran', label: 'القرآن', icon: '📖' },
-    { href: '/settings', label: 'الإعدادات', icon: '⚙️' },
+    { href: '/dashboard', label: 'الرئيسية', icon: <GardenIcon size={20} /> },
+    { href: '/children', label: 'الأبناء', icon: <span className="text-xl">👶</span> },
+    { href: '/tasks', label: 'المهام', icon: <TasksIcon size={20} /> },
+    { href: '/rewards', label: 'المكافآت', icon: <GiftsIcon size={20} /> },
+    { href: '/payments', label: 'الأموال', icon: <XPIcon size={20} /> },
+    { href: '/achievements', label: 'الإنجازات', icon: <StreakIcon size={20} /> },
+    { href: '/quran', label: 'القرآن', icon: <span className="text-xl">📖</span> },
+    { href: '/settings', label: 'الإعدادات', icon: <span className="text-xl">⚙️</span> },
   ]
 
   const themeOptions: { value: Theme; label: string; icon: string }[] = [
@@ -69,7 +71,7 @@ export function ParentSidebar() {
       {/* Logo */}
       <div className="p-6 border-b" style={{ borderColor: 'var(--ghrs-border-default)' }}>
         <Link href="/dashboard" className="flex items-center gap-3">
-          <span className="text-3xl">🌱</span>
+          <GHRSLogo size={40} animate={false} />
           <div>
             <h1 className="text-xl font-bold" style={{ color: 'var(--ghrs-green-700)' }}>غرس</h1>
             <p className="text-xs" style={{ color: 'var(--ghrs-text-tertiary)' }}>ازرع العادة، واحصد الإنجاز</p>
@@ -129,11 +131,11 @@ export function ChildBottomNav() {
   const pathname = usePathname()
 
   const tabs = [
-    { href: '/child-mode', label: 'الرئيسية', icon: '🏠' },
-    { href: '/child-mode/tasks', label: 'مهامي', icon: '📋' },
-    { href: '/child-mode/garden', label: 'حديقتي', icon: '🌳' },
-    { href: '/child-mode/gifts', label: 'هداياي', icon: '🎁' },
-    { href: '/child-mode/profile', label: 'ملفي', icon: '👤' },
+    { href: '/child-mode', label: 'الرئيسية', icon: <GardenIcon size={22} /> },
+    { href: '/child-mode/tasks', label: 'مهامي', icon: <TasksIcon size={22} /> },
+    { href: '/child-mode/garden', label: 'حديقتي', icon: <GardenIcon size={22} /> },
+    { href: '/child-mode/gifts', label: 'هداياي', icon: <GiftsIcon size={22} /> },
+    { href: '/child-mode/profile', label: 'ملفي', icon: <span className="text-xl">👤</span> },
   ]
 
   return (

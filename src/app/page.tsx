@@ -2,6 +2,8 @@
 
 import Link from 'next/link'
 import { motion } from 'framer-motion'
+import GHRSLogo from '@/components/GHRSLogo'
+import { TasksIcon, GiftsIcon, XPIcon, StreakIcon, GardenIcon } from '@/components/icons'
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -49,7 +51,7 @@ export default function Home() {
             transition={{ type: 'spring', stiffness: 200, damping: 15 }}
             className="mb-6"
           >
-            <span className="text-7xl md:text-8xl inline-block">🌱</span>
+            <GHRSLogo size={96} animate={true} />
           </motion.div>
 
           {/* Title */}
