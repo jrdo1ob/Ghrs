@@ -9,7 +9,7 @@ import ConfirmDialog from '@/components/ConfirmDialog'
 import { getCurrentUser, AuthUser } from '@/lib/auth/helper'
 import { useFamilyCurrency } from '@/hooks/useFamilyCurrency'
 import { Task } from '@/lib/types'
-import { CopyIcon, BookIcon, ChildIcon, StarIcon, CoinIcon, PauseIcon, PlayIcon, EditIcon, DeleteIcon, ClockIcon, FamilyIcon, CheckIcon, RejectIcon, QuranIcon, SparkleIcon } from '@/components/icons'
+import { CopyIcon, BookIcon, ChildIcon, StarIcon, CoinIcon, PauseIcon, PlayIcon, EditIcon, DeleteIcon, ClockIcon, FamilyIcon, CheckIcon, RejectIcon, QuranIcon, SparkleIcon, TasksIcon } from '@/components/icons'
 import { JUZ_AMMA, fetchAyahRange, SurahInfo } from '@/lib/quran-api'
 
 type TaskWithCompletions = Task & { completions: any[]; pendingCount: number }
@@ -519,37 +519,51 @@ export default function TasksPage() {
               const isQuran = task.task_type === 'quran'
               const isDua = task.task_type === 'dua'
               return (
-                <div key={task.id} className="ghrs-card p-5 transition-all" style={{ opacity: task.is_paused ? 0.6 : 1, borderLeft: `4px solid ${priority.color}` }}>
-                  <div className="flex justify-between items-start mb-2">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        {isQuran && <QuranIcon size={20} color="var(--ghrs-green-600)" />}
-                        {isDua && <SparkleIcon size={20} color="var(--ghrs-amber-600)" />}
-                        <h3 className="text-lg font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>{task.title}</h3>
-                        {task.is_paused && <span className="px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: 'var(--ghrs-bg-tertiary)', color: 'var(--ghrs-text-tertiary)' }}>موقوفة</span>}
-                        {isQuran && task.quran_action_type && (
-                          <span className="px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: 'var(--ghrs-green-50)', color: 'var(--ghrs-green-700)' }}>
-                            {task.quran_action_type === 'memorize' ? 'حفظ' : 'قراءة'}
-                          </span>
-                        )}
+                <div key={task.id} className="ghrs-card p-5 transition-all" style={{ opacity: task.is_paused ? 0.6 : 1 }}>
+                  <div className="flex justify-between items-start mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: isQuran ? 'var(--ghrs-green-50)' : isDua ? 'var(--ghrs-amber-50)' : 'var(--ghrs-bg-tertiary)' }}>
+                        {isQuran ? <QuranIcon size={24} color="var(--ghrs-green-600)" /> : isDua ? <SparkleIcon size={24} color="var(--ghrs-amber-600)" /> : <TasksIcon size={24} color="var(--ghrs-text-secondary)" />}
                       </div>
-                      {task.description && <p className="text-sm mt-1" style={{ color: 'var(--ghrs-text-secondary)' }}>{task.description}</p>}
-                      <div className="flex flex-wrap gap-3 mt-2 text-sm">
-                        <span className="font-semibold" style={{ color: 'var(--ghrs-amber-600)' }}><StarIcon size={14} className="inline" /> {task.xp_reward} XP</span>
-                        {task.money_reward != null && task.money_reward > 0 && <span className="font-semibold" style={{ color: 'var(--ghrs-green-600)' }}><CoinIcon size={14} className="inline" /> {fmtMoney(task.money_reward)}</span>}
-                        <span style={{ color: 'var(--ghrs-text-tertiary)' }}>
-                          {task.frequency === 'daily' ? 'يومي' : task.frequency === 'weekly' ? 'أسبوعي' : task.frequency === 'monthly' ? 'شهري' : task.frequency === 'once' ? 'مرة واحدة' : 'مخصص'}
-                        </span>
-                        {task.assigned_to && task.assigned_to.length > 0 && (
-                          <span style={{ color: 'var(--ghrs-text-tertiary)' }}><ChildIcon size={14} className="inline" /> {task.assigned_to.map(getChildName).join(', ')}</span>
-                        )}
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>{task.title}</h3>
+                          {task.is_paused && <span className="px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: 'var(--ghrs-bg-tertiary)', color: 'var(--ghrs-text-tertiary)' }}>موقوفة</span>}
+                          {isQuran && task.quran_action_type && (
+                            <span className="px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: 'var(--ghrs-green-50)', color: 'var(--ghrs-green-700)' }}>
+                              {task.quran_action_type === 'memorize' ? 'حفظ' : 'قراءة'}
+                            </span>
+                          )}
+                        </div>
+                        {task.description && <p className="text-sm" style={{ color: 'var(--ghrs-text-secondary)' }}>{task.description}</p>}
                       </div>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <button onClick={() => openEdit(task)} title="تعديل" aria-label="تعديل المهمة" className="p-2 rounded-lg transition-all hover:bg-ghrs-bg-tertiary" style={{ color: 'var(--ghrs-blue-500)' }}><EditIcon size={18} /></button>
-                      <button onClick={() => handleTogglePause(task)} title={task.is_paused ? 'تفعيل' : 'إيقاف'} aria-label={task.is_paused ? 'تفعيل المهمة' : 'إيقاف المهمة'} className="p-2 rounded-lg transition-all hover:bg-ghrs-bg-tertiary" style={{ color: task.is_paused ? 'var(--ghrs-green-500)' : 'var(--ghrs-amber-500)' }}>{task.is_paused ? <PlayIcon size={18} /> : <PauseIcon size={18} />}</button>
-                      <button onClick={() => setDeleteConfirm(task)} title="حذف" aria-label="حذف المهمة" className="p-2 rounded-lg transition-all hover:bg-ghrs-bg-tertiary" style={{ color: 'var(--ghrs-red-500)' }}><DeleteIcon size={18} /></button>
-                    </div>
+                  </div>
+
+                  {/* Price & Info */}
+                  <div className="flex flex-wrap gap-3 text-sm mb-3">
+                    <span className="font-semibold" style={{ color: 'var(--ghrs-amber-600)' }}><StarIcon size={14} className="inline" /> {task.xp_reward} XP</span>
+                    {task.money_reward != null && task.money_reward > 0 && <span className="font-semibold" style={{ color: 'var(--ghrs-green-600)' }}><CoinIcon size={14} className="inline" /> {fmtMoney(task.money_reward)}</span>}
+                    <span style={{ color: 'var(--ghrs-text-tertiary)' }}>
+                      {task.frequency === 'daily' ? 'يومي' : task.frequency === 'weekly' ? 'أسبوعي' : task.frequency === 'monthly' ? 'شهري' : task.frequency === 'once' ? 'مرة واحدة' : 'مخصص'}
+                    </span>
+                    {task.assigned_to && task.assigned_to.length > 0 && (
+                      <span style={{ color: 'var(--ghrs-text-tertiary)' }}><ChildIcon size={14} className="inline" /> {task.assigned_to.map(getChildName).join(', ')}</span>
+                    )}
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-2">
+                    <button onClick={() => openEdit(task)} className="flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-xl text-xs font-bold transition-all" style={{ background: 'var(--ghrs-blue-50)', color: 'var(--ghrs-blue-600)' }}>
+                      <EditIcon size={14} /> تعديل
+                    </button>
+                    <button onClick={() => handleTogglePause(task)} className="flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-xl text-xs font-bold transition-all"
+                      style={{ background: task.is_paused ? 'var(--ghrs-green-50)' : 'var(--ghrs-amber-50)', color: task.is_paused ? 'var(--ghrs-green-600)' : 'var(--ghrs-amber-600)' }}>
+                      {task.is_paused ? <><PlayIcon size={14} /> تفعيل</> : <><PauseIcon size={14} /> إيقاف</>}
+                    </button>
+                    <button onClick={() => setDeleteConfirm(task)} className="px-3 py-2 rounded-xl text-xs font-bold transition-all" style={{ background: 'var(--ghrs-red-50)', color: 'var(--ghrs-red-500)' }}>
+                      <DeleteIcon size={14} />
+                    </button>
                   </div>
 
                   {/* Pending Completions */}

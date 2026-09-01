@@ -316,11 +316,11 @@ export default function ChildrenPage() {
                       </div>
                     )}
 
-                    <div className="rounded-xl p-4 mb-3" style={{ background: 'var(--ghrs-green-50)', border: '1px solid var(--ghrs-green-200)' }}>
+                    <div className="rounded-xl p-4 mb-3" style={{ background: 'var(--ghrs-bg-tertiary)', border: '1px solid var(--ghrs-border-default)' }}>
                       <p className="text-sm font-semibold mb-2" style={{ color: 'var(--ghrs-text-secondary)' }}><UserIcon size={14} className="inline" /> كود الدخول:</p>
                       <div className="flex items-center gap-3">
-                        <span className="text-2xl font-bold font-mono tracking-widest px-4 py-2 rounded-xl" style={{ background: 'var(--ghrs-bg-card)', border: '2px solid var(--ghrs-green-200)', color: 'var(--ghrs-green-700)' }}>{member.login_code}</span>
-                        <button onClick={() => copyLoginCode(member.login_code)} className="px-3 py-2 rounded-lg text-sm font-bold transition-colors" style={{ background: copiedId === member.login_code ? 'var(--ghrs-green-500)' : 'var(--ghrs-bg-card)', color: copiedId === member.login_code ? 'white' : 'var(--ghrs-green-700)', border: `1px solid ${copiedId === member.login_code ? 'var(--ghrs-green-500)' : 'var(--ghrs-green-300)'}` }}>
+                        <span className="text-2xl font-bold font-mono tracking-widest px-4 py-2 rounded-xl" style={{ background: 'var(--ghrs-bg-card)', border: '2px solid var(--ghrs-border-default)', color: 'var(--ghrs-green-600)' }}>{member.login_code}</span>
+                        <button onClick={() => copyLoginCode(member.login_code)} className="px-3 py-2 rounded-lg text-sm font-bold transition-colors" style={{ background: copiedId === member.login_code ? 'var(--ghrs-green-500)' : 'var(--ghrs-bg-card)', color: copiedId === member.login_code ? 'white' : 'var(--ghrs-green-600)', border: `1px solid ${copiedId === member.login_code ? 'var(--ghrs-green-500)' : 'var(--ghrs-border-default)'}` }}>
                           {copiedId === member.login_code ? <><CheckIcon size={12} className="inline" /> تم</> : <><CopyIcon size={12} className="inline" /> نسخ</>}
                         </button>
                       </div>
