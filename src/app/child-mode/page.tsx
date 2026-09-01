@@ -8,7 +8,7 @@ import { ChildBottomNav, EmptyState, Toast } from '@/components/layout'
 import { useFamilyCurrency } from '@/hooks/useFamilyCurrency'
 import { LEVELS, getLevel, getNextLevel, Level } from '@/lib/gamification'
 import CelebrationModal from '@/components/CelebrationModal'
-import { CopyIcon, StarIcon, CoinIcon, ClockIcon, CheckIcon, LeafIcon, FireIcon, PartyIcon } from '@/components/icons'
+import { CopyIcon, StarIcon, CoinIcon, ClockIcon, CheckIcon, LeafIcon, FireIcon, PartyIcon, TrophyIcon, ShieldIcon } from '@/components/icons'
 
 export default function ChildModePage() {
   const [tasks, setTasks] = useState<any[]>([])
@@ -19,6 +19,7 @@ export default function ChildModePage() {
   const [pendingToday, setPendingToday] = useState<string[]>([])
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
   const [streak, setStreak] = useState(0)
+  const [moneyBalance, setMoneyBalance] = useState(0)
   const [completingTask, setCompletingTask] = useState<string | null>(null)
   const [showCelebration, setShowCelebration] = useState(false)
   const [celebrationLevel, setCelebrationLevel] = useState<Level | null>(null)
@@ -67,6 +68,16 @@ export default function ChildModePage() {
 
       const totalXp = xpData?.reduce((sum, t) => sum + t.amount, 0) || 0
       setXp(totalXp)
+
+      // Get money balance
+      const { data: moneyData } = await supabase
+        .from('money_transactions')
+        .select('amount, type')
+        .eq('member_id', childId)
+        .eq('status', 'approved')
+
+      const totalMoney = moneyData?.reduce((sum, t) => sum + (t.type === 'earned' ? t.amount : -t.amount), 0) || 0
+      setMoneyBalance(totalMoney)
 
       // Get today's completions
       const today = new Date().toISOString().split('T')[0]
@@ -218,6 +229,31 @@ export default function ChildModePage() {
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full" style={{ background: 'var(--ghrs-green-50)', border: '1px solid var(--ghrs-green-200)' }}>
               <span className="text-lg">{level.emoji}</span>
               <span className="font-bold" style={{ color: 'var(--ghrs-green-700)' }}>المستوى {level.level}: {level.name}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Balance Card */}
+        <div className="ghrs-card p-5 mb-6" style={{ background: 'linear-gradient(135deg, var(--ghrs-green-50), var(--ghrs-amber-50))', border: '2px solid var(--ghrs-green-200)' }}>
+          <h2 className="text-sm font-bold mb-3" style={{ color: 'var(--ghrs-text-secondary)' }}>رصيدي</h2>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: 'var(--ghrs-amber-100)' }}>
+                <StarIcon size={24} color="var(--ghrs-amber-600)" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold" style={{ color: 'var(--ghrs-amber-600)' }}>{xp}</p>
+                <p className="text-xs font-semibold" style={{ color: 'var(--ghrs-text-secondary)' }}>نقطة XP</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: 'var(--ghrs-green-100)' }}>
+                <CoinIcon size={24} color="var(--ghrs-green-600)" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold" style={{ color: 'var(--ghrs-green-600)' }}>{fmtMoney(moneyBalance)}</p>
+                <p className="text-xs font-semibold" style={{ color: 'var(--ghrs-text-secondary)' }}>رصيد مالي</p>
+              </div>
             </div>
           </div>
         </div>

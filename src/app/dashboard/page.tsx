@@ -262,6 +262,14 @@ export default function DashboardPage() {
                 </div>
               </Link>
 
+              <Link href="/ledger" className="ghrs-card p-5 ghrs-card-interactive">
+                <div className="text-center">
+                  <span className="text-3xl">💰</span>
+                  <p className="font-bold mt-2" style={{ color: 'var(--ghrs-text-primary)' }}>سجل المعاملات</p>
+                  <p className="text-xs" style={{ color: 'var(--ghrs-text-secondary)' }}>حركة النقاط والأموال</p>
+                </div>
+              </Link>
+
               <Link href="/quran" className="ghrs-card p-5 ghrs-card-interactive">
                 <div className="text-center">
                   <span className="text-3xl">📖</span>

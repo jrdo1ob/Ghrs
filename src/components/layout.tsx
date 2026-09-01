@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { useTheme, Theme } from '@/lib/theme/provider'
 import GHRSLogo from '@/components/GHRSLogo'
-import { TasksIcon, GiftsIcon, XPIcon, StreakIcon, GardenIcon, ChildIcon, BookIcon, CopyIcon, SettingsIcon, CheckIcon, RejectIcon, UserIcon, SparkleIcon } from '@/components/icons'
+import { TasksIcon, GiftsIcon, XPIcon, StreakIcon, GardenIcon, ChildIcon, BookIcon, CopyIcon, SettingsIcon, CheckIcon, RejectIcon, UserIcon, SparkleIcon, CoinIcon } from '@/components/icons'
 
 /* ===== Parent Bottom Navigation (Mobile) ===== */
 export function ParentBottomNav() {
@@ -54,6 +54,7 @@ export function ParentSidebar() {
     { href: '/children', label: 'الأبناء', icon: <ChildIcon size={20} /> },
     { href: '/tasks', label: 'المهام', icon: <TasksIcon size={20} /> },
     { href: '/rewards', label: 'المكافآت', icon: <GiftsIcon size={20} /> },
+    { href: '/ledger', label: 'سجل المعاملات', icon: <CoinIcon size={20} /> },
     { href: '/payments', label: 'الأموال', icon: <XPIcon size={20} /> },
     { href: '/achievements', label: 'الإنجازات', icon: <StreakIcon size={20} /> },
     { href: '/quran', label: 'القرآن', icon: <BookIcon size={20} /> },
