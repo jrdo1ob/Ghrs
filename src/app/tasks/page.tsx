@@ -286,7 +286,7 @@ export default function TasksPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen" style={{ background: 'var(--ghrs-bg-primary)' }}>
+    <div className="min-h-screen overflow-x-hidden" style={{ background: 'var(--ghrs-bg-primary)' }}>
         <ParentSidebar />
         <div className="md:mr-[var(--ghrs-sidebar-width)] pb-24 md:pb-8 p-4 md:p-8">
           <div className="max-w-4xl mx-auto"><div className="space-y-4"><Skeleton className="h-32 w-full" /><Skeleton className="h-32 w-full" /></div></div>
@@ -303,15 +303,21 @@ export default function TasksPage() {
         <ConfirmDialog show={!!deleteConfirm} title="حذف المهمة" message={`هل أنت متأكد من حذف "${deleteConfirm.title}"؟`} confirmText="حذف" cancelText="إلغاء" variant="danger" onConfirm={handleDeleteTask} onCancel={() => setDeleteConfirm(null)} />
       )}
       <ParentSidebar />
-      <div className="md:mr-[var(--ghrs-sidebar-width)] pb-24 md:pb-8">
+      <div className="md:mr-[var(--ghrs-sidebar-width)] pb-24 md:pb-8 overflow-x-hidden">
         <div className="p-4 md:p-8 max-w-4xl mx-auto">
-          <PageHeader title="إدارة المهام" subtitle="إنشاء وتعديل وحذف المهام" backHref="/dashboard" action={
-            <div className="flex gap-2">
-              <Link href="/presets" className="ghrs-btn-secondary text-sm"><CopyIcon size={16} className="inline" /> بنك المهام</Link>
-              <Link href="/stories" className="ghrs-btn-secondary text-sm"><BookIcon size={16} className="inline" /> القصص</Link>
-              <button onClick={openAdd} className="ghrs-btn-primary">+ إضافة مهمة</button>
+          {/* Header */}
+          <div className="mb-6">
+            <div className="flex items-center gap-2 mb-2">
+              <Link href="/dashboard" className="text-sm font-semibold" style={{ color: 'var(--ghrs-green-600)' }}>← العودة</Link>
             </div>
-          } />
+            <h1 className="text-2xl md:text-3xl font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>إدارة المهام</h1>
+            <p className="text-sm" style={{ color: 'var(--ghrs-text-secondary)' }}>إنشاء وتعديل وحذف المهام</p>
+            <div className="flex flex-wrap gap-2 mt-3">
+              <Link href="/presets" className="ghrs-btn-secondary text-sm flex-1 min-w-0 justify-center"><CopyIcon size={16} className="inline" /> بنك المهام</Link>
+              <Link href="/stories" className="ghrs-btn-secondary text-sm flex-1 min-w-0 justify-center"><BookIcon size={16} className="inline" /> القصص</Link>
+              <button onClick={openAdd} className="ghrs-btn-primary text-sm flex-1 min-w-0 justify-center">+ إضافة مهمة</button>
+            </div>
+          </div>
 
           {/* Tabs */}
           <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
