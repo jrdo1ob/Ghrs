@@ -66,6 +66,7 @@ export interface Task {
   to_ayah?: number | null
   custom_title?: string | null
   custom_content_text?: string | null
+  icon?: string | null
 }
 
 export interface TaskCompletion {
@@ -121,6 +122,7 @@ export interface Gift {
   is_active: boolean
   created_by: string
   created_at: string
+  icon?: string | null
 }
 
 export interface GiftRedemption {
