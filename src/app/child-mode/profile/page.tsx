@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { ChildBottomNav } from '@/components/layout'
 import { LEVELS, getLevel, Level } from '@/lib/gamification'
+import { StarIcon, FireIcon, CheckIcon, TasksIcon, LeafIcon } from '@/components/icons'
 
 export default function ChildProfilePage() {
   const [member, setMember] = useState<any>(null)
@@ -106,22 +107,30 @@ export default function ChildProfilePage() {
         {/* Stats */}
         <div className="grid grid-cols-2 gap-4 mb-6">
           <div className="ghrs-card p-5 text-center">
-            <div className="text-3xl mb-2">⭐</div>
+            <div className="w-12 h-12 rounded-full mx-auto mb-2 flex items-center justify-center" style={{ background: 'var(--ghrs-amber-50)' }}>
+              <StarIcon size={24} color="var(--ghrs-amber-600)" />
+            </div>
             <p className="text-2xl font-bold" style={{ color: 'var(--ghrs-amber-600)' }}>{xp}</p>
             <p className="text-xs" style={{ color: 'var(--ghrs-text-secondary)' }}>نقاط الخبرة</p>
           </div>
           <div className="ghrs-card p-5 text-center">
-            <div className="text-3xl mb-2">🔥</div>
+            <div className="w-12 h-12 rounded-full mx-auto mb-2 flex items-center justify-center" style={{ background: 'var(--ghrs-red-50)' }}>
+              <FireIcon size={24} color="var(--ghrs-red-500)" />
+            </div>
             <p className="text-2xl font-bold" style={{ color: 'var(--ghrs-red-500)' }}>{streak}</p>
             <p className="text-xs" style={{ color: 'var(--ghrs-text-secondary)' }}>أيام متتالية</p>
           </div>
           <div className="ghrs-card p-5 text-center">
-            <div className="text-3xl mb-2">✅</div>
+            <div className="w-12 h-12 rounded-full mx-auto mb-2 flex items-center justify-center" style={{ background: 'var(--ghrs-green-50)' }}>
+              <CheckIcon size={24} color="var(--ghrs-green-600)" />
+            </div>
             <p className="text-2xl font-bold" style={{ color: 'var(--ghrs-green-600)' }}>{completedTasks}</p>
             <p className="text-xs" style={{ color: 'var(--ghrs-text-secondary)' }}>مهام مكتملة</p>
           </div>
           <div className="ghrs-card p-5 text-center">
-            <div className="text-3xl mb-2">📋</div>
+            <div className="w-12 h-12 rounded-full mx-auto mb-2 flex items-center justify-center" style={{ background: 'var(--ghrs-blue-50)' }}>
+              <TasksIcon size={24} color="var(--ghrs-blue-600)" />
+            </div>
             <p className="text-2xl font-bold" style={{ color: 'var(--ghrs-blue-600)' }}>{totalTasks}</p>
             <p className="text-xs" style={{ color: 'var(--ghrs-text-secondary)' }}>مهام نشطة</p>
           </div>
