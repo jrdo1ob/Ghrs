@@ -43,13 +43,22 @@ export interface Task {
   title: string
   description: string | null
   assigned_to: string[] | null
-  frequency: 'daily' | 'weekly' | 'monthly' | 'custom'
+  frequency: 'daily' | 'weekly' | 'monthly' | 'custom' | 'once'
   xp_reward: number
   money_reward: number | null
   requires_approval: boolean
   is_active: boolean
   created_by: string
   created_at: string
+  is_deleted?: boolean
+  deleted_at?: string | null
+  story_content?: string | null
+  story_type?: string | null
+  story_url?: string | null
+  is_bonus?: boolean
+  priority?: 'high' | 'medium' | 'low'
+  schedule_days?: number[] | null
+  is_paused?: boolean
 }
 
 export interface TaskCompletion {
@@ -137,5 +146,30 @@ export interface QuranProgress {
   surah: number
   ayah: number
   completed_at: string
+  created_at: string
+}
+
+export interface Story {
+  id: string
+  family_id: string
+  title: string
+  content: string
+  moral_value: string | null
+  reward_xp: number
+  assigned_to: string | null
+  is_preset: boolean
+  is_active: boolean
+  created_by: string | null
+  created_at: string
+}
+
+export interface PresetStory {
+  id: string
+  title: string
+  content: string
+  moral_value: string
+  category: string
+  icon: string
+  sort_order: number
   created_at: string
 }

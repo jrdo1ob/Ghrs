@@ -5,6 +5,13 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { ChildBottomNav, EmptyState, Toast } from '@/components/layout'
 import { useFamilyCurrency } from '@/hooks/useFamilyCurrency'
+import ParticleEffects from '@/components/ParticleEffects'
+
+const PRIORITY_MAP: Record<string, { emoji: string; color: string; label: string }> = {
+  high: { emoji: '🔴', color: 'var(--ghrs-red-500)', label: 'عالية' },
+  medium: { emoji: '🟡', color: 'var(--ghrs-amber-500)', label: 'متوسطة' },
+  low: { emoji: '🟢', color: 'var(--ghrs-green-500)', label: 'منخفضة' },
+}
 
 export default function ChildTasksPage() {
   const [tasks, setTasks] = useState<any[]>([])
@@ -13,70 +20,60 @@ export default function ChildTasksPage() {
   const [pendingToday, setPendingToday] = useState<string[]>([])
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
   const [completingTask, setCompletingTask] = useState<string | null>(null)
+  const [showConfetti, setShowConfetti] = useState(false)
+  const [childId, setChildId] = useState<string | null>(null)
+  const [childName, setChildName] = useState('')
   const router = useRouter()
   const supabase = createClient()
   const { format: fmtMoney } = useFamilyCurrency()
 
   useEffect(() => {
     const getData = async () => {
-      const childId = localStorage.getItem('child_id')
-      if (!childId) {
-        router.push('/family-login')
-        return
-      }
+      const storedId = localStorage.getItem('child_id')
+      if (!storedId) { router.push('/family-login'); return }
+      setChildId(storedId)
 
-      const { data: memberData } = await supabase
-        .from('members')
-        .select('*')
-        .eq('id', childId)
-        .single()
+      const { data: memberData } = await supabase.from('members').select('*').eq('id', storedId).single()
+      if (!memberData || memberData.role !== 'child') { router.push('/family-login'); return }
+      setChildName(memberData.name)
 
-      if (!memberData || memberData.role !== 'child') {
-        router.push('/family-login')
-        return
-      }
-
+      // Get tasks assigned to this child OR assigned to everyone (assigned_to IS NULL)
       const { data: tasksData } = await supabase
         .from('tasks')
         .select('*')
         .eq('family_id', memberData.family_id)
         .eq('is_active', true)
+        .eq('is_deleted', false)
+        .eq('is_paused', false)
+        .or(`assigned_to.is.null,assigned_to.cs.{${storedId}}`)
 
-      setTasks(tasksData || [])
+      // Sort by priority: high > medium > low
+      const priorityOrder: Record<string, number> = { high: 0, medium: 1, low: 2 }
+      const sorted = (tasksData || []).sort((a, b) => (priorityOrder[a.priority || 'medium'] || 1) - (priorityOrder[b.priority || 'medium'] || 1))
+      setTasks(sorted)
 
       const today = new Date().toISOString().split('T')[0]
       const { data: completions } = await supabase
         .from('task_completions')
         .select('task_id, approved')
-        .eq('member_id', childId)
+        .eq('member_id', storedId)
         .gte('completed_at', today)
 
-      const completedIds = completions?.filter(c => c.approved).map(c => c.task_id) || []
-      const pendingIds = completions?.filter(c => !c.approved).map(c => c.task_id) || []
-
-      setCompletedToday(completedIds)
-      setPendingToday(pendingIds)
+      setCompletedToday(completions?.filter(c => c.approved === true).map(c => c.task_id) || [])
+      setPendingToday(completions?.filter(c => c.approved === null || c.approved === false).map(c => c.task_id) || [])
       setLoading(false)
     }
-
     getData()
   }, [])
 
   const handleCompleteTask = async (taskId: string) => {
-    const childId = localStorage.getItem('child_id')
     if (!childId || completingTask) return
-
     setCompletingTask(taskId)
 
-    const { error } = await supabase.rpc('complete_task_with_rewards', {
-      p_task_id: taskId,
-      p_member_id: childId
-    })
-
+    const { error } = await supabase.rpc('complete_task_with_rewards', { p_task_id: taskId, p_member_id: childId })
     if (error) {
       setToast({ type: 'error', message: 'حدث خطأ أثناء إنجاز المهمة' })
-      setCompletingTask(null)
-      return
+      setCompletingTask(null); return
     }
 
     const task = tasks.find(t => t.id === taskId)
@@ -84,13 +81,20 @@ export default function ChildTasksPage() {
 
     setPendingToday([...pendingToday, taskId])
     setCompletingTask(null)
-    setToast({ 
-      type: 'success', 
-      message: needsApproval 
-        ? 'تم إنجاز المهمة! بانتظار موافقة الوالد ⏳' 
-        : 'تم إنجاز المهمة وحصلت على المكافآت! 🎉' 
+
+    if (!needsApproval) {
+      setShowConfetti(true)
+      setTimeout(() => setShowConfetti(false), 2500)
+    }
+
+    setToast({
+      type: 'success',
+      message: needsApproval ? 'تم إنجاز المهمة! بانتظار موافقة الوالد ⏳' : 'تم إنجاز المهمة وحصلت على المكافآت! 🎉'
     })
   }
+
+  const isCompletedToday = (taskId: string) => completedToday.includes(taskId)
+  const isPendingToday = (taskId: string) => pendingToday.includes(taskId)
 
   if (loading) {
     return (
@@ -105,71 +109,61 @@ export default function ChildTasksPage() {
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--ghrs-bg-primary)' }}>
-      {toast && (
-        <Toast
-          type={toast.type}
-          message={toast.message}
-          onClose={() => setToast(null)}
-        />
-      )}
+      {toast && <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />}
+      <ParticleEffects active={showConfetti} />
 
       <div className="p-4 md:p-8 max-w-2xl mx-auto pb-32">
-        <h1 className="text-2xl font-bold mb-6" style={{ color: 'var(--ghrs-text-primary)' }}>📋 مهامي</h1>
+        <h1 className="text-2xl font-bold mb-2" style={{ color: 'var(--ghrs-text-primary)' }}>📋 مهامي</h1>
+        {childName && <p className="text-sm mb-6" style={{ color: 'var(--ghrs-text-secondary)' }}>مرحباً {childName}! أكمل مهامك اليومية</p>}
 
         {tasks.length === 0 ? (
-          <EmptyState
-            icon="🎉"
-            title="ما في مهام"
-            description="استرح وتمتّع بيومك!"
-          />
+          <EmptyState icon="🎉" title="ما في مهام" description="استرح وتمتّع بيومك!" />
         ) : (
           <div className="space-y-3">
             {tasks.map((task) => {
-              const isCompleted = completedToday.includes(task.id)
-              const isPending = pendingToday.includes(task.id)
+              const completed = isCompletedToday(task.id)
+              const pending = isPendingToday(task.id)
+              const priority = PRIORITY_MAP[task.priority || 'medium'] || PRIORITY_MAP.medium
 
               return (
-                <div
-                  key={task.id}
-                  className="ghrs-card p-4 transition-all"
-                  style={{
-                    border: `1px solid ${isCompleted ? 'var(--ghrs-green-200)' : isPending ? 'var(--ghrs-amber-200)' : 'var(--ghrs-border-default)'}`
-                  }}
-                >
+                <div key={task.id} className="ghrs-card p-4 transition-all" style={{
+                  borderRight: `4px solid ${priority.color}`,
+                  opacity: completed ? 0.7 : 1,
+                }}>
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
-                      <h3 className="font-bold" style={{
-                        color: isCompleted ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-primary)',
-                        textDecoration: isCompleted ? 'line-through' : 'none'
-                      }}>
-                        {task.title}
-                      </h3>
-                      <div className="flex items-center gap-3 mt-1">
-                        <span className="text-xs font-semibold" style={{ color: 'var(--ghrs-amber-600)' }}>
-                          ⭐ {task.xp_reward} XP
-                        </span>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-sm">{priority.emoji}</span>
+                        <h3 className="font-bold" style={{
+                          color: completed ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-primary)',
+                          textDecoration: completed ? 'line-through' : 'none'
+                        }}>
+                          {task.title}
+                        </h3>
+                      </div>
+                      {task.description && <p className="text-xs mb-2" style={{ color: 'var(--ghrs-text-tertiary)' }}>{task.description}</p>}
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs font-semibold" style={{ color: 'var(--ghrs-amber-600)' }}>⭐ {task.xp_reward} XP</span>
                         {task.money_reward > 0 && (
-                          <span className="text-xs font-semibold" style={{ color: 'var(--ghrs-green-600)' }}>
-                            💰 {fmtMoney(task.money_reward)}
-                          </span>
+                          <span className="text-xs font-semibold" style={{ color: 'var(--ghrs-green-600)' }}>💰 {fmtMoney(task.money_reward)}</span>
                         )}
                         <span className="text-xs" style={{ color: 'var(--ghrs-text-tertiary)' }}>
-                          {task.frequency === 'daily' ? 'يومي' : task.frequency === 'weekly' ? 'أسبوعي' : task.frequency === 'monthly' ? 'شهري' : 'مخصص'}
+                          {task.frequency === 'daily' ? 'يومي' : task.frequency === 'weekly' ? 'أسبوعي' : task.frequency === 'monthly' ? 'شهري' : task.frequency === 'once' ? 'مرة واحدة' : 'مخصص'}
                         </span>
                       </div>
                     </div>
 
                     <button
                       onClick={() => handleCompleteTask(task.id)}
-                      disabled={isCompleted || isPending || completingTask === task.id}
+                      disabled={completed || pending || completingTask === task.id}
                       className="px-4 py-2 rounded-xl text-sm font-bold transition-all"
                       style={{
-                        background: isCompleted ? 'var(--ghrs-green-500)' : isPending ? 'var(--ghrs-amber-500)' : 'var(--ghrs-green-600)',
+                        background: completed ? 'var(--ghrs-green-500)' : pending ? 'var(--ghrs-amber-500)' : 'var(--ghrs-green-600)',
                         color: 'white',
-                        opacity: isCompleted || isPending || completingTask === task.id ? 0.8 : 1
+                        opacity: completed || pending || completingTask === task.id ? 0.8 : 1
                       }}
                     >
-                      {isCompleted ? '✓ تم' : isPending ? '⏳ بانتظار' : completingTask === task.id ? '⏳ جاري...' : 'أنجزت!'}
+                      {completed ? '✓ تم' : pending ? '⏳ بانتظار' : completingTask === task.id ? '⏳...' : 'أنجزت!'}
                     </button>
                   </div>
                 </div>
