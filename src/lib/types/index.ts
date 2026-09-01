@@ -59,6 +59,13 @@ export interface Task {
   priority?: 'high' | 'medium' | 'low'
   schedule_days?: number[] | null
   is_paused?: boolean
+  task_type?: 'standard' | 'quran' | 'dua'
+  quran_action_type?: 'read' | 'memorize'
+  surah_number?: number | null
+  from_ayah?: number | null
+  to_ayah?: number | null
+  custom_title?: string | null
+  custom_content_text?: string | null
 }
 
 export interface TaskCompletion {

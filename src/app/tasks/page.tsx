@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -9,7 +9,8 @@ import ConfirmDialog from '@/components/ConfirmDialog'
 import { getCurrentUser, AuthUser } from '@/lib/auth/helper'
 import { useFamilyCurrency } from '@/hooks/useFamilyCurrency'
 import { Task } from '@/lib/types'
-import { CopyIcon, BookIcon, ChildIcon, StarIcon, CoinIcon, PauseIcon, PlayIcon, EditIcon, DeleteIcon, ClockIcon, FamilyIcon, CheckIcon, RejectIcon } from '@/components/icons'
+import { CopyIcon, BookIcon, ChildIcon, StarIcon, CoinIcon, PauseIcon, PlayIcon, EditIcon, DeleteIcon, ClockIcon, FamilyIcon, CheckIcon, RejectIcon, QuranIcon, SparkleIcon } from '@/components/icons'
+import { JUZ_AMMA, fetchAyahRange, SurahInfo } from '@/lib/quran-api'
 
 type TaskWithCompletions = Task & { completions: any[]; pendingCount: number }
 
@@ -29,10 +30,25 @@ const PRIORITY_OPTIONS = [
   { value: 'low', label: 'منخفضة', emoji: '🟢', color: 'var(--ghrs-green-500)' },
 ]
 
+const TASK_TYPES = [
+  { value: 'standard', label: 'مهمة عادية', icon: <CopyIcon size={20} /> },
+  { value: 'quran', label: 'قراءة/حفظ قرآن', icon: <QuranIcon size={20} /> },
+  { value: 'dua', label: 'دعاء/ذكر', icon: <SparkleIcon size={20} /> },
+]
+
+const QURAN_ACTIONS = [
+  { value: 'read', label: 'قراءة', icon: <BookIcon size={18} /> },
+  { value: 'memorize', label: 'حفظ', icon: <QuranIcon size={18} /> },
+]
+
 const emptyTask = {
   title: '', description: '', xp_reward: 10, money_reward: 0,
   frequency: 'daily', priority: 'medium', assigned_to: [] as string[],
   schedule_days: [] as number[], requires_approval: true,
+  task_type: 'standard' as 'standard' | 'quran' | 'dua',
+  quran_action_type: '' as '' | 'read' | 'memorize',
+  surah_number: 0, from_ayah: 1, to_ayah: 1,
+  custom_title: '', custom_content_text: '',
 }
 
 export default function TasksPage() {
@@ -48,6 +64,8 @@ export default function TasksPage() {
   const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'completed' | 'paused'>('all')
   const [deleteConfirm, setDeleteConfirm] = useState<TaskWithCompletions | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
+  const [fetchingQuran, setFetchingQuran] = useState(false)
+  const [quranPreview, setQuranPreview] = useState('')
   const router = useRouter()
   const supabase = createClient()
   const { format: fmtMoney, symbol: currencySymbol } = useFamilyCurrency()
@@ -79,19 +97,48 @@ export default function TasksPage() {
     init()
   }, [])
 
+  // Fetch Quran text when surah/ayah selection changes
+  const fetchQuranPreview = useCallback(async () => {
+    if (formData.task_type !== 'quran' || !formData.surah_number || !formData.quran_action_type) {
+      setQuranPreview('')
+      return
+    }
+    setFetchingQuran(true)
+    try {
+      const from = formData.from_ayah || 1
+      const to = formData.to_ayah || 1
+      const result = await fetchAyahRange(formData.surah_number, from, to)
+      setQuranPreview(result.text)
+      const surahInfo = JUZ_AMMA.find(s => s.number === formData.surah_number)
+      if (!formData.custom_title && surahInfo) {
+        setFormData(prev => ({ ...prev, custom_title: `سورة ${surahInfo.name}` }))
+      }
+    } catch (e) {
+      setQuranPreview('')
+    } finally {
+      setFetchingQuran(false)
+    }
+  }, [formData.task_type, formData.surah_number, formData.quran_action_type, formData.from_ayah, formData.to_ayah])
+
+  useEffect(() => {
+    const timer = setTimeout(fetchQuranPreview, 500)
+    return () => clearTimeout(timer)
+  }, [fetchQuranPreview])
+
   const openAdd = () => { setEditingTask(null); setFormData(emptyTask); setShowAdd(true); setError('') }
   const openEdit = (task: TaskWithCompletions) => {
     setEditingTask(task)
     setFormData({
-      title: task.title,
-      description: task.description || '',
-      xp_reward: task.xp_reward,
-      money_reward: task.money_reward || 0,
-      frequency: task.frequency,
-      priority: task.priority || 'medium',
-      assigned_to: task.assigned_to || [],
-      schedule_days: task.schedule_days || [],
+      title: task.title, description: task.description || '',
+      xp_reward: task.xp_reward, money_reward: task.money_reward || 0,
+      frequency: task.frequency, priority: task.priority || 'medium',
+      assigned_to: task.assigned_to || [], schedule_days: task.schedule_days || [],
       requires_approval: task.requires_approval,
+      task_type: task.task_type || 'standard',
+      quran_action_type: task.quran_action_type || '',
+      surah_number: task.surah_number || 0,
+      from_ayah: task.from_ayah || 1, to_ayah: task.to_ayah || 1,
+      custom_title: task.custom_title || '', custom_content_text: task.custom_content_text || '',
     })
     setShowAdd(true); setError('')
   }
@@ -102,44 +149,65 @@ export default function TasksPage() {
     if (!authUser) return
     if (!formData.title.trim()) { setError('اسم المهمة مطلوب'); return }
 
+    // For quran tasks, validate surah selection
+    if (formData.task_type === 'quran' && formData.surah_number && !formData.quran_action_type) {
+      setError('اختر قراءة أو حفظ'); return
+    }
+
+    const title = formData.task_type !== 'standard'
+      ? `${formData.quran_action_type === 'memorize' ? 'حفظ' : 'قراءة'}: ${formData.custom_title || formData.title}`
+      : formData.title
+
+    const taskData = {
+      family_id: authUser.familyId, title,
+      description: formData.description || null,
+      xp_reward: formData.xp_reward, money_reward: formData.money_reward || null,
+      frequency: formData.frequency, priority: formData.priority,
+      assigned_to: formData.assigned_to.length > 0 ? formData.assigned_to : null,
+      schedule_days: formData.schedule_days.length > 0 ? formData.schedule_days : null,
+      requires_approval: formData.requires_approval,
+      is_active: true, created_by: authUser.memberId,
+      task_type: formData.task_type,
+      quran_action_type: formData.quran_action_type || null,
+      surah_number: formData.surah_number || null,
+      from_ayah: formData.from_ayah || null,
+      to_ayah: formData.to_ayah || null,
+      custom_title: formData.custom_title || null,
+      custom_content_text: formData.custom_content_text || quranPreview || null,
+    }
+
     if (editingTask) {
       const { error: rpcError } = await supabase.rpc('update_task', {
-        p_task_id: editingTask.id,
-        p_title: formData.title,
-        p_description: formData.description || null,
-        p_xp_reward: formData.xp_reward,
+        p_task_id: editingTask.id, p_title: title,
+        p_description: taskData.description, p_xp_reward: formData.xp_reward,
         p_money_reward: formData.money_reward || null,
-        p_frequency: formData.frequency,
-        p_priority: formData.priority,
-        p_schedule_days: formData.schedule_days.length > 0 ? formData.schedule_days : null,
-        p_assigned_to: formData.assigned_to.length > 0 ? formData.assigned_to : null,
+        p_frequency: formData.frequency, p_priority: formData.priority,
+        p_schedule_days: taskData.schedule_days, p_assigned_to: taskData.assigned_to,
         p_requires_approval: formData.requires_approval,
       })
       if (rpcError) { setError(rpcError.message); return }
 
+      // Update quran fields directly
+      await supabase.from('tasks').update({
+        task_type: formData.task_type, quran_action_type: formData.quran_action_type || null,
+        surah_number: formData.surah_number || null, from_ayah: formData.from_ayah || null,
+        to_ayah: formData.to_ayah || null, custom_title: formData.custom_title || null,
+        custom_content_text: formData.custom_content_text || quranPreview || null,
+      }).eq('id', editingTask.id)
+
       setTasks(tasks.map(t => t.id === editingTask.id ? {
-        ...t, ...formData, money_reward: formData.money_reward || null,
-        frequency: formData.frequency as Task['frequency'],
+        ...t, ...taskData, frequency: formData.frequency as Task['frequency'],
         priority: formData.priority as Task['priority'],
-      } : t))
+        completions: t.completions, pendingCount: t.pendingCount
+      } : t) as TaskWithCompletions[])
       setToast({ type: 'success', message: 'تم تعديل المهمة بنجاح!' })
     } else {
-      const { data: task, error: insertError } = await supabase.from('tasks').insert({
-        family_id: authUser.familyId, title: formData.title,
-        description: formData.description || null,
-        xp_reward: formData.xp_reward, money_reward: formData.money_reward || null,
-        frequency: formData.frequency, priority: formData.priority,
-        assigned_to: formData.assigned_to.length > 0 ? formData.assigned_to : null,
-        schedule_days: formData.schedule_days.length > 0 ? formData.schedule_days : null,
-        requires_approval: formData.requires_approval,
-        is_active: true, created_by: authUser.memberId,
-      }).select().single()
-
+      const { data: task, error: insertError } = await supabase.from('tasks').insert(taskData).select().single()
       if (insertError) { setError(insertError.message); return }
       setTasks([{ ...task, completions: [], pendingCount: 0 } as TaskWithCompletions, ...tasks])
       setToast({ type: 'success', message: 'تم إضافة المهمة بنجاح!' })
     }
-    setShowAdd(false); setEditingTask(null); setFormData(emptyTask)
+    setShowAdd(false); setEditingTask(null); setFormData(emptyTask); setQuranPreview('')
   }
 
   const handleDeleteTask = async () => {
@@ -210,6 +278,8 @@ export default function TasksPage() {
   const priorityOrder = { high: 0, medium: 1, low: 2 }
   const sortedTasks = [...filteredTasks].sort((a, b) => (priorityOrder[a.priority || 'medium'] || 1) - (priorityOrder[b.priority || 'medium'] || 1))
 
+  const selectedSurah = JUZ_AMMA.find(s => s.number === formData.surah_number)
+
   if (loading) {
     return (
       <div className="min-h-screen" style={{ background: 'var(--ghrs-bg-primary)' }}>
@@ -226,16 +296,7 @@ export default function TasksPage() {
     <div className="min-h-screen" style={{ background: 'var(--ghrs-bg-primary)' }}>
       {toast && <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />}
       {deleteConfirm && (
-        <ConfirmDialog
-          show={!!deleteConfirm}
-          title="حذف المهمة"
-          message={`هل أنت متأكد من حذف "${deleteConfirm.title}"؟ لن تُحذف سجلات النقاط القديمة.`}
-          confirmText="حذف"
-          cancelText="إلغاء"
-          variant="danger"
-          onConfirm={handleDeleteTask}
-          onCancel={() => setDeleteConfirm(null)}
-        />
+        <ConfirmDialog show={!!deleteConfirm} title="حذف المهمة" message={`هل أنت متأكد من حذف "${deleteConfirm.title}"؟`} confirmText="حذف" cancelText="إلغاء" variant="danger" onConfirm={handleDeleteTask} onCancel={() => setDeleteConfirm(null)} />
       )}
       <ParentSidebar />
       <div className="md:mr-[var(--ghrs-sidebar-width)] pb-24 md:pb-8">
@@ -274,7 +335,102 @@ export default function TasksPage() {
             <div className="ghrs-card p-6 mb-6 ghrs-animate-scale-in">
               <h2 className="text-lg font-bold mb-4" style={{ color: 'var(--ghrs-text-primary)' }}>{editingTask ? 'تعديل المهمة' : 'مهمة جديدة'}</h2>
               <form onSubmit={handleSaveTask} className="space-y-4">
-                <div><label className="block text-sm font-semibold mb-1" style={{ color: 'var(--ghrs-text-secondary)' }}>اسم المهمة *</label><input type="text" value={formData.title} onChange={e => setFormData({ ...formData, title: e.target.value })} required className="ghrs-input w-full" placeholder="نظف الغرفة" /></div>
+
+                {/* Task Type Selector */}
+                <div>
+                  <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--ghrs-text-secondary)' }}>نوع المهمة</label>
+                  <div className="flex gap-2">
+                    {TASK_TYPES.map(tt => (
+                      <button key={tt.value} type="button" onClick={() => setFormData({ ...formData, task_type: tt.value as any, surah_number: 0, from_ayah: 1, to_ayah: 1, custom_title: '', custom_content_text: '', quran_action_type: '' })}
+                        className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-bold transition-all border-2 flex-1"
+                        style={{ borderColor: formData.task_type === tt.value ? 'var(--ghrs-green-500)' : 'var(--ghrs-border-default)', background: formData.task_type === tt.value ? 'var(--ghrs-green-50)' : 'transparent', color: formData.task_type === tt.value ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)' }}>
+                        {tt.icon} {tt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Quran Action Type (only for quran tasks) */}
+                {formData.task_type === 'quran' && (
+                  <div>
+                    <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--ghrs-text-secondary)' }}>الهدف</label>
+                    <div className="flex gap-2">
+                      {QURAN_ACTIONS.map(qa => (
+                        <button key={qa.value} type="button" onClick={() => setFormData({ ...formData, quran_action_type: qa.value as any })}
+                          className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-bold transition-all border-2 flex-1"
+                          style={{ borderColor: formData.quran_action_type === qa.value ? 'var(--ghrs-green-500)' : 'var(--ghrs-border-default)', background: formData.quran_action_type === qa.value ? 'var(--ghrs-green-50)' : 'transparent', color: formData.quran_action_type === qa.value ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)' }}>
+                          {qa.icon} {qa.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Content Source Selector (only for quran/dua) */}
+                {formData.task_type !== 'standard' && (
+                  <div>
+                    <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--ghrs-text-secondary)' }}>مصدر المحتوى</label>
+                    <div className="flex gap-2">
+                      <button type="button" onClick={() => setFormData({ ...formData, surah_number: 0 })}
+                        className="flex-1 px-4 py-2 rounded-xl text-sm font-bold transition-all border-2"
+                        style={{ borderColor: !formData.surah_number ? 'var(--ghrs-green-500)' : 'var(--ghrs-border-default)', background: !formData.surah_number ? 'var(--ghrs-green-50)' : 'transparent', color: !formData.surah_number ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)' }}>
+                        ✏️ نص مخصص
+                      </button>
+                      {formData.task_type === 'quran' && (
+                        <button type="button" onClick={() => setFormData({ ...formData, surah_number: 114 })}
+                          className="flex-1 px-4 py-2 rounded-xl text-sm font-bold transition-all border-2"
+                          style={{ borderColor: formData.surah_number ? 'var(--ghrs-green-500)' : 'var(--ghrs-border-default)', background: formData.surah_number ? 'var(--ghrs-green-50)' : 'transparent', color: formData.surah_number ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)' }}>
+                        <QuranIcon size={16} className="inline" /> سور جزء عمّ
+                      </button>
+                    )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Surah Picker (only for quran tasks with surah source) */}
+                {formData.task_type === 'quran' && formData.surah_number > 0 && (
+                  <div className="p-4 rounded-xl" style={{ background: 'var(--ghrs-green-50)', border: '1px solid var(--ghrs-green-200)' }}>
+                    <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--ghrs-green-700)' }}>اختر السورة</label>
+                    <select value={formData.surah_number} onChange={e => setFormData({ ...formData, surah_number: parseInt(e.target.value) })} className="ghrs-input w-full mb-3">
+                      {JUZ_AMMA.map(s => <option key={s.number} value={s.number}>{s.name} ({s.englishName}) - {s.numberOfAyahs} آية</option>)}
+                    </select>
+                    {selectedSurah && (
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs font-semibold mb-1" style={{ color: 'var(--ghrs-green-700)' }}>من الآية</label>
+                          <input type="number" min="1" max={selectedSurah.numberOfAyahs} value={formData.from_ayah} onChange={e => setFormData({ ...formData, from_ayah: parseInt(e.target.value) || 1 })} className="ghrs-input w-full" />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-semibold mb-1" style={{ color: 'var(--ghrs-green-700)' }}>إلى الآية</label>
+                          <input type="number" min="1" max={selectedSurah.numberOfAyahs} value={formData.to_ayah} onChange={e => setFormData({ ...formData, to_ayah: parseInt(e.target.value) || 1 })} className="ghrs-input w-full" />
+                        </div>
+                      </div>
+                    )}
+                    {/* Quran Preview */}
+                    {fetchingQuran && <p className="text-sm mt-2" style={{ color: 'var(--ghrs-green-600)' }}>جاري تحميل النص القرآني...</p>}
+                    {quranPreview && !fetchingQuran && (
+                      <div className="mt-3 p-4 rounded-xl text-right" style={{ background: 'white', border: '1px solid var(--ghrs-green-200)', fontFamily: "'Scheherazade New', 'Amiri', serif", fontSize: '1.3rem', lineHeight: '2.2', color: 'var(--ghrs-text-primary)' }}>
+                        {quranPreview}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Title */}
+                <div><label className="block text-sm font-semibold mb-1" style={{ color: 'var(--ghrs-text-secondary)' }}>{formData.task_type !== 'standard' ? 'عنوان المهمة / السورة' : 'اسم المهمة'} *</label><input type="text" value={formData.title} onChange={e => setFormData({ ...formData, title: e.target.value })} required className="ghrs-input w-full" placeholder={formData.task_type === 'quran' ? 'مثال: سورة النصر' : 'نظف الغرفة'} /></div>
+
+                {/* Custom Title (for quran/dua) */}
+                {formData.task_type !== 'standard' && !formData.surah_number && (
+                  <div><label className="block text-sm font-semibold mb-1" style={{ color: 'var(--ghrs-text-secondary)' }}>العنوان التفصيلي (السورة/الدعاء)</label><input type="text" value={formData.custom_title} onChange={e => setFormData({ ...formData, custom_title: e.target.value })} className="ghrs-input w-full" placeholder="مثال: أذكار النوم، الرقية الشرعية" /></div>
+                )}
+
+                {/* Custom Content (for quran/dua with custom source) */}
+                {formData.task_type !== 'standard' && !formData.surah_number && (
+                  <div><label className="block text-sm font-semibold mb-1" style={{ color: 'var(--ghrs-text-secondary)' }}>النص (يمكن لصق النص هنا)</label>
+                    <textarea value={formData.custom_content_text} onChange={e => setFormData({ ...formData, custom_content_text: e.target.value })} className="ghrs-input w-full" rows={5} placeholder="بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ&#10;الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ..." style={{ fontFamily: "'Scheherazade New', 'Amiri', serif", fontSize: '1.2rem', lineHeight: '2' }} />
+                  </div>
+                )}
+
                 <div><label className="block text-sm font-semibold mb-1" style={{ color: 'var(--ghrs-text-secondary)' }}>الوصف</label><input type="text" value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} className="ghrs-input w-full" placeholder="اختياري" /></div>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -289,7 +445,7 @@ export default function TasksPage() {
                       <button key={p.value} type="button" onClick={() => setFormData({ ...formData, priority: p.value as any })}
                         className="flex items-center gap-1 px-3 py-2 rounded-xl text-sm font-bold transition-all border-2"
                         style={{ borderColor: formData.priority === p.value ? p.color : 'var(--ghrs-border-default)', background: formData.priority === p.value ? `${p.color}15` : 'transparent' }}>
-                        {p.emoji} {p.label}
+                        {p.label}
                       </button>
                     ))}
                   </div>
@@ -328,13 +484,13 @@ export default function TasksPage() {
                       <button type="button" onClick={() => setFormData({ ...formData, assigned_to: [] })}
                         className="px-3 py-2 rounded-xl text-sm font-bold transition-all border-2"
                         style={{ borderColor: formData.assigned_to.length === 0 ? 'var(--ghrs-green-500)' : 'var(--ghrs-border-default)', background: formData.assigned_to.length === 0 ? 'var(--ghrs-green-100)' : 'transparent', color: formData.assigned_to.length === 0 ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)' }}>
-<FamilyIcon size={16} className="inline" /> الجميع
+                        <FamilyIcon size={14} className="inline" /> الجميع
                       </button>
                       {children.map(child => (
                         <button key={child.id} type="button" onClick={() => toggleAssignedChild(child.id)}
                           className="px-3 py-2 rounded-xl text-sm font-bold transition-all border-2"
                           style={{ borderColor: formData.assigned_to.includes(child.id) ? 'var(--ghrs-green-500)' : 'var(--ghrs-border-default)', background: formData.assigned_to.includes(child.id) ? 'var(--ghrs-green-100)' : 'transparent', color: formData.assigned_to.includes(child.id) ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)' }}>
-                          <ChildIcon size={16} className="inline" /> {child.name}
+                          <ChildIcon size={14} className="inline" /> {child.name}
                         </button>
                       ))}
                     </div>
@@ -348,8 +504,8 @@ export default function TasksPage() {
                 </label>
 
                 <div className="flex gap-2">
-                  <button type="submit" className="ghrs-btn-primary">{editingTask ? '💾 حفظ التعديلات' : '➕ إضافة'}</button>
-                  <button type="button" onClick={() => { setShowAdd(false); setEditingTask(null) }} className="ghrs-btn-secondary">إلغاء</button>
+                  <button type="submit" className="ghrs-btn-primary">{editingTask ? 'حفظ التعديلات' : 'إضافة'}</button>
+                  <button type="button" onClick={() => { setShowAdd(false); setEditingTask(null); setQuranPreview('') }} className="ghrs-btn-secondary">إلغاء</button>
                 </div>
               </form>
             </div>
@@ -359,49 +515,53 @@ export default function TasksPage() {
           <div className="space-y-4">
             {sortedTasks.map((task) => {
               const priority = PRIORITY_OPTIONS.find(p => p.value === task.priority) || PRIORITY_OPTIONS[1]
+              const isQuran = task.task_type === 'quran'
+              const isDua = task.task_type === 'dua'
               return (
                 <div key={task.id} className="ghrs-card p-5 transition-all" style={{ opacity: task.is_paused ? 0.6 : 1, borderLeft: `4px solid ${priority.color}` }}>
-                  {/* Header */}
                   <div className="flex justify-between items-start mb-2">
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
-                        <span className="text-lg">{priority.emoji}</span>
+                        {isQuran && <QuranIcon size={20} color="var(--ghrs-green-600)" />}
+                        {isDua && <SparkleIcon size={20} color="var(--ghrs-amber-600)" />}
                         <h3 className="text-lg font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>{task.title}</h3>
-                        {task.is_paused && <span className="px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: 'var(--ghrs-bg-tertiary)', color: 'var(--ghrs-text-tertiary)' }}><PauseIcon size={16} className="inline" /> موقوفة</span>}
+                        {task.is_paused && <span className="px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: 'var(--ghrs-bg-tertiary)', color: 'var(--ghrs-text-tertiary)' }}>موقوفة</span>}
+                        {isQuran && task.quran_action_type && (
+                          <span className="px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: 'var(--ghrs-green-50)', color: 'var(--ghrs-green-700)' }}>
+                            {task.quran_action_type === 'memorize' ? 'حفظ' : 'قراءة'}
+                          </span>
+                        )}
                       </div>
                       {task.description && <p className="text-sm mt-1" style={{ color: 'var(--ghrs-text-secondary)' }}>{task.description}</p>}
                       <div className="flex flex-wrap gap-3 mt-2 text-sm">
-                        <span className="font-semibold" style={{ color: 'var(--ghrs-amber-600)' }}><StarIcon size={16} className="inline" /> {task.xp_reward} XP</span>
-                        {task.money_reward != null && task.money_reward > 0 && <span className="font-semibold" style={{ color: 'var(--ghrs-green-600)' }}><CoinIcon size={16} className="inline" /> {fmtMoney(task.money_reward)}</span>}
+                        <span className="font-semibold" style={{ color: 'var(--ghrs-amber-600)' }}><StarIcon size={14} className="inline" /> {task.xp_reward} XP</span>
+                        {task.money_reward != null && task.money_reward > 0 && <span className="font-semibold" style={{ color: 'var(--ghrs-green-600)' }}><CoinIcon size={14} className="inline" /> {fmtMoney(task.money_reward)}</span>}
                         <span style={{ color: 'var(--ghrs-text-tertiary)' }}>
                           {task.frequency === 'daily' ? 'يومي' : task.frequency === 'weekly' ? 'أسبوعي' : task.frequency === 'monthly' ? 'شهري' : task.frequency === 'once' ? 'مرة واحدة' : 'مخصص'}
                         </span>
                         {task.assigned_to && task.assigned_to.length > 0 && (
-                          <span style={{ color: 'var(--ghrs-text-tertiary)' }}><ChildIcon size={16} className="inline" /> {task.assigned_to.map(getChildName).join(', ')}</span>
+                          <span style={{ color: 'var(--ghrs-text-tertiary)' }}><ChildIcon size={14} className="inline" /> {task.assigned_to.map(getChildName).join(', ')}</span>
                         )}
-                        {!task.assigned_to && <span style={{ color: 'var(--ghrs-text-tertiary)' }}><FamilyIcon size={16} className="inline" /> الجميع</span>}
                       </div>
                     </div>
-
-                    {/* Action Buttons */}
                     <div className="flex items-center gap-1">
-                      <button onClick={() => openEdit(task)} title="تعديل" className="p-2 rounded-lg transition-all hover:bg-ghrs-bg-tertiary" style={{ color: 'var(--ghrs-blue-500)' }}><EditIcon size={16} className="inline" /></button>
-                      <button onClick={() => handleTogglePause(task)} title={task.is_paused ? 'تفعيل' : 'إيقاف'} className="p-2 rounded-lg transition-all hover:bg-ghrs-bg-tertiary" style={{ color: task.is_paused ? 'var(--ghrs-green-500)' : 'var(--ghrs-amber-500)' }}>{task.is_paused ? <PlayIcon size={16} className="inline" /> : <PauseIcon size={16} className="inline" />}</button>
-                      <button onClick={() => setDeleteConfirm(task)} title="حذف" className="p-2 rounded-lg transition-all hover:bg-ghrs-bg-tertiary" style={{ color: 'var(--ghrs-red-500)' }}><DeleteIcon size={16} className="inline" /></button>
+                      <button onClick={() => openEdit(task)} title="تعديل" className="p-2 rounded-lg transition-all hover:bg-ghrs-bg-tertiary" style={{ color: 'var(--ghrs-blue-500)' }}><EditIcon size={18} /></button>
+                      <button onClick={() => handleTogglePause(task)} title={task.is_paused ? 'تفعيل' : 'إيقاف'} className="p-2 rounded-lg transition-all hover:bg-ghrs-bg-tertiary" style={{ color: task.is_paused ? 'var(--ghrs-green-500)' : 'var(--ghrs-amber-500)' }}>{task.is_paused ? <PlayIcon size={18} /> : <PauseIcon size={18} />}</button>
+                      <button onClick={() => setDeleteConfirm(task)} title="حذف" className="p-2 rounded-lg transition-all hover:bg-ghrs-bg-tertiary" style={{ color: 'var(--ghrs-red-500)' }}><DeleteIcon size={18} /></button>
                     </div>
                   </div>
 
                   {/* Pending Completions */}
                   {task.completions && task.completions.length > 0 && (
                     <div className="mt-3 p-4 rounded-xl" style={{ background: 'var(--ghrs-amber-50)', border: '1px solid var(--ghrs-amber-200)' }}>
-                      <p className="text-sm font-bold mb-3" style={{ color: 'var(--ghrs-amber-700)' }}><ClockIcon size={16} className="inline" /> بانتظار الموافقة ({task.completions.length})</p>
+                      <p className="text-sm font-bold mb-3" style={{ color: 'var(--ghrs-amber-700)' }}><ClockIcon size={14} className="inline" /> بانتظار الموافقة ({task.completions.length})</p>
                       <div className="space-y-2">
                         {task.completions.map((completion: any) => (
                           <div key={completion.id} className="flex items-center justify-between p-3 rounded-lg" style={{ background: 'var(--ghrs-bg-card)' }}>
                             <p className="text-sm font-semibold" style={{ color: 'var(--ghrs-text-primary)' }}>{new Date(completion.completed_at).toLocaleDateString('ar')}</p>
                             <div className="flex gap-2">
-                              <button onClick={() => handleApprove(completion.id, task.id)} className="px-3 py-1 rounded-lg text-xs font-bold" style={{ background: 'var(--ghrs-green-500)', color: 'white' }}><CheckIcon size={16} className="inline" /> موافقة</button>
-                              <button onClick={() => handleReject(completion.id, task.id)} className="px-3 py-1 rounded-lg text-xs font-bold" style={{ background: 'var(--ghrs-red-500)', color: 'white' }}><RejectIcon size={16} className="inline" /> رفض</button>
+                              <button onClick={() => handleApprove(completion.id, task.id)} className="px-3 py-1 rounded-lg text-xs font-bold" style={{ background: 'var(--ghrs-green-500)', color: 'white' }}><CheckIcon size={14} className="inline" /> موافقة</button>
+                              <button onClick={() => handleReject(completion.id, task.id)} className="px-3 py-1 rounded-lg text-xs font-bold" style={{ background: 'var(--ghrs-red-500)', color: 'white' }}><RejectIcon size={14} className="inline" /> رفض</button>
                             </div>
                           </div>
                         ))}
