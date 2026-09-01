@@ -18,7 +18,6 @@ export default function StoriesPage() {
   const [presetStories, setPresetStories] = useState<PresetStory[]>([])
   const [children, setChildren] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [showAdd, setShowAdd] = useState(false)
   const [activeTab, setActiveTab] = useState<'library' | 'custom' | 'my'>('library')
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState<Story | null>(null)
@@ -73,7 +72,6 @@ export default function StoriesPage() {
     }
     setStories([newStory, ...stories])
     setCustomForm({ title: '', content: '', moral_value: 'الصدق', reward_xp: 5, assigned_to: '' })
-    setShowAdd(false)
     setActiveTab('my')
     setToast({ type: 'success', message: 'تم إنشاء القصة وتعيينها كمهمة قراءة!' })
   }
@@ -130,7 +128,9 @@ export default function StoriesPage() {
         <div className="p-4 md:p-8 max-w-4xl mx-auto">
           <PageHeader title="القصص التربوية" subtitle="مكتبة القصص وإنشاء قصص مخصصة" backHref="/tasks" action={
             <div className="flex gap-2">
-              <button onClick={() => setShowAdd(!showAdd)} className="ghrs-btn-primary">{showAdd ? <><BookIcon size={16} className="inline" /> المكتبة</> : <><EditIcon size={16} className="inline" /> قصة جديدة</>}</button>
+              <button onClick={() => setActiveTab(activeTab === 'custom' ? 'library' : 'custom')} className="ghrs-btn-primary">
+                {activeTab === 'custom' ? <><BookIcon size={16} className="inline" /> المكتبة</> : <><EditIcon size={16} className="inline" /> قصة جديدة</>}
+              </button>
             </div>
           } />
 
