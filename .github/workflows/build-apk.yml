@@ -29,7 +29,7 @@ jobs:
       - name: Install Dependencies
         run: npm install --legacy-peer-deps
 
-      - name: Create Assets Directory & Sync Capacitor
+      - name: Sync Capacitor
         run: |
           mkdir -p android/app/src/main/assets
           npx cap copy android
@@ -39,10 +39,9 @@ jobs:
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug 2>&1 | grep -A 10 "What went wrong:" || echo "Build succeeded or no error message found"
+          ./gradlew assembleDebug
 
       - name: Upload APK Artifact
-        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: app-debug
