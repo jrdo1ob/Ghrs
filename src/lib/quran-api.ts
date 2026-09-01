@@ -63,9 +63,9 @@ export const JUZ_AMMA: SurahInfo[] = [
   { number: 114, name: 'النَّاس', englishName: 'An-Nas', numberOfAyahs: 6 },
 ]
 
-// Fetch surah data from Quran API
+// Fetch surah data from Quran API (Uthmani script with tashkeel)
 export async function fetchSurahAyahs(surahNumber: number): Promise<SurahData> {
-  const res = await fetch(`https://api.alquran.cloud/v1/surah/${surahNumber}/ar.alafasy`)
+  const res = await fetch(`https://api.alquran.cloud/v1/surah/${surahNumber}/quran-uthmani`)
   if (!res.ok) throw new Error(`Failed to fetch surah ${surahNumber}`)
   const data = await res.json()
   if (data.code !== 200) throw new Error(data.status || 'API error')

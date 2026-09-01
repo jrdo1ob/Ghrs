@@ -82,17 +82,18 @@ export default function TaskDetailsModal({
               {/* Quran/Dua Content */}
               {hasContent && (
                 <div className="mb-4 p-5 rounded-2xl text-right" style={{
-                  background: isQuran ? 'linear-gradient(135deg, var(--ghrs-green-50), var(--ghrs-green-100))' : 'linear-gradient(135deg, var(--ghrs-amber-50), var(--ghrs-amber-100))',
-                  border: `1px solid ${isQuran ? 'var(--ghrs-green-200)' : 'var(--ghrs-amber-200)'}`,
+                  background: isQuran ? 'linear-gradient(135deg, var(--ghrs-green-900), var(--ghrs-green-800))' : 'linear-gradient(135deg, var(--ghrs-amber-900), var(--ghrs-amber-800))',
+                  border: `2px solid ${isQuran ? 'var(--ghrs-green-600)' : 'var(--ghrs-amber-600)'}`,
+                  boxShadow: `0 4px 20px ${isQuran ? 'rgba(34, 197, 94, 0.2)' : 'rgba(245, 158, 11, 0.2)'}`,
                 }}>
-                  <h3 className="text-sm font-bold mb-3" style={{ color: isQuran ? 'var(--ghrs-green-700)' : 'var(--ghrs-amber-700)' }}>
+                  <h3 className="text-sm font-bold mb-3" style={{ color: isQuran ? '#86efac' : '#fcd34d' }}>
                     {isQuran ? 'النص القرآني:' : isDua ? 'الدعاء:' : 'المحتوى:'}
                   </h3>
                   <p style={{
                     fontFamily: "'Scheherazade New', 'Amiri', serif",
-                    fontSize: '1.4rem',
-                    lineHeight: '2.4',
-                    color: 'var(--ghrs-text-primary)',
+                    fontSize: '1.5rem',
+                    lineHeight: '2.5',
+                    color: '#f0fdf4',
                   }}>
                     {task.custom_content_text || task.story_content}
                   </p>

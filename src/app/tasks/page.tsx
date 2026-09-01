@@ -410,7 +410,16 @@ export default function TasksPage() {
                     {/* Quran Preview */}
                     {fetchingQuran && <p className="text-sm mt-2" style={{ color: 'var(--ghrs-green-600)' }}>جاري تحميل النص القرآني...</p>}
                     {quranPreview && !fetchingQuran && (
-                      <div className="mt-3 p-4 rounded-xl text-right" style={{ background: 'white', border: '1px solid var(--ghrs-green-200)', fontFamily: "'Scheherazade New', 'Amiri', serif", fontSize: '1.3rem', lineHeight: '2.2', color: 'var(--ghrs-text-primary)' }}>
+                      <div className="mt-3 p-5 rounded-2xl text-right" style={{ 
+                        background: 'linear-gradient(135deg, var(--ghrs-green-900), var(--ghrs-green-800))', 
+                        border: '2px solid var(--ghrs-green-600)', 
+                        fontFamily: "'Scheherazade New', 'Amiri', serif", 
+                        fontSize: '1.4rem', 
+                        lineHeight: '2.4', 
+                        color: '#f0fdf4',
+                        boxShadow: '0 4px 20px rgba(34, 197, 94, 0.2)'
+                      }}>
+                        <p className="text-xs font-bold mb-2" style={{ color: '#86efac' }}>النص القرآني:</p>
                         {quranPreview}
                       </div>
                     )}
