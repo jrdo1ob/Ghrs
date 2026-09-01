@@ -5,6 +5,8 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ParentBottomNav, ParentSidebar, PageHeader, EmptyState, Toast, Skeleton } from '@/components/layout'
+import { getCurrentUser, clearAuth, AuthUser } from '@/lib/auth/helper'
+import { useFamilyCurrency } from '@/hooks/useFamilyCurrency'
 
 export default function RewardsPage() {
   const [gifts, setGifts] = useState<any[]>([])
@@ -15,38 +17,20 @@ export default function RewardsPage() {
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
   const router = useRouter()
   const supabase = createClient()
+  const { format: fmtMoney } = useFamilyCurrency()
 
   useEffect(() => {
     const getGifts = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
+      const user = await getCurrentUser()
       if (!user) {
         router.push('/owner-login')
         return
       }
 
-      const { data: identity } = await supabase
-        .from('auth_identities')
-        .select('member_id')
-        .eq('auth_user_id', user.id)
-        .single()
-
-      if (!identity) {
-        router.push('/family-setup')
-        return
-      }
-
-      const { data: memberData } = await supabase
-        .from('members')
-        .select('family_id')
-        .eq('id', identity.member_id)
-        .single()
-
-      if (!memberData) return
-
       const { data: giftsData } = await supabase
         .from('gifts')
         .select('*')
-        .eq('family_id', memberData.family_id)
+        .eq('family_id', user.familyId)
         .order('created_at', { ascending: false })
 
       setGifts(giftsData || [])
@@ -60,35 +44,19 @@ export default function RewardsPage() {
     e.preventDefault()
     setError('')
 
-    const { data: { user } } = await supabase.auth.getUser()
+    const user = await getCurrentUser()
     if (!user) return
-
-    const { data: identity } = await supabase
-      .from('auth_identities')
-      .select('member_id')
-      .eq('auth_user_id', user.id)
-      .single()
-
-    if (!identity) return
-
-    const { data: memberData } = await supabase
-      .from('members')
-      .select('family_id')
-      .eq('id', identity.member_id)
-      .single()
-
-    if (!memberData) return
 
     const { data: gift, error: giftError } = await supabase
       .from('gifts')
       .insert({
-        family_id: memberData.family_id,
+        family_id: user.familyId,
         title: newGift.title,
         description: newGift.description || null,
         cost_xp: newGift.cost_xp,
         cost_money: newGift.cost_money || null,
         is_active: true,
-        created_by: identity.member_id,
+        created_by: user.memberId,
       })
       .select()
       .single()
@@ -188,18 +156,18 @@ export default function RewardsPage() {
                     <input
                       type="number"
                       value={newGift.cost_xp}
-                      onChange={(e) => setNewGift({ ...newGift, cost_xp: parseInt(e.target.value) })}
+                      onChange={(e) => setNewGift({ ...newGift, cost_xp: parseInt(e.target.value) || 1 })}
                       required
                       min="1"
                       className="ghrs-input"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--ghrs-text-secondary)' }}>التكلفة المالية (اختياري)</label>
+                    <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--ghrs-text-secondary)' }}>التكلفة المالية ($) (اختياري)</label>
                     <input
                       type="number"
                       value={newGift.cost_money}
-                      onChange={(e) => setNewGift({ ...newGift, cost_money: parseInt(e.target.value) })}
+                      onChange={(e) => setNewGift({ ...newGift, cost_money: parseInt(e.target.value) || 0 })}
                       min="0"
                       className="ghrs-input"
                     />
@@ -240,7 +208,7 @@ export default function RewardsPage() {
                 <div className="flex gap-4 text-sm">
                   <span className="font-semibold" style={{ color: 'var(--ghrs-amber-600)' }}>⭐ {gift.cost_xp} XP</span>
                   {gift.cost_money > 0 && (
-                    <span className="font-semibold" style={{ color: 'var(--ghrs-green-600)' }}>💰 {gift.cost_money}</span>
+                    <span className="font-semibold" style={{ color: 'var(--ghrs-green-600)' }}>💰 {fmtMoney(gift.cost_money)}</span>
                   )}
                 </div>
               </div>

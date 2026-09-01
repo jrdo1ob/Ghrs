@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ParentBottomNav, ParentSidebar, PageHeader, EmptyState, Toast, Skeleton } from '@/components/layout'
+import { getCurrentUser, clearAuth, AuthUser } from '@/lib/auth/helper'
 
 const SURAHS = [
   { number: 1, name: 'الفاتحة', ayahs: 7 },
@@ -30,27 +31,16 @@ export default function QuranPage() {
 
   useEffect(() => {
     const getProgress = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
+      const user = await getCurrentUser()
       if (!user) {
         router.push('/owner-login')
-        return
-      }
-
-      const { data: identity } = await supabase
-        .from('auth_identities')
-        .select('member_id')
-        .eq('auth_user_id', user.id)
-        .single()
-
-      if (!identity) {
-        router.push('/family-setup')
         return
       }
 
       const { data: progressData } = await supabase
         .from('quran_progress')
         .select('*')
-        .eq('member_id', identity.member_id)
+        .eq('member_id', user.memberId)
 
       setProgress(progressData || [])
       setLoading(false)
@@ -62,21 +52,13 @@ export default function QuranPage() {
   const handleAddProgress = async () => {
     if (!selectedSurah) return
 
-    const { data: { user } } = await supabase.auth.getUser()
+    const user = await getCurrentUser()
     if (!user) return
-
-    const { data: identity } = await supabase
-      .from('auth_identities')
-      .select('member_id')
-      .eq('auth_user_id', user.id)
-      .single()
-
-    if (!identity) return
 
     const { error } = await supabase
       .from('quran_progress')
       .insert({
-        member_id: identity.member_id,
+        member_id: user.memberId,
         surah: selectedSurah,
         ayah: selectedAyah,
         completed_at: new Date().toISOString(),

@@ -26,15 +26,37 @@
   --ghrs-amber-700: #b45309;
 
   --ghrs-red-50: #fef2f2;
+  --ghrs-red-100: #fee2e2;
+  --ghrs-red-200: #fecaca;
+  --ghrs-red-300: #fca5a5;
+  --ghrs-red-400: #f87171;
   --ghrs-red-500: #ef4444;
   --ghrs-red-600: #dc2626;
+  --ghrs-red-700: #b91c1c;
+  --ghrs-red-800: #991b1b;
+  --ghrs-red-900: #7f1d1d;
 
   --ghrs-blue-50: #eff6ff;
+  --ghrs-blue-100: #dbeafe;
+  --ghrs-blue-200: #bfdbfe;
+  --ghrs-blue-300: #93c5fd;
+  --ghrs-blue-400: #60a5fa;
   --ghrs-blue-500: #3b82f6;
   --ghrs-blue-600: #2563eb;
+  --ghrs-blue-700: #1d4ed8;
+  --ghrs-blue-800: #1e40af;
+  --ghrs-blue-900: #1e3a8a;
 
   --ghrs-purple-50: #faf5ff;
+  --ghrs-purple-100: #f3e8ff;
+  --ghrs-purple-200: #e9d5ff;
+  --ghrs-purple-300: #d8b4fe;
+  --ghrs-purple-400: #c084fc;
   --ghrs-purple-500: #a855f7;
+  --ghrs-purple-600: #9333ea;
+  --ghrs-purple-700: #7e22ce;
+  --ghrs-purple-800: #6b21a8;
+  --ghrs-purple-900: #581c87;
 
   /* Semantic Colors */
   --ghrs-bg-primary: #ffffff;
@@ -118,15 +140,37 @@
   --color-ghrs-amber-700: var(--ghrs-amber-700);
 
   --color-ghrs-red-50: var(--ghrs-red-50);
+  --color-ghrs-red-100: var(--ghrs-red-100);
+  --color-ghrs-red-200: var(--ghrs-red-200);
+  --color-ghrs-red-300: var(--ghrs-red-300);
+  --color-ghrs-red-400: var(--ghrs-red-400);
   --color-ghrs-red-500: var(--ghrs-red-500);
   --color-ghrs-red-600: var(--ghrs-red-600);
+  --color-ghrs-red-700: var(--ghrs-red-700);
+  --color-ghrs-red-800: var(--ghrs-red-800);
+  --color-ghrs-red-900: var(--ghrs-red-900);
 
   --color-ghrs-blue-50: var(--ghrs-blue-50);
+  --color-ghrs-blue-100: var(--ghrs-blue-100);
+  --color-ghrs-blue-200: var(--ghrs-blue-200);
+  --color-ghrs-blue-300: var(--ghrs-blue-300);
+  --color-ghrs-blue-400: var(--ghrs-blue-400);
   --color-ghrs-blue-500: var(--ghrs-blue-500);
   --color-ghrs-blue-600: var(--ghrs-blue-600);
+  --color-ghrs-blue-700: var(--ghrs-blue-700);
+  --color-ghrs-blue-800: var(--ghrs-blue-800);
+  --color-ghrs-blue-900: var(--ghrs-blue-900);
 
   --color-ghrs-purple-50: var(--ghrs-purple-50);
+  --color-ghrs-purple-100: var(--ghrs-purple-100);
+  --color-ghrs-purple-200: var(--ghrs-purple-200);
+  --color-ghrs-purple-300: var(--ghrs-purple-300);
+  --color-ghrs-purple-400: var(--ghrs-purple-400);
   --color-ghrs-purple-500: var(--ghrs-purple-500);
+  --color-ghrs-purple-600: var(--ghrs-purple-600);
+  --color-ghrs-purple-700: var(--ghrs-purple-700);
+  --color-ghrs-purple-800: var(--ghrs-purple-800);
+  --color-ghrs-purple-900: var(--ghrs-purple-900);
 
   --color-ghrs-bg-primary: var(--ghrs-bg-primary);
   --color-ghrs-bg-secondary: var(--ghrs-bg-secondary);
@@ -385,4 +429,24 @@ body {
   :root {
     --ghrs-nav-height: 4.5rem;
   }
+}
+
+/* ===== Accessibility ===== */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible {
+  outline: 2px solid var(--ghrs-green-500);
+  outline-offset: 2px;
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--ghrs-border-strong) transparent;
 }

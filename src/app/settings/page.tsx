@@ -6,42 +6,35 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ParentBottomNav, ParentSidebar, PageHeader, Toast } from '@/components/layout'
 import { useTheme } from '@/lib/theme/provider'
+import { getCurrentUser, clearAuth, AuthUser } from '@/lib/auth/helper'
 
 export default function SettingsPage() {
   const [member, setMember] = useState<any>(null)
   const [family, setFamily] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(false)
+  const [editingMemberName, setEditingMemberName] = useState(false)
   const [newName, setNewName] = useState('')
+  const [newMemberName, setNewMemberName] = useState('')
   const [error, setError] = useState('')
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
+  const [currencySaving, setCurrencySaving] = useState(false)
   const { theme, setTheme } = useTheme()
   const router = useRouter()
   const supabase = createClient()
 
   useEffect(() => {
     const getData = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
+      const user = await getCurrentUser()
       if (!user) {
         router.push('/owner-login')
-        return
-      }
-
-      const { data: identity } = await supabase
-        .from('auth_identities')
-        .select('member_id')
-        .eq('auth_user_id', user.id)
-        .single()
-
-      if (!identity) {
-        router.push('/family-setup')
         return
       }
 
       const { data: memberData } = await supabase
         .from('members')
         .select('*')
-        .eq('id', identity.member_id)
+        .eq('id', user.memberId)
         .single()
 
       if (!memberData) {
@@ -54,7 +47,7 @@ export default function SettingsPage() {
       const { data: familyData } = await supabase
         .from('families')
         .select('*')
-        .eq('id', memberData.family_id)
+        .eq('id', user.familyId)
         .single()
 
       setFamily(familyData)
@@ -84,6 +77,48 @@ export default function SettingsPage() {
     setFamily({ ...family, name: newName })
     setEditing(false)
     setToast({ type: 'success', message: 'تم تعديل اسم العائلة!' })
+  }
+
+  const handleUpdateMemberName = async () => {
+    setError('')
+    if (!newMemberName.trim()) {
+      setError('الاسم لا يمكن أن يكون فارغاً')
+      return
+    }
+
+    const { error } = await supabase
+      .from('members')
+      .update({ name: newMemberName })
+      .eq('id', member.id)
+
+    if (error) {
+      setError(error.message)
+      return
+    }
+
+    setMember({ ...member, name: newMemberName })
+    setEditingMemberName(false)
+    setToast({ type: 'success', message: 'تم تعديل اسمك!' })
+  }
+
+  const handleCurrencyChange = async (newCurrency: string) => {
+    if (!family || currencySaving) return
+    setCurrencySaving(true)
+
+    const { error } = await supabase
+      .from('families')
+      .update({ currency: newCurrency })
+      .eq('id', family.id)
+
+    if (error) {
+      setToast({ type: 'error', message: 'حدث خطأ أثناء تعديل العملة' })
+      setCurrencySaving(false)
+      return
+    }
+
+    setFamily({ ...family, currency: newCurrency })
+    setCurrencySaving(false)
+    setToast({ type: 'success', message: 'تم تعديل العملة!' })
   }
 
   if (loading) {
@@ -180,10 +215,70 @@ export default function SettingsPage() {
                     {member?.role === 'owner' ? 'مالك العائلة' : member?.role === 'parent' ? 'ولي الأمر' : 'طفل'}
                   </p>
                 </div>
+
+                <div>
+                  <p className="text-sm font-semibold mb-2" style={{ color: 'var(--ghrs-text-secondary)' }}>اسمك</p>
+                  {editingMemberName ? (
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={newMemberName}
+                        onChange={(e) => setNewMemberName(e.target.value)}
+                        className="ghrs-input flex-1"
+                        placeholder="اسم جديد"
+                      />
+                      <button onClick={handleUpdateMemberName} className="ghrs-btn-primary">حفظ</button>
+                      <button onClick={() => { setEditingMemberName(false); setError('') }} className="ghrs-btn-secondary">إلغاء</button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <p className="font-bold text-lg" style={{ color: 'var(--ghrs-text-primary)' }}>{member?.name}</p>
+                      <button
+                        onClick={() => { setNewMemberName(member?.name); setEditingMemberName(true) }}
+                        className="text-sm font-semibold"
+                        style={{ color: 'var(--ghrs-green-600)' }}
+                      >
+                        ✏️ تعديل
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
-            {/* Theme Settings */}
+            {/* Currency Settings */}
+            <div className="ghrs-card p-6">
+              <h2 className="text-lg font-bold mb-4" style={{ color: 'var(--ghrs-text-primary)' }}>العملة</h2>
+              <p className="text-sm mb-4" style={{ color: 'var(--ghrs-text-secondary)' }}>
+                اختر عملة العائلة用于عرض المكافآت المالية
+              </p>
+              <div className="grid grid-cols-3 gap-3">
+                {[
+                  { code: 'KWD', name: 'الدينار الكويتي', symbol: 'د.ك' },
+                  { code: 'SAR', name: 'الريال السعودي', symbol: 'ر.س' },
+                  { code: 'AED', name: 'الدرهم الإماراتي', symbol: 'د.إ' },
+                  { code: 'QAR', name: 'الريال القطري', symbol: 'ر.ق' },
+                  { code: 'BHD', name: 'الدينار البحريني', symbol: 'د.ب' },
+                  { code: 'OMR', name: 'الريال العماني', symbol: 'ر.ع' },
+                ].map((currency) => (
+                  <button
+                    key={currency.code}
+                    onClick={() => handleCurrencyChange(currency.code)}
+                    disabled={currencySaving}
+                    className="flex flex-col items-center gap-1 p-3 rounded-xl transition-all"
+                    style={{
+                      background: family?.currency === currency.code ? 'var(--ghrs-green-50)' : 'var(--ghrs-bg-tertiary)',
+                      border: `2px solid ${family?.currency === currency.code ? 'var(--ghrs-green-500)' : 'transparent'}`,
+                      color: family?.currency === currency.code ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)',
+                      opacity: currencySaving ? 0.7 : 1
+                    }}
+                  >
+                    <span className="text-lg font-bold">{currency.symbol}</span>
+                    <span className="text-xs font-semibold">{currency.code}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
             <div className="ghrs-card p-6">
               <h2 className="text-lg font-bold mb-4" style={{ color: 'var(--ghrs-text-primary)' }}>المظهر</h2>
               <div className="grid grid-cols-3 gap-3">
@@ -214,6 +309,7 @@ export default function SettingsPage() {
               <h2 className="text-lg font-bold mb-4" style={{ color: 'var(--ghrs-text-primary)' }}>الحساب</h2>
               <button
                 onClick={async () => {
+                  clearAuth()
                   await supabase.auth.signOut()
                   router.push('/')
                 }}

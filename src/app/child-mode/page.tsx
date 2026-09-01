@@ -1,29 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ChildBottomNav, EmptyState, Toast } from '@/components/layout'
-
-interface Level {
-  level: number
-  name: string
-  emoji: string
-  minXp: number
-  maxXp: number
-  soilColor: string
-  plantSize: string
-}
-
-const LEVELS: Level[] = [
-  { level: 1, name: 'البذرة', emoji: '🌰', minXp: 0, maxXp: 50, soilColor: '#8B4513', plantSize: 'text-2xl' },
-  { level: 2, name: 'البرعم', emoji: '🌱', minXp: 50, maxXp: 200, soilColor: '#A0522D', plantSize: 'text-3xl' },
-  { level: 3, name: 'النبتة', emoji: '🌿', minXp: 200, maxXp: 500, soilColor: '#6B8E23', plantSize: 'text-4xl' },
-  { level: 4, name: 'الشجرة الصغيرة', emoji: '🌳', minXp: 500, maxXp: 1000, soilColor: '#228B22', plantSize: 'text-5xl' },
-  { level: 5, name: 'الشجرة الكبيرة', emoji: '🌲', minXp: 1000, maxXp: 2000, soilColor: '#006400', plantSize: 'text-6xl' },
-  { level: 6, name: 'الحديقة', emoji: '🏡', minXp: 2000, maxXp: 999999, soilColor: '#32CD32', plantSize: 'text-7xl' },
-]
+import { useFamilyCurrency } from '@/hooks/useFamilyCurrency'
+import { LEVELS, getLevel, getNextLevel, Level } from '@/lib/gamification'
+import CelebrationModal from '@/components/CelebrationModal'
 
 export default function ChildModePage() {
   const [tasks, setTasks] = useState<any[]>([])
@@ -34,8 +18,13 @@ export default function ChildModePage() {
   const [pendingToday, setPendingToday] = useState<string[]>([])
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
   const [streak, setStreak] = useState(0)
+  const [completingTask, setCompletingTask] = useState<string | null>(null)
+  const [showCelebration, setShowCelebration] = useState(false)
+  const [celebrationLevel, setCelebrationLevel] = useState<Level | null>(null)
+  const prevLevelRef = useRef<Level | null>(null)
   const router = useRouter()
   const supabase = createClient()
+  const { format: fmtMoney } = useFamilyCurrency()
 
   useEffect(() => {
     const getData = async () => {
@@ -57,6 +46,9 @@ export default function ChildModePage() {
       }
 
       setMember(memberData)
+
+      // Use server-side streak from members table
+      setStreak(memberData.current_streak || 0)
 
       const { data: tasksData } = await supabase
         .from('tasks')
@@ -89,47 +81,11 @@ export default function ChildModePage() {
       setCompletedToday(completedIds)
       setPendingToday(pendingIds)
 
-      // Calculate streak (simplified - count consecutive days with completions)
-      const { data: streakData } = await supabase
-        .from('task_completions')
-        .select('completed_at')
-        .eq('member_id', childId)
-        .order('completed_at', { ascending: false })
-        .limit(30)
-
-      let currentStreak = 0
-      const todayDate = new Date()
-      for (let i = 0; i < 30; i++) {
-        const checkDate = new Date(todayDate)
-        checkDate.setDate(checkDate.getDate() - i)
-        const dateStr = checkDate.toISOString().split('T')[0]
-        
-        const hasCompletion = streakData?.some(c => c.completed_at.startsWith(dateStr))
-        if (hasCompletion) {
-          currentStreak++
-        } else if (i > 0) {
-          break
-        }
-      }
-      setStreak(currentStreak)
-
       setLoading(false)
     }
 
     getData()
   }, [])
-
-  const getLevel = (xp: number): Level => {
-    for (let i = LEVELS.length - 1; i >= 0; i--) {
-      if (xp >= LEVELS[i].minXp) return LEVELS[i]
-    }
-    return LEVELS[0]
-  }
-
-  const getNextLevel = (currentLevel: Level): Level | null => {
-    const idx = LEVELS.findIndex(l => l.level === currentLevel.level)
-    return idx < LEVELS.length - 1 ? LEVELS[idx + 1] : null
-  }
 
   const level = getLevel(xp)
   const nextLevel = getNextLevel(level)
@@ -137,26 +93,43 @@ export default function ChildModePage() {
     ? ((xp - level.minXp) / (nextLevel.minXp - level.minXp)) * 100 
     : 100
 
+  // Track level changes for celebration
+  useEffect(() => {
+    if (prevLevelRef.current && level.level > prevLevelRef.current.level) {
+      setCelebrationLevel(level)
+      setShowCelebration(true)
+    }
+    prevLevelRef.current = level
+  }, [level])
+
   const handleCompleteTask = async (taskId: string) => {
     const childId = localStorage.getItem('child_id')
-    if (!childId) return
+    if (!childId || completingTask) return
 
-    const { error } = await supabase
-      .from('task_completions')
-      .insert({
-        task_id: taskId,
-        member_id: childId,
-        completed_at: new Date().toISOString(),
-        approved: false
-      })
+    setCompletingTask(taskId)
+
+    const { error } = await supabase.rpc('complete_task_with_rewards', {
+      p_task_id: taskId,
+      p_member_id: childId
+    })
 
     if (error) {
       setToast({ type: 'error', message: 'حدث خطأ أثناء إنجاز المهمة' })
+      setCompletingTask(null)
       return
     }
 
+    const task = tasks.find(t => t.id === taskId)
+    const needsApproval = task?.requires_approval !== false
+
     setPendingToday([...pendingToday, taskId])
-    setToast({ type: 'success', message: 'تم إنجاز المهمة! بانتظار موافقة الوالد ⏳' })
+    setCompletingTask(null)
+    setToast({ 
+      type: 'success', 
+      message: needsApproval 
+        ? 'تم إنجاز المهمة! بانتظار موافقة الوالد ⏳' 
+        : 'تم إنجاز المهمة وحصلت على المكافآت! 🎉' 
+    })
   }
 
   const handleLogout = () => {
@@ -185,6 +158,14 @@ export default function ChildModePage() {
           onClose={() => setToast(null)} 
         />
       )}
+
+      <CelebrationModal
+        show={showCelebration}
+        level={celebrationLevel?.level || 1}
+        levelName={celebrationLevel?.name || ''}
+        levelEmoji={celebrationLevel?.emoji || '🌱'}
+        onClose={() => setShowCelebration(false)}
+      />
 
       <div className="p-4 md:p-8 max-w-2xl mx-auto pb-32">
         {/* Garden Hero */}
@@ -296,7 +277,7 @@ export default function ChildModePage() {
                         </span>
                         {task.money_reward > 0 && (
                           <span className="text-xs font-semibold" style={{ color: 'var(--ghrs-green-600)' }}>
-                            💰 {task.money_reward}
+                            💰 {fmtMoney(task.money_reward)}
                           </span>
                         )}
                       </div>
@@ -304,7 +285,7 @@ export default function ChildModePage() {
                     
                     <button
                       onClick={() => handleCompleteTask(task.id)}
-                      disabled={isCompleted || isPending}
+                      disabled={isCompleted || isPending || completingTask === task.id}
                       className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${
                         isCompleted
                           ? 'cursor-not-allowed'
@@ -315,10 +296,10 @@ export default function ChildModePage() {
                       style={{
                         background: isCompleted ? 'var(--ghrs-green-500)' : isPending ? 'var(--ghrs-amber-500)' : 'var(--ghrs-green-600)',
                         color: 'white',
-                        opacity: isCompleted || isPending ? 0.8 : 1
+                        opacity: isCompleted || isPending || completingTask === task.id ? 0.8 : 1
                       }}
                     >
-                      {isCompleted ? '✓ تم' : isPending ? '⏳ بانتظار' : 'أنجزت!'}
+                      {isCompleted ? '✓ تم' : isPending ? '⏳ بانتظار' : completingTask === task.id ? '⏳ جاري...' : 'أنجزت!'}
                     </button>
                   </div>
                 )

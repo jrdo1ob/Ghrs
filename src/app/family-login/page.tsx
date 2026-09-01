@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { setMemberSession } from '@/lib/auth/session'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 
@@ -54,9 +55,17 @@ function FamilyLoginContent() {
     const memberData = member[0]
 
     if (memberData.member_role === 'child') {
+      // Child login
       localStorage.setItem('child_id', memberData.member_id)
       localStorage.setItem('family_id', memberData.family_id)
+      setMemberSession(memberData.member_id, 'child')
       router.push('/child-mode')
+    } else if (memberData.member_role === 'parent' || memberData.member_role === 'owner') {
+      // Parent/Owner login via code + PIN
+      localStorage.setItem('parent_id', memberData.member_id)
+      localStorage.setItem('family_id', memberData.family_id)
+      setMemberSession(memberData.member_id, memberData.member_role)
+      router.push('/dashboard')
     } else {
       router.push('/dashboard')
     }
@@ -101,7 +110,7 @@ function FamilyLoginContent() {
               />
               {!isDirectLink && (
                 <p className="text-xs mt-2 text-center" style={{ color: 'var(--ghrs-text-tertiary)' }}>
-                  مثال: KXNZX2-101, KXNZX2-102
+                  مثال: KXNZX2-101 للطفل، KXNZX2-001 للأب/الأم
                 </p>
               )}
             </div>
@@ -133,11 +142,14 @@ function FamilyLoginContent() {
 
         {/* Footer Links */}
         {!isDirectLink && (
-          <div className="mt-6 text-center">
+          <div className="mt-6 text-center space-y-2">
             <p>
               <Link href="/owner-login" className="font-bold" style={{ color: 'var(--ghrs-green-600)' }}>
-                دخول المالك
+                دخول المالك بالبريد الإلكتروني
               </Link>
+            </p>
+            <p className="text-xs" style={{ color: 'var(--ghrs-text-tertiary)' }}>
+             ᵈ든 للأب، الأم، والطفل. استخدم كود العائلة + رمز PIN
             </p>
           </div>
         )}

@@ -4,11 +4,11 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ParentBottomNav, ParentSidebar, PageHeader, CardSkeleton, EmptyState } from '@/components/layout'
+import { ParentBottomNav, ParentSidebar, PageHeader, EmptyState } from '@/components/layout'
+import { getCurrentUser, clearAuth, AuthUser } from '@/lib/auth/helper'
 
 export default function DashboardPage() {
-  const [user, setUser] = useState<any>(null)
-  const [member, setMember] = useState<any>(null)
+  const [authUser, setAuthUser] = useState<AuthUser | null>(null)
   const [family, setFamily] = useState<any>(null)
   const [children, setChildren] = useState<any[]>([])
   const [tasks, setTasks] = useState<any[]>([])
@@ -19,40 +19,19 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const getData = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        router.push('/owner-login')
+      const user = await getCurrentUser()
+      
+      if (!user || user.role === 'child') {
+        router.push('/family-login')
         return
       }
 
-      const { data: identity } = await supabase
-        .from('auth_identities')
-        .select('member_id')
-        .eq('auth_user_id', user.id)
-        .single()
-
-      if (!identity) {
-        router.push('/family-setup')
-        return
-      }
-
-      const { data: memberData } = await supabase
-        .from('members')
-        .select('*')
-        .eq('id', identity.member_id)
-        .single()
-
-      if (!memberData) {
-        router.push('/family-setup')
-        return
-      }
-
-      setMember(memberData)
+      setAuthUser(user)
 
       const { data: familyData } = await supabase
         .from('families')
         .select('*')
-        .eq('id', memberData.family_id)
+        .eq('id', user.familyId)
         .single()
 
       setFamily(familyData)
@@ -60,7 +39,7 @@ export default function DashboardPage() {
       const { data: childrenData } = await supabase
         .from('members')
         .select('*')
-        .eq('family_id', memberData.family_id)
+        .eq('family_id', user.familyId)
         .eq('role', 'child')
 
       setChildren(childrenData || [])
@@ -68,25 +47,68 @@ export default function DashboardPage() {
       const { data: tasksData } = await supabase
         .from('tasks')
         .select('*')
-        .eq('family_id', memberData.family_id)
+        .eq('family_id', user.familyId)
         .eq('is_active', true)
 
       setTasks(tasksData || [])
 
-      // Get pending approvals count
-      const { data: pendingData } = await supabase
-        .from('task_completions')
-        .select('id')
-        .eq('approved', false)
+      const taskIds = tasksData?.map(t => t.id) || []
+      if (taskIds.length > 0) {
+        const { data: pendingData } = await supabase
+          .from('task_completions')
+          .select('id')
+          .eq('approved', false)
+          .in('task_id', taskIds)
 
-      setPendingApprovals(pendingData?.length || 0)
+        setPendingApprovals(pendingData?.length || 0)
+      } else {
+        setPendingApprovals(0)
+      }
 
-      setUser(user)
       setLoading(false)
     }
 
     getData()
+
+    // Real-time subscription for task completions
+    const channel = supabase
+      .channel('dashboard-completions')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'task_completions' }, (payload) => {
+        // Re-fetch pending approvals on any change
+        const refreshPending = async () => {
+          const user = await getCurrentUser()
+          if (!user) return
+          const { data: tasksData } = await supabase
+            .from('tasks')
+            .select('id')
+            .eq('family_id', user.familyId)
+            .eq('is_active', true)
+          const taskIds = tasksData?.map(t => t.id) || []
+          if (taskIds.length > 0) {
+            const { data: pendingData } = await supabase
+              .from('task_completions')
+              .select('id')
+              .eq('approved', false)
+              .in('task_id', taskIds)
+            setPendingApprovals(pendingData?.length || 0)
+          }
+        }
+        refreshPending()
+      })
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
   }, [])
+
+  const handleLogout = async () => {
+    clearAuth()
+    if (authUser?.via === 'supabase') {
+      await supabase.auth.signOut()
+    }
+    router.push('/')
+  }
 
   if (loading) {
     return (
@@ -101,14 +123,12 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--ghrs-bg-primary)' }}>
-      {/* Desktop Sidebar */}
       <ParentSidebar />
 
-      {/* Main Content */}
       <div className="md:mr-[var(--ghrs-sidebar-width)] pb-24 md:pb-8">
         <div className="p-4 md:p-8 max-w-6xl mx-auto">
           <PageHeader 
-            title={`مرحباً ${member?.name} 👋`}
+            title={`مرحباً ${authUser?.name} 👋`}
             subtitle={family?.name}
           />
 
@@ -222,15 +242,25 @@ export default function DashboardPage() {
                 <div className="text-center">
                   <span className="text-3xl">🏆</span>
                   <p className="font-bold mt-2" style={{ color: 'var(--ghrs-text-primary)' }}>الإنجازات</p>
-                  <p className="text-xs" style={{ color: 'var(--ghrs-text-secondary)' }}>ال achievements</p>
+                  <p className="text-xs" style={{ color: 'var(--ghrs-text-secondary)' }}>الإنجازات</p>
                 </div>
               </Link>
             </div>
           </div>
+
+          {/* Logout Button */}
+          <div className="mt-8 text-center">
+            <button
+              onClick={handleLogout}
+              className="text-sm font-semibold"
+              style={{ color: 'var(--ghrs-text-tertiary)' }}
+            >
+              🚪 خروج
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Mobile Bottom Nav */}
       <ParentBottomNav />
     </div>
   )

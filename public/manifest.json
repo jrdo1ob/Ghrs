@@ -1,0 +1,24 @@
+{
+  "name": "غرس - ازرع العادة، واحصد الإنجاز",
+  "short_name": "غرس",
+  "description": "تطبيق عائلي لتحويل مهام الأطفال اليومية إلى رحلة نمو",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8faf5",
+  "theme_color": "#22c55e",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

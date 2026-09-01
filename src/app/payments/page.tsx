@@ -5,44 +5,28 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ParentBottomNav, ParentSidebar, PageHeader, EmptyState, Skeleton } from '@/components/layout'
+import { getCurrentUser, clearAuth, AuthUser } from '@/lib/auth/helper'
+import { useFamilyCurrency } from '@/hooks/useFamilyCurrency'
 
 export default function PaymentsPage() {
   const [transactions, setTransactions] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const router = useRouter()
   const supabase = createClient()
+  const { format: fmtMoney } = useFamilyCurrency()
 
   useEffect(() => {
     const getTransactions = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
+      const user = await getCurrentUser()
       if (!user) {
         router.push('/owner-login')
         return
       }
 
-      const { data: identity } = await supabase
-        .from('auth_identities')
-        .select('member_id')
-        .eq('auth_user_id', user.id)
-        .single()
-
-      if (!identity) {
-        router.push('/family-setup')
-        return
-      }
-
-      const { data: memberData } = await supabase
-        .from('members')
-        .select('family_id')
-        .eq('id', identity.member_id)
-        .single()
-
-      if (!memberData) return
-
       const { data: membersData } = await supabase
         .from('members')
         .select('id')
-        .eq('family_id', memberData.family_id)
+        .eq('family_id', user.familyId)
 
       const memberIds = membersData?.map(m => m.id) || []
 
@@ -93,19 +77,19 @@ export default function PaymentsPage() {
           <div className="grid grid-cols-3 gap-4 mb-6">
             <div className="ghrs-card p-4 text-center">
               <p className="text-2xl font-bold" style={{ color: 'var(--ghrs-green-600)' }}>
-                {transactions.filter(t => t.type === 'earned').reduce((sum, t) => sum + t.amount, 0)}
+                {fmtMoney(transactions.filter(t => t.type === 'earned').reduce((sum, t) => sum + t.amount, 0))}
               </p>
               <p className="text-xs" style={{ color: 'var(--ghrs-text-secondary)' }}>الأرباح</p>
             </div>
             <div className="ghrs-card p-4 text-center">
               <p className="text-2xl font-bold" style={{ color: 'var(--ghrs-amber-600)' }}>
-                {transactions.filter(t => t.status === 'pending').reduce((sum, t) => sum + t.amount, 0)}
+                {fmtMoney(transactions.filter(t => t.status === 'pending').reduce((sum, t) => sum + t.amount, 0))}
               </p>
               <p className="text-xs" style={{ color: 'var(--ghrs-text-secondary)' }}>المعلقة</p>
             </div>
             <div className="ghrs-card p-4 text-center">
               <p className="text-2xl font-bold" style={{ color: 'var(--ghrs-red-500)' }}>
-                {transactions.filter(t => t.type === 'withdrawn').reduce((sum, t) => sum + t.amount, 0)}
+                {fmtMoney(transactions.filter(t => t.type === 'withdrawn').reduce((sum, t) => sum + t.amount, 0))}
               </p>
               <p className="text-xs" style={{ color: 'var(--ghrs-text-secondary)' }}>المسحوبات</p>
             </div>
@@ -131,7 +115,7 @@ export default function PaymentsPage() {
                     <p className="text-lg font-bold" style={{ 
                       color: tx.type === 'earned' ? 'var(--ghrs-green-600)' : 'var(--ghrs-red-500)' 
                     }}>
-                      {tx.type === 'earned' ? '+' : '-'}{tx.amount}
+                      {tx.type === 'earned' ? '+' : '-'}{fmtMoney(tx.amount)}
                     </p>
                     <span 
                       className="px-2 py-0.5 rounded-full text-xs font-bold"

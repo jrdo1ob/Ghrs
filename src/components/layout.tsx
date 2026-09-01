@@ -1,5 +1,6 @@
 'use client'
 
+import React from 'react'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { useTheme, Theme } from '@/lib/theme/provider'
@@ -174,7 +175,7 @@ export function PageHeader({
     <header className="mb-6">
       {backHref && (
         <Link href={backHref} className="inline-flex items-center gap-1 text-sm font-semibold mb-2" style={{ color: 'var(--ghrs-green-600)' }}>
-          <span>→</span>
+          <span>←</span>
           <span>العودة</span>
         </Link>
       )}
@@ -242,8 +243,29 @@ export function Toast({
   message: string
   onClose: () => void
 }) {
+  const [exiting, setExiting] = React.useState(false)
+
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setExiting(true)
+      setTimeout(onClose, 300)
+    }, 3000)
+    return () => clearTimeout(timer)
+  }, [onClose])
+
+  const handleClose = () => {
+    setExiting(true)
+    setTimeout(onClose, 300)
+  }
+
   return (
-    <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 ghrs-animate-slide-up max-w-md w-full mx-4`}>
+    <div 
+      className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 max-w-md w-full mx-4 transition-all duration-300 ${
+        exiting ? 'opacity-0 -translate-y-4' : 'opacity-100 translate-y-0 ghrs-animate-slide-up'
+      }`}
+      role="alert"
+      aria-live="assertive"
+    >
       <div className={`flex items-center gap-3 p-4 rounded-xl shadow-lg ${
         type === 'success' 
           ? 'bg-ghrs-green-50 border border-ghrs-green-200' 
@@ -253,7 +275,7 @@ export function Toast({
         <p className={`flex-1 font-semibold ${type === 'success' ? 'text-ghrs-green-700' : 'text-ghrs-red-700'}`}>
           {message}
         </p>
-        <button onClick={onClose} className="text-lg opacity-50 hover:opacity-100">✕</button>
+        <button onClick={handleClose} className="text-lg opacity-50 hover:opacity-100" aria-label="إغلاق">✕</button>
       </div>
     </div>
   )
