@@ -82,6 +82,30 @@ export default function ChildModePage() {
       setCompletedToday(completedIds)
       setPendingToday(pendingIds)
 
+      // Check for recent manual adjustments (last 5 minutes)
+      const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString()
+      const { data: recentManual } = await supabase
+        .from('xp_transactions')
+        .select('amount, description, created_at')
+        .eq('member_id', childId)
+        .eq('source', 'manual')
+        .gte('created_at', fiveMinAgo)
+        .order('created_at', { ascending: false })
+        .limit(1)
+
+      if (recentManual && recentManual.length > 0) {
+        const adj = recentManual[0]
+        const isReward = adj.amount > 0
+        setTimeout(() => {
+          setToast({
+            type: isReward ? 'success' : 'error',
+            message: isReward
+              ? `مكافأة من الوالد: ${adj.description} (+${adj.amount} XP)`
+              : `تنبيه من الوالد: ${adj.description} (${adj.amount} XP)`
+          })
+        }, 1500)
+      }
+
       setLoading(false)
     }
 

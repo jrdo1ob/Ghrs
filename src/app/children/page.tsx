@@ -5,8 +5,9 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ParentBottomNav, ParentSidebar, PageHeader, EmptyState, Toast, Skeleton } from '@/components/layout'
+import ConfirmDialog from '@/components/ConfirmDialog'
 import { getCurrentUser, AuthUser } from '@/lib/auth/helper'
-import { ChildIcon, CrownIcon, MotherIcon, LeafIcon, CopyIcon, CheckIcon, DeleteIcon, EditIcon, UserIcon } from '@/components/icons'
+import { ChildIcon, CrownIcon, MotherIcon, LeafIcon, CopyIcon, CheckIcon, DeleteIcon, EditIcon, UserIcon, StarIcon, CoinIcon, SparkleIcon, ShieldIcon } from '@/components/icons'
 
 export default function ChildrenPage() {
   const [authUser, setAuthUser] = useState<AuthUser | null>(null)
@@ -24,6 +25,9 @@ export default function ChildrenPage() {
   const [error, setError] = useState('')
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
+  const [manualModal, setManualModal] = useState<{ child: any; type: 'reward' | 'penalty' } | null>(null)
+  const [manualForm, setManualForm] = useState({ reason: '', currencyType: 'xp' as 'xp' | 'money', amount: 10 })
+  const [processingId, setProcessingId] = useState<string | null>(null)
   const router = useRouter()
   const supabase = createClient()
 
@@ -31,48 +35,26 @@ export default function ChildrenPage() {
     const getData = async () => {
       const user = await getCurrentUser()
       if (!user || user.role === 'child') { router.push('/family-login'); return }
-
       setAuthUser(user)
 
-      const { data: familyData } = await supabase
-        .from('families').select('*').eq('id', user.familyId).single()
-
+      const { data: familyData } = await supabase.from('families').select('*').eq('id', user.familyId).single()
       setFamily(familyData)
 
-      // Get children
-      const { data: childrenData } = await supabase
-        .from('members').select('*')
-        .eq('family_id', user.familyId)
-        .eq('role', 'child')
-        .order('created_at', { ascending: true })
-
+      const { data: childrenData } = await supabase.from('members').select('*').eq('family_id', user.familyId).eq('role', 'child').order('created_at', { ascending: true })
       setChildren(childrenData || [])
 
-      // Get parents (excluding the current owner if they logged in via supabase)
-      const { data: parentsData } = await supabase
-        .from('members').select('*')
-        .eq('family_id', user.familyId)
-        .in('role', ['parent', 'owner'])
-        .order('created_at', { ascending: true })
-
+      const { data: parentsData } = await supabase.from('members').select('*').eq('family_id', user.familyId).in('role', ['parent', 'owner']).order('created_at', { ascending: true })
       setParents(parentsData || [])
       setLoading(false)
     }
-
     getData()
   }, [])
 
   const generateLoginCode = async (role: 'child' | 'parent') => {
     if (!family || !authUser) return ''
-    const { data, error } = await supabase.rpc('generate_unique_login_code', {
-      p_family_code: family.code,
-      p_role: role
-    })
+    const { data, error } = await supabase.rpc('generate_unique_login_code', { p_family_code: family.code, p_role: role })
     if (error) {
-      // Fallback to old method
-      const { count } = await supabase
-        .from('members').select('*', { count: 'exact', head: true })
-        .eq('family_id', authUser.familyId).eq('role', role)
+      const { count } = await supabase.from('members').select('*', { count: 'exact', head: true }).eq('family_id', authUser.familyId).eq('role', role)
       const prefix = role === 'child' ? '100' : '000'
       return `${family.code}-${prefix + (count || 0) + 1}`
     }
@@ -83,85 +65,79 @@ export default function ChildrenPage() {
     e.preventDefault()
     setError('')
     if (!authUser || !newName.trim() || !newPin) return
-
     const role = activeTab === 'children' ? 'child' : 'parent'
     const loginCode = await generateLoginCode(role)
-
-    const { data: member, error: memberError } = await supabase
-      .from('members')
-      .insert({ family_id: authUser.familyId, name: newName, role, login_code: loginCode })
-      .select().single()
-
+    const { data: member, error: memberError } = await supabase.from('members').insert({ family_id: authUser.familyId, name: newName, role, login_code: loginCode }).select().single()
     if (memberError) { setError(memberError.message); return }
-
-    const { error: pinError } = await supabase
-      .rpc('set_member_pin', { p_member_id: member.id, p_pin: newPin })
-
+    const { error: pinError } = await supabase.rpc('set_member_pin', { p_member_id: member.id, p_pin: newPin })
     if (pinError) { setError(pinError.message); return }
-
-    if (role === 'child') {
-      setChildren([...children, { ...member }])
-    } else {
-      setParents([...parents, { ...member }])
-    }
-
-    setShowAdd(false)
-    setNewName('')
-    setNewPin('')
+    if (role === 'child') setChildren([...children, { ...member }])
+    else setParents([...parents, { ...member }])
+    setShowAdd(false); setNewName(''); setNewPin('')
     setToast({ type: 'success', message: `تم إضافة ${member.name} بنجاح!` })
   }
 
   const handleUpdateName = async (memberId: string) => {
     setError('')
     if (!editName.trim()) { setError('الاسم لا يمكن أن يكون فارغاً'); return }
-
-    const { error } = await supabase
-      .from('members').update({ name: editName }).eq('id', memberId)
-
+    const { error } = await supabase.from('members').update({ name: editName }).eq('id', memberId)
     if (error) { setError(error.message); return }
-
     setChildren(children.map(c => c.id === memberId ? { ...c, name: editName } : c))
     setParents(parents.map(p => p.id === memberId ? { ...p, name: editName } : p))
-    setEditingId(null)
-    setToast({ type: 'success', message: 'تم تعديل الاسم!' })
+    setEditingId(null); setToast({ type: 'success', message: 'تم تعديل الاسم!' })
   }
 
   const handleUpdatePin = async (memberId: string) => {
     setError('')
     if (!editPin || editPin.length < 4) { setError('الرمز يجب أن يكون 4 أرقام على الأقل'); return }
-
-    const { error } = await supabase
-      .rpc('set_member_pin', { p_member_id: memberId, p_pin: editPin })
-
+    const { error } = await supabase.rpc('set_member_pin', { p_member_id: memberId, p_pin: editPin })
     if (error) { setError(error.message); return }
-
-    setEditingId(null)
-    setToast({ type: 'success', message: 'تم تعديل رمز PIN!' })
+    setEditingId(null); setToast({ type: 'success', message: 'تم تعديل رمز PIN!' })
   }
 
   const handleDelete = async (memberId: string, memberName: string) => {
     if (!confirm(`هل أنت متأكد من حذف "${memberName}"؟`)) return
-
     const { error } = await supabase.from('members').delete().eq('id', memberId)
     if (error) { setError(error.message); return }
-
     setChildren(children.filter(c => c.id !== memberId))
     setParents(parents.filter(p => p.id !== memberId))
     setToast({ type: 'success', message: `تم حذف ${memberName}` })
   }
 
+  const handleManualAdjustment = async () => {
+    if (!manualModal || !manualForm.reason.trim() || manualForm.amount <= 0) return
+    setProcessingId(manualModal.child.id)
+
+    const { data, error } = await supabase.rpc('apply_manual_adjustment', {
+      p_child_id: manualModal.child.id,
+      p_type: manualModal.type,
+      p_currency_type: manualForm.currencyType,
+      p_amount: manualForm.amount,
+      p_reason: manualForm.reason,
+    })
+
+    if (error || !data?.success) {
+      setToast({ type: 'error', message: error?.message || data?.message || 'حدث خطأ' })
+      setProcessingId(null); setManualModal(null); return
+    }
+
+    setToast({
+      type: 'success',
+      message: manualModal.type === 'reward'
+        ? `تم منح ${manualModal.child.name} مكافأة ${manualForm.amount} ${manualForm.currencyType === 'xp' ? 'نقطة' : 'مالي'} بنجاح!`
+        : `تم خصم ${manualForm.amount} ${manualForm.currencyType === 'xp' ? 'نقطة' : 'مالي'} من ${manualModal.child.name}`
+    })
+    setProcessingId(null); setManualModal(null)
+    setManualForm({ reason: '', currencyType: 'xp', amount: 10 })
+  }
+
   const copyLoginCode = async (code: string) => {
-    await navigator.clipboard.writeText(code)
-    setCopiedId(code)
-    setTimeout(() => setCopiedId(null), 2000)
+    await navigator.clipboard.writeText(code); setCopiedId(code); setTimeout(() => setCopiedId(null), 2000)
   }
 
   const copyLoginLink = async (code: string) => {
-    const baseUrl = window.location.origin
-    const link = `${baseUrl}/family-login?code=${code}`
-    await navigator.clipboard.writeText(link)
-    setCopiedId(code)
-    setTimeout(() => setCopiedId(null), 2000)
+    const link = `${window.location.origin}/family-login?code=${code}`
+    await navigator.clipboard.writeText(link); setCopiedId(code); setTimeout(() => setCopiedId(null), 2000)
   }
 
   const currentList = activeTab === 'children' ? children : parents
@@ -183,42 +159,76 @@ export default function ChildrenPage() {
   return (
     <div className="min-h-screen" style={{ background: 'var(--ghrs-bg-primary)' }}>
       {toast && <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />}
+      {manualModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.5)' }} onClick={() => setManualModal(null)}>
+          <div className="ghrs-card p-6 w-full max-w-md ghrs-animate-scale-in" onClick={e => e.stopPropagation()}>
+            <h2 className="text-lg font-bold mb-2" style={{ color: manualModal.type === 'reward' ? 'var(--ghrs-green-600)' : 'var(--ghrs-red-600)' }}>
+              {manualModal.type === 'reward' ? 'مكافأة فورية' : 'خصم / عقاب'}
+            </h2>
+            <p className="text-sm mb-4" style={{ color: 'var(--ghrs-text-secondary)' }}>
+              {manualModal.type === 'reward' ? 'منح مكافأة لـ' : 'تطبيق خصم على'} {manualModal.child.name}
+            </p>
+
+            <div className="space-y-3">
+              {/* Reason */}
+              <div>
+                <label className="block text-sm font-semibold mb-1" style={{ color: 'var(--ghrs-text-secondary)' }}>السبب / الوصف</label>
+                <input type="text" value={manualForm.reason} onChange={e => setManualForm({ ...manualForm, reason: e.target.value })}
+                  className="ghrs-input w-full" placeholder={manualModal.type === 'reward' ? 'مساعدة الجدة، خلق حسن، تميز في الاختبار' : 'عدم الالتزام، سلوك غير لائق، صراخ'} />
+              </div>
+
+              {/* Currency Type */}
+              <div>
+                <label className="block text-sm font-semibold mb-1" style={{ color: 'var(--ghrs-text-secondary)' }}>نوع العملة</label>
+                <div className="flex gap-2">
+                  <button type="button" onClick={() => setManualForm({ ...manualForm, currencyType: 'xp' })}
+                    className="flex-1 flex items-center justify-center gap-1 px-3 py-2.5 rounded-xl text-sm font-bold transition-all border-2"
+                    style={{ borderColor: manualForm.currencyType === 'xp' ? 'var(--ghrs-green-500)' : 'var(--ghrs-border-default)', background: manualForm.currencyType === 'xp' ? 'var(--ghrs-green-50)' : 'transparent', color: manualForm.currencyType === 'xp' ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)' }}>
+                    <StarIcon size={16} /> نقاط XP
+                  </button>
+                  <button type="button" onClick={() => setManualForm({ ...manualForm, currencyType: 'money' })}
+                    className="flex-1 flex items-center justify-center gap-1 px-3 py-2.5 rounded-xl text-sm font-bold transition-all border-2"
+                    style={{ borderColor: manualForm.currencyType === 'money' ? 'var(--ghrs-amber-500)' : 'var(--ghrs-border-default)', background: manualForm.currencyType === 'money' ? 'var(--ghrs-amber-50)' : 'transparent', color: manualForm.currencyType === 'money' ? 'var(--ghrs-amber-700)' : 'var(--ghrs-text-secondary)' }}>
+                    <CoinIcon size={16} /> رصيد مالي
+                  </button>
+                </div>
+              </div>
+
+              {/* Amount */}
+              <div>
+                <label className="block text-sm font-semibold mb-1" style={{ color: 'var(--ghrs-text-secondary)' }}>القيمة</label>
+                <input type="number" min="1" value={manualForm.amount} onChange={e => setManualForm({ ...manualForm, amount: parseInt(e.target.value) || 0 })} className="ghrs-input w-full text-center text-xl font-bold" />
+              </div>
+            </div>
+
+            <div className="flex gap-2 mt-5">
+              <button onClick={handleManualAdjustment} disabled={!manualForm.reason.trim() || manualForm.amount <= 0 || processingId === manualModal.child.id}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-bold transition-all"
+                style={{ background: manualModal.type === 'reward' ? 'var(--ghrs-green-500)' : 'var(--ghrs-red-500)', color: 'white', opacity: (!manualForm.reason.trim() || manualForm.amount <= 0 || processingId === manualModal.child.id) ? 0.6 : 1 }}>
+                {manualModal.type === 'reward' ? <><SparkleIcon size={16} /> منح المكافأة</> : <><ShieldIcon size={16} /> تطبيق الخصم</>}
+              </button>
+              <button onClick={() => setManualModal(null)} className="px-4 py-3 rounded-xl text-sm font-bold" style={{ background: 'var(--ghrs-bg-tertiary)', color: 'var(--ghrs-text-secondary)' }}>إلغاء</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <ParentSidebar />
       <div className="md:mr-[var(--ghrs-sidebar-width)] pb-24 md:pb-8">
         <div className="p-4 md:p-8 max-w-4xl mx-auto">
-          <PageHeader 
-            title="إدارة أفراد العائلة"
-            subtitle="إضافة وتعديل ملفات الأبناء وأهل العائلة"
-            backHref="/dashboard"
-            action={
-              <button onClick={() => { setShowAdd(true); setNewName(''); setNewPin('') }} className="ghrs-btn-primary">
-                + {addLabel}
-              </button>
-            }
-          />
+          <PageHeader title="إدارة أفراد العائلة" subtitle="إضافة وتعديل ملفات الأبناء وأهل العائلة" backHref="/dashboard"
+            action={<button onClick={() => { setShowAdd(true); setNewName(''); setNewPin('') }} className="ghrs-btn-primary">+ {addLabel}</button>} />
 
           {/* Tabs */}
           <div className="flex gap-2 mb-6">
-            <button
-              onClick={() => { setActiveTab('children'); setShowAdd(false); setEditingId(null) }}
+            <button onClick={() => { setActiveTab('children'); setShowAdd(false); setEditingId(null) }}
               className="px-6 py-3 rounded-xl text-sm font-bold transition-all"
-              style={{
-                background: activeTab === 'children' ? 'var(--ghrs-green-100)' : 'var(--ghrs-bg-tertiary)',
-                color: activeTab === 'children' ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)',
-                border: `2px solid ${activeTab === 'children' ? 'var(--ghrs-green-300)' : 'transparent'}`
-              }}
-            >
+              style={{ background: activeTab === 'children' ? 'var(--ghrs-green-100)' : 'var(--ghrs-bg-tertiary)', color: activeTab === 'children' ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)', border: `2px solid ${activeTab === 'children' ? 'var(--ghrs-green-300)' : 'transparent'}` }}>
               <ChildIcon size={16} className="inline" /> الأطفال ({children.length})
             </button>
-            <button
-              onClick={() => { setActiveTab('parents'); setShowAdd(false); setEditingId(null) }}
+            <button onClick={() => { setActiveTab('parents'); setShowAdd(false); setEditingId(null) }}
               className="px-6 py-3 rounded-xl text-sm font-bold transition-all"
-              style={{
-                background: activeTab === 'parents' ? 'var(--ghrs-blue-50)' : 'var(--ghrs-bg-tertiary)',
-                color: activeTab === 'parents' ? 'var(--ghrs-blue-600)' : 'var(--ghrs-text-secondary)',
-                border: `2px solid ${activeTab === 'parents' ? 'var(--ghrs-blue-200)' : 'transparent'}`
-              }}
-            >
+              style={{ background: activeTab === 'parents' ? 'var(--ghrs-blue-50)' : 'var(--ghrs-bg-tertiary)', color: activeTab === 'parents' ? 'var(--ghrs-blue-600)' : 'var(--ghrs-text-secondary)', border: `2px solid ${activeTab === 'parents' ? 'var(--ghrs-blue-200)' : 'transparent'}` }}>
               <UserIcon size={16} className="inline" /> أهل العائلة ({parents.length})
             </button>
           </div>
@@ -232,11 +242,11 @@ export default function ChildrenPage() {
               <form onSubmit={handleAdd} className="space-y-4">
                 <div>
                   <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--ghrs-text-secondary)' }}>الاسم</label>
-                  <input type="text" value={newName} onChange={(e) => setNewName(e.target.value)} required className="ghrs-input" placeholder={activeTab === 'children' ? 'سارة' : 'شمه'} />
+                  <input type="text" value={newName} onChange={e => setNewName(e.target.value)} required className="ghrs-input" placeholder={activeTab === 'children' ? 'سارة' : 'شمه'} />
                 </div>
                 <div>
                   <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--ghrs-text-secondary)' }}>رمز PIN (4-6 أرقام)</label>
-                  <input type="password" inputMode="numeric" pattern="[0-9]*" value={newPin} onChange={(e) => setNewPin(e.target.value)} required className="ghrs-input text-center text-xl tracking-widest font-mono" placeholder="1234" maxLength={6} dir="ltr" autoComplete="one-time-code" />
+                  <input type="password" inputMode="numeric" pattern="[0-9]*" value={newPin} onChange={e => setNewPin(e.target.value)} required className="ghrs-input text-center text-xl tracking-widest font-mono" placeholder="1234" maxLength={6} dir="ltr" autoComplete="one-time-code" />
                 </div>
                 <div className="flex gap-2">
                   <button type="submit" className="ghrs-btn-primary">إضافة</button>
@@ -248,7 +258,7 @@ export default function ChildrenPage() {
 
           {/* Members List */}
           <div className="space-y-4">
-            {currentList.map((member) => (
+            {currentList.map(member => (
               <div key={member.id} className="ghrs-card p-5">
                 {editingId === member.id ? (
                   <div className="space-y-4">
@@ -256,18 +266,18 @@ export default function ChildrenPage() {
                     <div>
                       <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--ghrs-text-secondary)' }}>الاسم</label>
                       <div className="flex gap-2">
-                        <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)} className="ghrs-input flex-1" />
+                        <input type="text" value={editName} onChange={e => setEditName(e.target.value)} className="ghrs-input flex-1" />
                         <button onClick={() => handleUpdateName(member.id)} className="ghrs-btn-primary">حفظ</button>
                       </div>
                     </div>
                     <div>
                       <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--ghrs-text-secondary)' }}>رمز PIN الجديد</label>
                       <div className="flex gap-2">
-                        <input type="password" inputMode="numeric" pattern="[0-9]*" value={editPin} onChange={(e) => setEditPin(e.target.value)} className="ghrs-input flex-1 text-center tracking-widest font-mono" placeholder="1234" maxLength={6} dir="ltr" autoComplete="one-time-code" />
+                        <input type="password" inputMode="numeric" pattern="[0-9]*" value={editPin} onChange={e => setEditPin(e.target.value)} className="ghrs-input flex-1 text-center tracking-widest font-mono" placeholder="1234" maxLength={6} dir="ltr" autoComplete="one-time-code" />
                         <button onClick={() => handleUpdatePin(member.id)} className="ghrs-btn-primary" style={{ background: 'var(--ghrs-amber-500)' }}>حفظ الرمز</button>
                       </div>
                     </div>
-                    <button onClick={() => { setEditingId(null); setError(''); setEditName(''); setEditPin('') }} className="text-sm font-semibold" style={{ color: 'var(--ghrs-text-tertiary)' }}>✕ إلغاء</button>
+                    <button onClick={() => { setEditingId(null); setError(''); setEditName(''); setEditPin('') }} className="text-sm font-semibold" style={{ color: 'var(--ghrs-text-tertiary)' }}>إلغاء</button>
                   </div>
                 ) : (
                   <div>
@@ -289,6 +299,23 @@ export default function ChildrenPage() {
                         )}
                       </div>
                     </div>
+
+                    {/* Manual Action Buttons (only for children) */}
+                    {member.role === 'child' && (
+                      <div className="flex gap-2 mb-3">
+                        <button onClick={() => { setManualModal({ child: member, type: 'reward' }); setManualForm({ reason: '', currencyType: 'xp', amount: 10 }) }}
+                          className="flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-xl text-sm font-bold transition-all"
+                          style={{ background: 'var(--ghrs-green-100)', color: 'var(--ghrs-green-700)', border: '2px solid var(--ghrs-green-200)' }}>
+                          <SparkleIcon size={14} /> مكافأة فورية
+                        </button>
+                        <button onClick={() => { setManualModal({ child: member, type: 'penalty' }); setManualForm({ reason: '', currencyType: 'xp', amount: 10 }) }}
+                          className="flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-xl text-sm font-bold transition-all"
+                          style={{ background: 'var(--ghrs-red-50)', color: 'var(--ghrs-red-600)', border: '2px solid var(--ghrs-red-200)' }}>
+                          <ShieldIcon size={14} /> خصم / عقاب
+                        </button>
+                      </div>
+                    )}
+
                     <div className="rounded-xl p-4 mb-3" style={{ background: 'var(--ghrs-green-50)', border: '1px solid var(--ghrs-green-200)' }}>
                       <p className="text-sm font-semibold mb-2" style={{ color: 'var(--ghrs-text-secondary)' }}><UserIcon size={14} className="inline" /> كود الدخول:</p>
                       <div className="flex items-center gap-3">
@@ -302,31 +329,9 @@ export default function ChildrenPage() {
                       <CopyIcon size={14} className="inline" /> نسخ رابط الدخول
                     </button>
                     {member.role === 'child' && (
-                      <button
-                        onClick={() => {
-                          const baseUrl = window.location.origin
-                          const link = `${baseUrl}/family-login?code=${member.login_code}`
-                          const msg = encodeURIComponent(`بطلنا المبدع!\nحديقتك في منصة غرس بانتظارك اليوم! اضغط على رابطك المباشر للبدء في حل المهام، سقاية الحديقة، وجمع النقاط\n\n🔗 رابط دخولك المباشر:\n${link}`)
-                          window.open(`https://wa.me/?text=${msg}`, '_blank')
-                        }}
-                        className="w-full py-2 px-4 rounded-xl text-sm font-bold transition-colors mt-2"
-                        style={{ background: '#25D366', color: 'white' }}
-                      >
+                      <button onClick={() => { const link = `${window.location.origin}/family-login?code=${member.login_code}`; window.open(`https://wa.me/?text=${encodeURIComponent(`بطلنا المبدع!\nحديقتك في منصة غرس بانتظارك اليوم!\n\nرابط دخولك المباشر:\n${link}`)}`, '_blank') }}
+                        className="w-full py-2 px-4 rounded-xl text-sm font-bold transition-colors mt-2" style={{ background: '#25D366', color: 'white' }}>
                         مشاركة رابط الدخول على الواتساب
-                      </button>
-                    )}
-                    {member.role !== 'child' && (
-                      <button
-                        onClick={() => {
-                          const baseUrl = window.location.origin
-                          const link = `${baseUrl}/family-login?code=${member.login_code}`
-                          const msg = encodeURIComponent(`مرحباً بكِ في تطبيق غرس العائلي!\nتم إعداد رابط دخولكِ المباشر لمتابعة إنجازات الأبناء، اعتماد المهام، وإضافة المكافآت أو العقوبات التربوية\n\n🔐 رابط الدخول المباشر للوالدة:\n${link}`)
-                          window.open(`https://wa.me/?text=${msg}`, '_blank')
-                        }}
-                        className="w-full py-2 px-4 rounded-xl text-sm font-bold transition-colors mt-2"
-                        style={{ background: '#25D366', color: 'white' }}
-                      >
-                        مشاركة رابط دخول الوالدة
                       </button>
                     )}
                   </div>
@@ -335,14 +340,11 @@ export default function ChildrenPage() {
             ))}
           </div>
 
-          {/* Empty State */}
           {currentList.length === 0 && !showAdd && (
-            <EmptyState
-              icon={activeTab === 'children' ? <ChildIcon size={48} /> : <UserIcon size={48} />}
+            <EmptyState icon={activeTab === 'children' ? <ChildIcon size={48} /> : <UserIcon size={48} />}
               title={`لم تتم إضافة أي ${emptyLabel} بعد`}
               description={activeTab === 'children' ? 'أضف أطفالك لبدء مغامرة النمو' : 'أضف أهل العائلة ل给他们 صلاحيات الإدارة'}
-              action={<button onClick={() => setShowAdd(true)} className="ghrs-btn-primary">+ {addLabel}</button>}
-            />
+              action={<button onClick={() => setShowAdd(true)} className="ghrs-btn-primary">+ {addLabel}</button>} />
           )}
         </div>
       </div>
