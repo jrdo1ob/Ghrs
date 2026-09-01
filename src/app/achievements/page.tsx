@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ParentBottomNav, ParentSidebar, PageHeader, EmptyState, Skeleton } from '@/components/layout'
-import { getCurrentUser, clearAuth, AuthUser } from '@/lib/auth/helper'
+import { getCurrentUser } from '@/lib/auth/helper'
 
 export default function AchievementsPage() {
   const [achievements, setAchievements] = useState<any[]>([])

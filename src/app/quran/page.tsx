@@ -3,9 +3,8 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 import { ParentBottomNav, ParentSidebar, PageHeader, EmptyState, Toast, Skeleton } from '@/components/layout'
-import { getCurrentUser, clearAuth, AuthUser } from '@/lib/auth/helper'
+import { getCurrentUser } from '@/lib/auth/helper'
 
 const SURAHS = [
   { number: 1, name: 'الفاتحة', ayahs: 7 },

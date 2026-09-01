@@ -188,12 +188,13 @@ export default function TasksPage() {
       if (rpcError) { setError(rpcError.message); return }
 
       // Update quran fields directly
-      await supabase.from('tasks').update({
+      const { error: updateError } = await supabase.from('tasks').update({
         task_type: formData.task_type, quran_action_type: formData.quran_action_type || null,
         surah_number: formData.surah_number || null, from_ayah: formData.from_ayah || null,
         to_ayah: formData.to_ayah || null, custom_title: formData.custom_title || null,
         custom_content_text: formData.custom_content_text || quranPreview || null,
       }).eq('id', editingTask.id)
+      if (updateError) { setError(updateError.message); return }
 
       setTasks(tasks.map(t => t.id === editingTask.id ? {
         ...t, ...taskData, frequency: formData.frequency as Task['frequency'],
@@ -545,9 +546,9 @@ export default function TasksPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-1">
-                      <button onClick={() => openEdit(task)} title="تعديل" className="p-2 rounded-lg transition-all hover:bg-ghrs-bg-tertiary" style={{ color: 'var(--ghrs-blue-500)' }}><EditIcon size={18} /></button>
-                      <button onClick={() => handleTogglePause(task)} title={task.is_paused ? 'تفعيل' : 'إيقاف'} className="p-2 rounded-lg transition-all hover:bg-ghrs-bg-tertiary" style={{ color: task.is_paused ? 'var(--ghrs-green-500)' : 'var(--ghrs-amber-500)' }}>{task.is_paused ? <PlayIcon size={18} /> : <PauseIcon size={18} />}</button>
-                      <button onClick={() => setDeleteConfirm(task)} title="حذف" className="p-2 rounded-lg transition-all hover:bg-ghrs-bg-tertiary" style={{ color: 'var(--ghrs-red-500)' }}><DeleteIcon size={18} /></button>
+                      <button onClick={() => openEdit(task)} title="تعديل" aria-label="تعديل المهمة" className="p-2 rounded-lg transition-all hover:bg-ghrs-bg-tertiary" style={{ color: 'var(--ghrs-blue-500)' }}><EditIcon size={18} /></button>
+                      <button onClick={() => handleTogglePause(task)} title={task.is_paused ? 'تفعيل' : 'إيقاف'} aria-label={task.is_paused ? 'تفعيل المهمة' : 'إيقاف المهمة'} className="p-2 rounded-lg transition-all hover:bg-ghrs-bg-tertiary" style={{ color: task.is_paused ? 'var(--ghrs-green-500)' : 'var(--ghrs-amber-500)' }}>{task.is_paused ? <PlayIcon size={18} /> : <PauseIcon size={18} />}</button>
+                      <button onClick={() => setDeleteConfirm(task)} title="حذف" aria-label="حذف المهمة" className="p-2 rounded-lg transition-all hover:bg-ghrs-bg-tertiary" style={{ color: 'var(--ghrs-red-500)' }}><DeleteIcon size={18} /></button>
                     </div>
                   </div>
 
