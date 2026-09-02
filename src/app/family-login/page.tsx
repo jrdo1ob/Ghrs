@@ -8,7 +8,15 @@ import { useRouter, useSearchParams } from 'next/navigation'
 
 function FamilyLoginContent() {
   const searchParams = useSearchParams()
-  const [loginCode, setLoginCode] = useState(searchParams.get('code') || '')
+  const [loginCode, setLoginCode] = useState(() => {
+    // Pre-fill from URL param or localStorage
+    const urlCode = searchParams.get('code')
+    if (urlCode) return urlCode
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('family_code') || ''
+    }
+    return ''
+  })
   const [pin, setPin] = useState('')
   const [memberName, setMemberName] = useState('')
   const [error, setError] = useState('')
@@ -72,12 +80,14 @@ function FamilyLoginContent() {
       // Child login
       localStorage.setItem('child_id', memberData.member_id)
       localStorage.setItem('family_id', memberData.family_id)
+      localStorage.setItem('family_code', loginCode.toUpperCase())
       setMemberSession(memberData.member_id, 'child')
       router.push('/child-mode')
     } else if (memberData.member_role === 'parent' || memberData.member_role === 'owner') {
       // Parent/Owner login via code + PIN
       localStorage.setItem('parent_id', memberData.member_id)
       localStorage.setItem('family_id', memberData.family_id)
+      localStorage.setItem('family_code', loginCode.toUpperCase())
       setMemberSession(memberData.member_id, memberData.member_role)
       router.push('/dashboard')
     } else {

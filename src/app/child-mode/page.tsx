@@ -57,6 +57,8 @@ export default function ChildModePage() {
         .select('*')
         .eq('family_id', memberData.family_id)
         .eq('is_active', true)
+        .eq('is_deleted', false)
+        .eq('is_paused', false)
 
       setTasks(tasksData || [])
 

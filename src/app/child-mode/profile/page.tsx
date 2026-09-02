@@ -94,6 +94,22 @@ export default function ChildProfilePage() {
   return (
     <div className="min-h-screen" style={{ background: 'var(--ghrs-bg-primary)' }}>
       <div className="p-4 md:p-8 max-w-2xl mx-auto pb-32">
+        {/* Theme Toggle */}
+        <div className="flex justify-end mb-4">
+          <button
+            onClick={() => {
+              const newTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'
+              document.documentElement.setAttribute('data-theme', newTheme)
+              localStorage.setItem('ghrs-theme', newTheme)
+            }}
+            className="p-3 rounded-xl transition-all"
+            style={{ background: 'var(--ghrs-bg-card)', border: '2px solid var(--ghrs-border-default)' }}
+            aria-label="تبديل المظهر"
+          >
+            {document.documentElement.getAttribute('data-theme') === 'dark' ? '☀️' : '🌙'}
+          </button>
+        </div>
+
         {/* Profile Header */}
         <div className="ghrs-card p-6 mb-6 text-center">
           <div className="text-6xl mb-3">{level.emoji}</div>
