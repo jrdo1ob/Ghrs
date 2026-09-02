@@ -8,10 +8,12 @@ export async function GET(request: Request) {
   const error = searchParams.get('error')
   const errorDescription = searchParams.get('error_description')
 
+  console.log('[GHRS AUTH CALLBACK] callback reached')
+
   // Handle OAuth errors
   if (error) {
     const errorMessage = errorDescription || error
-    console.error('OAuth error:', errorMessage)
+    console.error('[GHRS AUTH CALLBACK] OAuth error:', errorMessage)
     return NextResponse.redirect(
       `${origin}/owner-login?error=${encodeURIComponent(errorMessage)}`
     )
@@ -21,14 +23,17 @@ export async function GET(request: Request) {
   if (code) {
     const supabase = await createClient()
 
+    console.log('[GHRS AUTH CALLBACK] exchangeCodeForSession started')
     const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
 
     if (exchangeError) {
-      console.error('Code exchange error:', exchangeError.message)
+      console.error('[GHRS AUTH CALLBACK] exchangeCodeForSession error:', exchangeError.message)
       return NextResponse.redirect(
         `${origin}/owner-login?error=${encodeURIComponent('فشل في تبديل كود المصادقة: ' + exchangeError.message)}`
       )
     }
+
+    console.log('[GHRS AUTH CALLBACK] exchangeCodeForSession success')
 
     if (data?.user) {
       // Check if user has a member identity

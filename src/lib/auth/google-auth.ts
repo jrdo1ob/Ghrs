@@ -12,35 +12,6 @@ if (typeof window !== 'undefined') {
 }
 
 /**
- * Detect if running in native Android environment
- * Uses multiple checks for reliability
- */
-function isNativeAndroid(): boolean {
-  try {
-    // Check 1: Capacitor native platform detection
-    if (Capacitor.isNativePlatform()) {
-      console.log('[GHRS] Detected native platform:', Capacitor.getPlatform());
-      return true;
-    }
-
-    // Check 2: Check if running in Android WebView
-    if (typeof navigator !== 'undefined' && navigator.userAgent.includes('Android')) {
-      // Additional check: if Capacitor plugins are available, it's likely native
-      if (typeof (window as any).Capacitor !== 'undefined') {
-        console.log('[GHRS] Detected Android with Capacitor');
-        return true;
-      }
-    }
-
-    console.log('[GHRS] Running in web browser mode');
-    return false;
-  } catch (err) {
-    console.log('[GHRS] Platform detection error, defaulting to web:', err);
-    return false;
-  }
-}
-
-/**
  * Handle Google Sign-In for both Native and Web
  * 
  * Android: GoogleAuth.signIn() → idToken → signInWithIdToken (NO PKCE)
@@ -48,26 +19,30 @@ function isNativeAndroid(): boolean {
  */
 export async function handleGoogleSignIn() {
   const supabase = createClient();
-  const isNative = isNativeAndroid();
+  
+  // Official Capacitor platform detection
+  const nativePlatform = Capacitor.isNativePlatform();
+  const platform = Capacitor.getPlatform();
+  const nativeAndroid = nativePlatform && platform === 'android';
 
-  console.log('[GHRS] Google Sign-In - Platform:', isNative ? 'NATIVE Android' : 'WEB');
-  console.log('[GHRS] Capacitor.getPlatform():', Capacitor.getPlatform());
-  console.log('[GHRS] Capacitor.isNativePlatform():', Capacitor.isNativePlatform());
+  console.log('[GHRS AUTH] platform =', platform);
+  console.log('[GHRS AUTH] nativePlatform =', nativePlatform);
+  console.log('[GHRS AUTH] nativeAndroid =', nativeAndroid);
 
-  if (isNative) {
+  if (nativeAndroid) {
     // ===== NATIVE ANDROID PATH =====
     // Opens Android's native Google account picker (NO browser)
-    console.log('[GHRS] Using NATIVE Google Auth path');
+    console.log('[GHRS AUTH] GoogleAuth.signIn started');
     
     const googleUser = await GoogleAuth.signIn();
-    console.log('[GHRS] GoogleAuth.signIn() completed');
+    console.log('[GHRS AUTH] GoogleAuth.signIn returned');
 
     if (!googleUser.authentication.idToken) {
-      console.error('[GHRS] No idToken received from Google');
+      console.error('[GHRS AUTH] No idToken received from Google');
       throw new Error("لم يتم إرجاع idToken من Google");
     }
 
-    console.log('[GHRS] idToken received, calling signInWithIdToken');
+    console.log('[GHRS AUTH] signInWithIdToken started');
 
     // Send idToken directly to Supabase (NO OAuth redirect, NO PKCE)
     const { data, error } = await supabase.auth.signInWithIdToken({
@@ -76,17 +51,17 @@ export async function handleGoogleSignIn() {
     });
 
     if (error) {
-      console.error('[GHRS] signInWithIdToken error:', error.message);
+      console.error('[GHRS AUTH] signInWithIdToken error:', error.message);
       throw error;
     }
 
-    console.log('[GHRS] signInWithIdToken SUCCESS - Session created');
+    console.log('[GHRS AUTH] signInWithIdToken success');
     return data;
 
   } else {
     // ===== WEB PATH =====
     // Standard OAuth redirect for browser
-    console.log('[GHRS] Using WEB OAuth path');
+    console.log('[GHRS AUTH] Web OAuth started');
 
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
@@ -99,11 +74,11 @@ export async function handleGoogleSignIn() {
     });
 
     if (error) {
-      console.error('[GHRS] signInWithOAuth error:', error.message);
+      console.error('[GHRS AUTH] signInWithOAuth error:', error.message);
       throw error;
     }
 
-    console.log('[GHRS] signInWithOAuth redirect initiated');
+    console.log('[GHRS AUTH] signInWithOAuth redirect initiated');
     return data;
   }
 }
