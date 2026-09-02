@@ -45,31 +45,42 @@ function OwnerLoginContent() {
     setGoogleLoading(true)
     setError('')
 
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-        queryParams: {
-          prompt: 'select_account',
-        },
-      },
-    })
+    try {
+      // Check if running in Capacitor (native app)
+      const isCapacitor = typeof window !== 'undefined' && (window as any).Capacitor
+      
+      if (isCapacitor) {
+        // Use native Google Auth for Capacitor
+        const { signInWithGoogleNative } = await import('@/lib/auth/google-auth')
+        const result = await signInWithGoogleNative()
+        
+        if (result.error) {
+          setError('حدث خطأ أثناء تسجيل الدخول بحساب Google')
+          setGoogleLoading(false)
+          return
+        }
+        
+        router.push('/dashboard')
+      } else {
+        // Use OAuth redirect for web browser
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: `${window.location.origin}/auth/callback`,
+            queryParams: {
+              prompt: 'select_account',
+            },
+          },
+        })
 
-    if (error) {
-      setError('حدث خطأ أثناء تسجيل الدخول بحساب Google: ' + error.message)
-      setGoogleLoading(false)
-      return
-    }
-
-    // For Capacitor: Open in system browser
-    if (data?.url) {
-      try {
-        const { Browser } = await import('@capacitor/browser')
-        await Browser.open({ url: data.url })
-      } catch (e) {
-        // Fallback for web - normal redirect
-        window.location.href = data.url
+        if (error) {
+          setError('حدث خطأ أثناء تسجيل الدخول بحساب Google: ' + error.message)
+          setGoogleLoading(false)
+        }
       }
+    } catch (err) {
+      setError('حدث خطأ أثناء تسجيل الدخول بحساب Google')
+      setGoogleLoading(false)
     }
   }
 
