@@ -35,6 +35,25 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
 
+      - name: Create Capacitor fallback index.html
+        run: |
+          cat > .next/index.html <<'EOF'
+          <!DOCTYPE html>
+          <html lang="ar" dir="rtl">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>غرس</title>
+          </head>
+          <body>
+            <p>جاري تحميل غرس...</p>
+          </body>
+          </html>
+          EOF
+
+          test -f .next/index.html
+          echo "✓ Capacitor fallback index.html created"
+
       - name: Verify Capacitor web assets
         run: |
           test -d .next
