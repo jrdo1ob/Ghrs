@@ -73,30 +73,50 @@ export default function ChildTasksPage() {
     setCompletingTask(taskId)
 
     console.log('[GHRS] Completing task:', taskId, 'for child:', childId)
+    
+    // Log task details for debugging
+    const task = tasks.find(t => t.id === taskId)
+    if (task) {
+      console.log('[GHRS] Task details:', {
+        id: task.id,
+        title: task.title,
+        family_id: task.family_id,
+        requires_approval: task.requires_approval,
+        xp_reward: task.xp_reward,
+        money_reward: task.money_reward,
+        is_active: task.is_active,
+        is_deleted: task.is_deleted,
+        assigned_to: task.assigned_to
+      })
+    }
+
     const { data, error } = await supabase.rpc('complete_task_with_rewards', { p_task_id: taskId, p_member_id: childId })
     
     if (error) {
       console.error('[GHRS] Complete task error:', error)
-      console.error('[GHRS] Error details:', JSON.stringify(error))
+      console.error('[GHRS] Error code:', error.code)
+      console.error('[GHRS] Error message:', error.message)
+      console.error('[GHRS] Error details:', error.details)
+      console.error('[GHRS] Error hint:', error.hint)
+      
       // Show a more helpful error message
-      let errorMsg = 'حدث خطأ أثناء إنجاز المهمة'
+      let errorMsg = 'تعذر تسجيل إنجاز المهمة، حاول مرة أخرى'
       if (error.message?.includes('Task not found')) {
         errorMsg = 'المهمة غير موجودة'
       } else if (error.message?.includes('Member not found')) {
         errorMsg = 'المستخدم غير موجود'
       } else if (error.message?.includes('not authorized')) {
-        errorMsg = 'غير مصرح לך بإتمام هذه المهمة'
+        errorMsg = 'غير مصرح لك بإتمام هذه المهمة'
       } else if (error.message?.includes('already completed')) {
         errorMsg = 'لقد أنجزت هذه المهمة اليوم بالفعل'
-      } else if (error.message) {
-        errorMsg = error.message
+      } else if (error.message?.includes('different families')) {
+        errorMsg = 'هذه المهمة ليست من عائلتك'
       }
       setToast({ type: 'error', message: errorMsg })
       setCompletingTask(null); return
     }
 
     console.log('[GHRS] Task completed successfully')
-    const task = tasks.find(t => t.id === taskId)
     const needsApproval = task?.requires_approval !== false
 
     setPendingToday([...pendingToday, taskId])
