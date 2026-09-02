@@ -15,10 +15,10 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Set up JDK 17
+      - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
+          java-version: '21'
           distribution: 'temurin'
 
       - name: Setup Node.js
@@ -36,16 +36,11 @@ jobs:
           npx cap copy android
           npx cap sync android
 
-      - name: Clean Gradle
+      - name: Clean & Build Android APK
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew clean
-
-      - name: Build Android APK
-        run: |
-          cd android
-          ./gradlew assembleDebug --continue > build.log 2>&1 || { tail -n 20 build.log; exit 1; }
+          ./gradlew clean assembleDebug --stacktrace
 
       - name: Upload APK Artifact
         if: success()
