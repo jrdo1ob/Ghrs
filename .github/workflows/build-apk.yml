@@ -29,23 +29,25 @@ jobs:
       - name: Install Dependencies
         run: npm install --legacy-peer-deps
 
-      - name: Clean and Sync Capacitor
+      - name: Sync Capacitor
         run: |
-          cd android
-          chmod +x gradlew
-          ./gradlew clean
-          cd ..
           mkdir -p android/app/src/main/assets
           npx cap copy android
           npx cap sync android
 
-      - name: Build Android APK
+      - name: Clean Gradle
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug
+          ./gradlew clean
+
+      - name: Build Android APK
+        run: |
+          cd android
+          ./gradlew assembleDebug --stacktrace
 
       - name: Upload APK Artifact
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: app-debug
