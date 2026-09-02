@@ -41,6 +41,17 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="ghrs" />
             </intent-filter>
+
+            <!-- Android App Links for ghrs-cyan.vercel.app -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="ghrs-cyan.vercel.app" android:pathPrefix="/family-login" />
+                <data android:scheme="https" android:host="ghrs-cyan.vercel.app" android:pathPrefix="/child-login" />
+                <data android:scheme="https" android:host="ghrs-cyan.vercel.app" android:pathPrefix="/owner-login" />
+                <data android:scheme="https" android:host="ghrs-cyan.vercel.app" android:pathPrefix="/dashboard" />
+            </intent-filter>
         </activity>
 
         <provider

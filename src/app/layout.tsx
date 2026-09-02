@@ -4,6 +4,7 @@ import { ThemeProvider } from "@/lib/theme/provider";
 import OfflineHandler from "@/components/OfflineHandler";
 import AppDownloadBanner from "@/components/AppDownloadBanner";
 import DeepLinkHandler from "@/components/DeepLinkHandler";
+import CapacitorRouteHandler from "@/components/CapacitorRouteHandler";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -61,6 +62,7 @@ export default function RootLayout({
           <OfflineHandler />
           <AppDownloadBanner />
           <DeepLinkHandler />
+          <CapacitorRouteHandler />
           {children}
         </ThemeProvider>
         <script dangerouslySetInnerHTML={{ __html: `
