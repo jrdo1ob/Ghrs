@@ -6,7 +6,6 @@ const config: CapacitorConfig = {
   webDir: '.next',
   server: {
     androidScheme: 'https',
-    url: 'https://ghrs-cyan.vercel.app',
     cleartext: false,
   },
   plugins: {
