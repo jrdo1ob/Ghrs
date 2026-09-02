@@ -33,6 +33,14 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="com.ghrs.app" android:host="auth-callback" />
             </intent-filter>
+
+            <!-- Smart Deep Link for ghrs:// scheme -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="ghrs" />
+            </intent-filter>
         </activity>
 
         <provider
