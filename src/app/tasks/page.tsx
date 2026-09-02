@@ -88,8 +88,8 @@ export default function TasksPage() {
       const withCompletions = await Promise.all(
         (tasksData || []).map(async (task) => {
           const { data: completions } = await supabase
-            .from('task_completions').select('*').eq('task_id', task.id).in('approved', [false, true])
-          return { ...task, completions: completions || [], pendingCount: completions?.filter((c: any) => c.approved === false)?.length || 0 }
+            .from('task_completions').select('*').eq('task_id', task.id).is('approved', null)
+          return { ...task, completions: completions || [], pendingCount: completions?.length || 0 }
         })
       )
 

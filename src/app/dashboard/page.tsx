@@ -35,7 +35,7 @@ export default function DashboardPage() {
 
       const taskIds = tasksData?.map(t => t.id) || []
       if (taskIds.length > 0) {
-        const { data: pendingData } = await supabase.from('task_completions').select('id').eq('approved', false).in('task_id', taskIds)
+        const { data: pendingData } = await supabase.from('task_completions').select('id').is('approved', null).in('task_id', taskIds)
         setPendingApprovals(pendingData?.length || 0)
       }
       setLoading(false)
@@ -50,7 +50,7 @@ export default function DashboardPage() {
           const { data: t } = await supabase.from('tasks').select('id').eq('family_id', user.familyId).eq('is_active', true)
           const ids = t?.map(x => x.id) || []
           if (ids.length > 0) {
-            const { data: p } = await supabase.from('task_completions').select('id').eq('approved', false).in('task_id', ids)
+            const { data: p } = await supabase.from('task_completions').select('id').is('approved', null).in('task_id', ids)
             setPendingApprovals(p?.length || 0)
           }
         }

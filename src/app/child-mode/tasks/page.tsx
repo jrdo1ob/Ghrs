@@ -62,7 +62,7 @@ export default function ChildTasksPage() {
         .gte('completed_at', today)
 
       setCompletedToday(completions?.filter(c => c.approved === true).map(c => c.task_id) || [])
-      setPendingToday(completions?.filter(c => c.approved === null || c.approved === false).map(c => c.task_id) || [])
+      setPendingToday(completions?.filter(c => c.approved === null).map(c => c.task_id) || [])
       setLoading(false)
     }
     getData()
