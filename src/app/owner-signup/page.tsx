@@ -50,43 +50,18 @@ export default function OwnerSignupPage() {
 
   const handleGoogleSignup = async () => {
     try {
-      // Check if running in Capacitor (native app)
-      const isCapacitor = typeof window !== 'undefined' && (window as any).Capacitor
-      
-      if (isCapacitor) {
-        // Use native Google Auth for Capacitor
-        const { signInWithGoogleNative } = await import('@/lib/auth/google-auth')
-        const result = await signInWithGoogleNative()
-        
-        if (result.error) {
-          setError('حدث خطأ أثناء التسجيل بحساب Google')
-          return
-        }
-        
-        router.push('/family-setup')
+      const { handleGoogleSignIn } = await import('@/lib/auth/google-auth')
+      const result = await handleGoogleSignIn()
+
+      // If result has url, it's a web redirect
+      if (result?.url) {
+        window.location.href = result.url
       } else {
-        // Use OAuth redirect for web browser
-        const { data, error } = await supabase.auth.signInWithOAuth({
-          provider: 'google',
-          options: {
-            redirectTo: `${window.location.origin}/auth/callback`,
-            queryParams: {
-              prompt: 'select_account',
-            },
-          },
-        })
-
-        if (error) {
-          setError('حدث خطأ أثناء التسجيل بحساب Google')
-          return
-        }
-
-        // For web: normal redirect
-        if (data?.url) {
-          window.location.href = data.url
-        }
+        // Native login succeeded, redirect to setup
+        router.push('/family-setup')
       }
-    } catch (err) {
+    } catch (err: any) {
+      console.error('Google signup error:', err)
       setError('حدث خطأ أثناء التسجيل بحساب Google')
     }
   }

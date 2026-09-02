@@ -1,9 +1,8 @@
-'use client'
-
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
+import { Capacitor } from '@capacitor/core';
 import { createClient } from './client';
 
-// Initialize Google Auth
+// Initialize Google Auth with Web Client ID
 if (typeof window !== 'undefined') {
   GoogleAuth.initialize({
     clientId: '533663504579-5a26jfnm0cae7oa1it3rekpc02g05n2b.apps.googleusercontent.com',
@@ -12,21 +11,29 @@ if (typeof window !== 'undefined') {
   });
 }
 
-export async function signInWithGoogleNative() {
-  try {
+export async function handleGoogleSignIn() {
+  const supabase = createClient();
+
+  if (Capacitor.isNativePlatform()) {
+    // Native: Use GoogleAuth.signIn() → idToken → signInWithIdToken
     const googleUser = await GoogleAuth.signIn();
-    
-    const supabase = createClient();
+
+    if (!googleUser.authentication.idToken) {
+      throw new Error("لم يتم الحصول على idToken من Google");
+    }
+
     const { data, error } = await supabase.auth.signInWithIdToken({
       provider: 'google',
       token: googleUser.authentication.idToken,
     });
 
     if (error) throw error;
-    return { data, error: null };
-  } catch (err) {
-    console.error('Google Auth Error:', err);
-    return { data: null, error: err };
+    return data;
+  } else {
+    // Web: Use standard OAuth redirect
+    return await supabase.auth.signInWithOAuth({
+      provider: 'google',
+    });
   }
 }
 

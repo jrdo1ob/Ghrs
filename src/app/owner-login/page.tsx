@@ -46,40 +46,19 @@ function OwnerLoginContent() {
     setError('')
 
     try {
-      // Check if running in Capacitor (native app)
-      const isCapacitor = typeof window !== 'undefined' && (window as any).Capacitor
-      
-      if (isCapacitor) {
-        // Use native Google Auth for Capacitor
-        const { signInWithGoogleNative } = await import('@/lib/auth/google-auth')
-        const result = await signInWithGoogleNative()
-        
-        if (result.error) {
-          setError('حدث خطأ أثناء تسجيل الدخول بحساب Google')
-          setGoogleLoading(false)
-          return
-        }
-        
-        router.push('/dashboard')
-      } else {
-        // Use OAuth redirect for web browser
-        const { error } = await supabase.auth.signInWithOAuth({
-          provider: 'google',
-          options: {
-            redirectTo: `${window.location.origin}/auth/callback`,
-            queryParams: {
-              prompt: 'select_account',
-            },
-          },
-        })
+      const { handleGoogleSignIn } = await import('@/lib/auth/google-auth')
+      const result = await handleGoogleSignIn()
 
-        if (error) {
-          setError('حدث خطأ أثناء تسجيل الدخول بحساب Google: ' + error.message)
-          setGoogleLoading(false)
-        }
+      // If result has url, it's a web redirect
+      if (result?.url) {
+        window.location.href = result.url
+      } else {
+        // Native login succeeded, redirect to dashboard
+        router.push('/dashboard')
       }
-    } catch (err) {
-      setError('حدث خطأ أثناء تسجيل الدخول بحساب Google')
+    } catch (err: any) {
+      console.error('Google login error:', err)
+      setError('حدث خطأ أثناء تسجيل الدخول بحساب Google: ' + (err.message || ''))
       setGoogleLoading(false)
     }
   }
