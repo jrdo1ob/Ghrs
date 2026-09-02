@@ -43,12 +43,9 @@ jobs:
           ./gradlew assembleDebug --stacktrace
 
       - name: Extract SHA-1 and SHA-256 Fingerprints
+        continue-on-error: true
         run: |
-          echo "=== SHA-1 and SHA-256 Fingerprints ==="
-          keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android 2>&1 | grep -E "SHA1:|SHA256:"
-          echo ""
-          echo "=== Full Fingerprint ==="
-          keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android 2>&1 | grep -A 1 "Certificate fingerprints:"
+          keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android -keypass android || true
 
       - name: Upload Debug APK
         if: success()
