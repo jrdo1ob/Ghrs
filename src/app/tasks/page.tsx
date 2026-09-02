@@ -88,8 +88,8 @@ export default function TasksPage() {
       const withCompletions = await Promise.all(
         (tasksData || []).map(async (task) => {
           const { data: completions } = await supabase
-            .from('task_completions').select('*').eq('task_id', task.id).eq('approved', false)
-          return { ...task, completions: completions || [], pendingCount: completions?.length || 0 }
+            .from('task_completions').select('*').eq('task_id', task.id).in('approved', [false, true])
+          return { ...task, completions: completions || [], pendingCount: completions?.filter((c: any) => c.approved === false)?.length || 0 }
         })
       )
 
@@ -262,6 +262,27 @@ export default function TasksPage() {
     setToast({ type: 'success', message: 'تم رفض الإنجاز' })
   }
 
+  const [revokeConfirm, setRevokeConfirm] = useState<any>(null)
+  const [revokeReason, setRevokeReason] = useState('')
+
+  const handleRevoke = async (completionId: string, taskId: string) => {
+    if (!authUser) return
+    console.log('[GHRS] Revoking approval:', completionId)
+    const { data, error } = await supabase.rpc('revoke_task_approval', { p_completion_id: completionId, p_reason: revokeReason || null })
+    if (error) {
+      console.error('[GHRS] Revoke error:', error.message)
+      setToast({ type: 'error', message: 'حدث خطأ: ' + error.message }); return
+    }
+    console.log('[GHRS] Revoke success:', data)
+    // Update the completion status to revoked
+    setTasks(tasks.map(t => t.id === taskId ? {
+      ...t, completions: t.completions.map((c: any) => c.id === completionId ? { ...c, approved: false } : c)
+    } : t))
+    setToast({ type: 'success', message: 'تم سحب الاعتماد بنجاح' })
+    setRevokeConfirm(null)
+    setRevokeReason('')
+  }
+
   const toggleAssignedChild = (childId: string) => {
     setFormData(prev => ({
       ...prev,
@@ -311,6 +332,24 @@ export default function TasksPage() {
       {toast && <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />}
       {deleteConfirm && (
         <ConfirmDialog show={!!deleteConfirm} title="حذف المهمة" message={`هل أنت متأكد من حذف "${deleteConfirm.title}"؟`} confirmText="حذف" cancelText="إلغاء" variant="danger" onConfirm={handleDeleteTask} onCancel={() => setDeleteConfirm(null)} />
+      )}
+      {revokeConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.5)' }} onClick={() => setRevokeConfirm(null)}>
+          <div className="ghrs-card p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
+            <h2 className="text-lg font-bold mb-2" style={{ color: 'var(--ghrs-red-600)' }}>سحب الاعتماد</h2>
+            <p className="text-sm mb-4" style={{ color: 'var(--ghrs-text-secondary)' }}>
+              هل أنت متأكد من سحب اعتماد هذه المهمة؟ سيتم خصم النقاط وإتاحة المهمة مرة أخرى.
+            </p>
+            <div className="mb-4">
+              <label className="block text-sm font-semibold mb-1" style={{ color: 'var(--ghrs-text-secondary)' }}>السبب (اختياري)</label>
+              <input type="text" value={revokeReason} onChange={e => setRevokeReason(e.target.value)} className="ghrs-input w-full" placeholder="مثال: تم الاعتماد بالخطأ" />
+            </div>
+            <div className="flex gap-2">
+              <button onClick={() => handleRevoke(revokeConfirm.id, revokeConfirm.task_id)} className="flex-1 px-4 py-2 rounded-xl text-sm font-bold" style={{ background: 'var(--ghrs-red-500)', color: 'white' }}>سحب الاعتماد</button>
+              <button onClick={() => { setRevokeConfirm(null); setRevokeReason('') }} className="flex-1 px-4 py-2 rounded-xl text-sm font-bold" style={{ background: 'var(--ghrs-bg-tertiary)', color: 'var(--ghrs-text-secondary)' }}>إلغاء</button>
+            </div>
+          </div>
+        </div>
       )}
       <ParentSidebar />
       <div className="md:mr-[var(--ghrs-sidebar-width)] pb-24 md:pb-8 overflow-x-hidden">
@@ -617,20 +656,33 @@ export default function TasksPage() {
                     </button>
                   </div>
 
-                  {/* Pending Completions */}
+                  {/* Pending/Approved Completions */}
                   {task.completions && task.completions.length > 0 && (
                     <div className="mt-3 p-4 rounded-xl" style={{ background: 'var(--ghrs-amber-50)', border: '1px solid var(--ghrs-amber-200)' }}>
-                      <p className="text-sm font-bold mb-3" style={{ color: 'var(--ghrs-amber-700)' }}><ClockIcon size={14} className="inline" /> بانتظار الموافقة ({task.completions.length})</p>
+                      <p className="text-sm font-bold mb-3" style={{ color: 'var(--ghrs-amber-700)' }}><ClockIcon size={14} className="inline" /> إنجازات ({task.completions.length})</p>
                       <div className="space-y-2">
                         {task.completions.map((completion: any) => (
                           <div key={completion.id} className="p-3 rounded-lg" style={{ background: 'var(--ghrs-bg-card)' }}>
                             <div className="flex items-center justify-between mb-2">
                               <p className="text-sm font-semibold" style={{ color: 'var(--ghrs-text-primary)' }}>{new Date(completion.completed_at).toLocaleDateString('ar')}</p>
-                              <span className="px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: 'var(--ghrs-amber-100)', color: 'var(--ghrs-amber-700)' }}>بانتظار</span>
+                              <span className="px-2 py-0.5 rounded-full text-xs font-bold" style={{ 
+                                background: completion.approved === true ? 'var(--ghrs-green-100)' : 'var(--ghrs-amber-100)', 
+                                color: completion.approved === true ? 'var(--ghrs-green-700)' : 'var(--ghrs-amber-700)' 
+                              }}>
+                                {completion.approved === true ? '✅ معتمدة' : '⏳ بانتظار'}
+                              </span>
                             </div>
                             <div className="flex gap-2">
-                              <button onClick={() => handleApprove(completion.id, task.id)} className="flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-xs font-bold" style={{ background: 'var(--ghrs-green-500)', color: 'white' }}><CheckIcon size={14} className="inline" /> موافقة</button>
-                              <button onClick={() => handleReject(completion.id, task.id)} className="flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-xs font-bold" style={{ background: 'var(--ghrs-red-500)', color: 'white' }}><RejectIcon size={14} className="inline" /> رفض</button>
+                              {completion.approved === false ? (
+                                <>
+                                  <button onClick={() => handleApprove(completion.id, task.id)} className="flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-xs font-bold" style={{ background: 'var(--ghrs-green-500)', color: 'white' }}><CheckIcon size={14} className="inline" /> موافقة</button>
+                                  <button onClick={() => handleReject(completion.id, task.id)} className="flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-xs font-bold" style={{ background: 'var(--ghrs-red-500)', color: 'white' }}><RejectIcon size={14} className="inline" /> رفض</button>
+                                </>
+                              ) : (
+                                <button onClick={() => setRevokeConfirm(completion)} className="flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-xs font-bold" style={{ background: 'var(--ghrs-red-50)', color: 'var(--ghrs-red-600)', border: '1px solid var(--ghrs-red-200)' }}>
+                                  <RejectIcon size={14} className="inline" /> سحب الاعتماد
+                                </button>
+                              )}
                             </div>
                           </div>
                         ))}
