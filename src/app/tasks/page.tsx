@@ -233,7 +233,7 @@ export default function TasksPage() {
   const handleApprove = async (completionId: string, taskId: string) => {
     if (!authUser) return
     console.log('[GHRS] Approving completion:', completionId, 'by:', authUser.memberId)
-    const { data, error } = await supabase.rpc('approve_task_completion', { p_completion_id: completionId, p_approved_by: authUser.memberId })
+    const { data, error } = await supabase.rpc('approve_task_completion', { p_completion_id: completionId, p_approve: true })
     if (error) {
       console.error('[GHRS] Approve error:', error.message, error)
       setToast({ type: 'error', message: 'حدث خطأ: ' + error.message }); return
