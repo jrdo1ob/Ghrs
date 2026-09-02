@@ -109,17 +109,22 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            <div className="ghrs-card p-4">
+            <Link href="/tasks?status=pending" className="ghrs-card p-4 ghrs-card-interactive">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: 'var(--ghrs-blue-50)' }}>
-                  <ClockIcon size={24} color="var(--ghrs-blue-600)" />
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: pendingApprovals > 0 ? 'var(--ghrs-amber-100)' : 'var(--ghrs-blue-50)' }}>
+                  <ClockIcon size={24} color={pendingApprovals > 0 ? 'var(--ghrs-amber-600)' : 'var(--ghrs-blue-600)'} />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold" style={{ color: 'var(--ghrs-blue-600)' }}>{pendingApprovals}</p>
+                  <p className="text-2xl font-bold" style={{ color: pendingApprovals > 0 ? 'var(--ghrs-amber-600)' : 'var(--ghrs-blue-600)' }}>{pendingApprovals}</p>
                   <p className="text-xs font-semibold" style={{ color: 'var(--ghrs-text-secondary)' }}>بانتظار الموافقة</p>
                 </div>
+                {pendingApprovals > 0 && (
+                  <span className="px-2 py-1 rounded-full text-xs font-bold animate-pulse" style={{ background: 'var(--ghrs-amber-100)', color: 'var(--ghrs-amber-700)' }}>
+                    جديد
+                  </span>
+                )}
               </div>
-            </div>
+            </Link>
 
             <div className="ghrs-card p-4">
               <div className="flex items-center gap-3">
