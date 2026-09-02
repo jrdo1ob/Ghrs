@@ -76,8 +76,22 @@ export default function ChildTasksPage() {
     const { data, error } = await supabase.rpc('complete_task_with_rewards', { p_task_id: taskId, p_member_id: childId })
     
     if (error) {
-      console.error('[GHRS] Complete task error:', error.message, error)
-      setToast({ type: 'error', message: 'حدث خطأ أثناء إنجاز المهمة: ' + error.message })
+      console.error('[GHRS] Complete task error:', error)
+      console.error('[GHRS] Error details:', JSON.stringify(error))
+      // Show a more helpful error message
+      let errorMsg = 'حدث خطأ أثناء إنجاز المهمة'
+      if (error.message?.includes('Task not found')) {
+        errorMsg = 'المهمة غير موجودة'
+      } else if (error.message?.includes('Member not found')) {
+        errorMsg = 'المستخدم غير موجود'
+      } else if (error.message?.includes('not authorized')) {
+        errorMsg = 'غير مصرح לך بإتمام هذه المهمة'
+      } else if (error.message?.includes('already completed')) {
+        errorMsg = 'لقد أنجزت هذه المهمة اليوم بالفعل'
+      } else if (error.message) {
+        errorMsg = error.message
+      }
+      setToast({ type: 'error', message: errorMsg })
       setCompletingTask(null); return
     }
 
