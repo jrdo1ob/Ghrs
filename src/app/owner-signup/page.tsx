@@ -50,16 +50,12 @@ export default function OwnerSignupPage() {
 
   const handleGoogleSignup = async () => {
     try {
+      // Always use native Google Auth - no browser fallback
       const { handleGoogleSignIn } = await import('@/lib/auth/google-auth')
       const result = await handleGoogleSignIn()
 
-      // If result has url, it's a web redirect
-      if (result?.url) {
-        window.location.href = result.url
-      } else {
-        // Native login succeeded, redirect to setup
-        router.push('/family-setup')
-      }
+      // Native login succeeded, redirect to setup
+      router.push('/family-setup')
     } catch (err: any) {
       console.error('Google signup error:', err)
       setError('حدث خطأ أثناء التسجيل بحساب Google')

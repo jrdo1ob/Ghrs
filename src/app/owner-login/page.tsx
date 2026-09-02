@@ -46,16 +46,12 @@ function OwnerLoginContent() {
     setError('')
 
     try {
+      // Always use native Google Auth - no browser fallback
       const { handleGoogleSignIn } = await import('@/lib/auth/google-auth')
       const result = await handleGoogleSignIn()
 
-      // If result has url, it's a web redirect
-      if (result?.url) {
-        window.location.href = result.url
-      } else {
-        // Native login succeeded, redirect to dashboard
-        router.push('/dashboard')
-      }
+      // Native login succeeded, redirect to dashboard
+      router.push('/dashboard')
     } catch (err: any) {
       console.error('Google login error:', err)
       setError('حدث خطأ أثناء تسجيل الدخول بحساب Google: ' + (err.message || ''))
