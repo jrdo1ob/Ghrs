@@ -1,0 +1,53 @@
+# Dependencies
+node_modules
+
+# Android build files
+android/app/build
+android/.gradle
+android/build
+
+# Capacitor
+android/capacitor-cordova-android-plugins
+
+# IDE
+.vscode
+.idea
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Backup files
+*.bak
+*.backup
+
+# Test files
+*.test.js
+*.spec.js
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Next.js build cache
+.next/cache
+
+# Vercel
+.vercel
+
+# Git
+.git
+
+# Migration scripts
+run_migration*.js
+fix_*.js
+test_*.js
+setup_*.js
+check_*.js
+update_*.js
+add_*.js
+reset_*.js
+verify_*.js
