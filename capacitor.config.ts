@@ -23,9 +23,10 @@ const config: CapacitorConfig = {
       backgroundColor: '#0f172a',
       overlaysWebView: true,
     },
-    App: {
-      // Deep Linking scheme
-      androidScheme: 'com.ghrs.app',
+    GoogleAuth: {
+      scopes: ['profile', 'email'],
+      serverClientId: '533663504579-5a26jfnm0cae7oa1it3rekpc02g05n2b.apps.googleusercontent.com',
+      forceCodeForRefreshToken: true,
     },
   },
   android: {

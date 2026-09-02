@@ -1,6 +1,6 @@
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { Capacitor } from '@capacitor/core';
-import { createClient } from './client';
+import { createClient } from '@/lib/supabase/client';
 
 // Initialize Google Auth with Web Application Client ID
 if (typeof window !== 'undefined') {
@@ -12,33 +12,82 @@ if (typeof window !== 'undefined') {
 }
 
 /**
+ * Detect if running in native Android environment
+ * Uses multiple checks for reliability
+ */
+function isNativeAndroid(): boolean {
+  try {
+    // Check 1: Capacitor native platform detection
+    if (Capacitor.isNativePlatform()) {
+      console.log('[GHRS] Detected native platform:', Capacitor.getPlatform());
+      return true;
+    }
+
+    // Check 2: Check if running in Android WebView
+    if (typeof navigator !== 'undefined' && navigator.userAgent.includes('Android')) {
+      // Additional check: if Capacitor plugins are available, it's likely native
+      if (typeof (window as any).Capacitor !== 'undefined') {
+        console.log('[GHRS] Detected Android with Capacitor');
+        return true;
+      }
+    }
+
+    console.log('[GHRS] Running in web browser mode');
+    return false;
+  } catch (err) {
+    console.log('[GHRS] Platform detection error, defaulting to web:', err);
+    return false;
+  }
+}
+
+/**
  * Handle Google Sign-In for both Native and Web
  * 
- * Native (Capacitor): Uses GoogleAuth.signIn() → idToken → signInWithIdToken
- * Web: Uses OAuth redirect to https://ghrs-cyan.vercel.app/auth/callback
+ * Android: GoogleAuth.signIn() → idToken → signInWithIdToken (NO PKCE)
+ * Web: signInWithOAuth → /auth/callback (standard OAuth)
  */
 export async function handleGoogleSignIn() {
   const supabase = createClient();
+  const isNative = isNativeAndroid();
 
-  if (Capacitor.isNativePlatform()) {
-    // NATIVE: Open Android's native Google account picker
-    // This does NOT open a browser - it opens the native dialog
+  console.log('[GHRS] Google Sign-In - Platform:', isNative ? 'NATIVE Android' : 'WEB');
+  console.log('[GHRS] Capacitor.getPlatform():', Capacitor.getPlatform());
+  console.log('[GHRS] Capacitor.isNativePlatform():', Capacitor.isNativePlatform());
+
+  if (isNative) {
+    // ===== NATIVE ANDROID PATH =====
+    // Opens Android's native Google account picker (NO browser)
+    console.log('[GHRS] Using NATIVE Google Auth path');
+    
     const googleUser = await GoogleAuth.signIn();
+    console.log('[GHRS] GoogleAuth.signIn() completed');
 
     if (!googleUser.authentication.idToken) {
+      console.error('[GHRS] No idToken received from Google');
       throw new Error("لم يتم إرجاع idToken من Google");
     }
 
-    // Send idToken directly to Supabase (no OAuth redirect, no PKCE)
+    console.log('[GHRS] idToken received, calling signInWithIdToken');
+
+    // Send idToken directly to Supabase (NO OAuth redirect, NO PKCE)
     const { data, error } = await supabase.auth.signInWithIdToken({
       provider: 'google',
       token: googleUser.authentication.idToken,
     });
 
-    if (error) throw error;
+    if (error) {
+      console.error('[GHRS] signInWithIdToken error:', error.message);
+      throw error;
+    }
+
+    console.log('[GHRS] signInWithIdToken SUCCESS - Session created');
     return data;
+
   } else {
-    // WEB: Use standard OAuth redirect
+    // ===== WEB PATH =====
+    // Standard OAuth redirect for browser
+    console.log('[GHRS] Using WEB OAuth path');
+
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
@@ -49,7 +98,12 @@ export async function handleGoogleSignIn() {
       },
     });
 
-    if (error) throw error;
+    if (error) {
+      console.error('[GHRS] signInWithOAuth error:', error.message);
+      throw error;
+    }
+
+    console.log('[GHRS] signInWithOAuth redirect initiated');
     return data;
   }
 }
