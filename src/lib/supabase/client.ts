@@ -9,9 +9,10 @@ export function createClient() {
     {
       auth: {
         flowType: 'implicit',
-        detectSessionInUrl: true,
+        detectSessionInUrl: false,
         persistSession: true,
         autoRefreshToken: true,
+        storage: typeof window !== 'undefined' ? window.localStorage : undefined,
       },
     }
   )

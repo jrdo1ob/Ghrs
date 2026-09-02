@@ -72,12 +72,16 @@ export default function ChildTasksPage() {
     if (!childId || completingTask) return
     setCompletingTask(taskId)
 
-    const { error } = await supabase.rpc('complete_task_with_rewards', { p_task_id: taskId, p_member_id: childId })
+    console.log('[GHRS] Completing task:', taskId, 'for child:', childId)
+    const { data, error } = await supabase.rpc('complete_task_with_rewards', { p_task_id: taskId, p_member_id: childId })
+    
     if (error) {
-      setToast({ type: 'error', message: 'حدث خطأ أثناء إنجاز المهمة' })
+      console.error('[GHRS] Complete task error:', error.message, error)
+      setToast({ type: 'error', message: 'حدث خطأ أثناء إنجاز المهمة: ' + error.message })
       setCompletingTask(null); return
     }
 
+    console.log('[GHRS] Task completed successfully')
     const task = tasks.find(t => t.id === taskId)
     const needsApproval = task?.requires_approval !== false
 
