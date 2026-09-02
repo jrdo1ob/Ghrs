@@ -29,8 +29,12 @@ jobs:
       - name: Install Dependencies
         run: npm install --legacy-peer-deps
 
-      - name: Sync Capacitor
+      - name: Clean and Sync Capacitor
         run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew clean
+          cd ..
           mkdir -p android/app/src/main/assets
           npx cap copy android
           npx cap sync android
