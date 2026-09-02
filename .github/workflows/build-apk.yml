@@ -29,6 +29,15 @@ jobs:
       - name: Install Dependencies
         run: npm install --legacy-peer-deps
 
+      - name: Build Next.js
+        run: npm run build
+
+      - name: Verify Capacitor web assets
+        run: |
+          test -d .next
+          test -f .next/index.html
+          echo "✓ .next/index.html exists"
+
       - name: Sync Capacitor
         run: |
           mkdir -p android/app/src/main/assets
