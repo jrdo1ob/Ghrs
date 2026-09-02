@@ -623,11 +623,14 @@ export default function TasksPage() {
                       <p className="text-sm font-bold mb-3" style={{ color: 'var(--ghrs-amber-700)' }}><ClockIcon size={14} className="inline" /> بانتظار الموافقة ({task.completions.length})</p>
                       <div className="space-y-2">
                         {task.completions.map((completion: any) => (
-                          <div key={completion.id} className="flex items-center justify-between p-3 rounded-lg" style={{ background: 'var(--ghrs-bg-card)' }}>
-                            <p className="text-sm font-semibold" style={{ color: 'var(--ghrs-text-primary)' }}>{new Date(completion.completed_at).toLocaleDateString('ar')}</p>
+                          <div key={completion.id} className="p-3 rounded-lg" style={{ background: 'var(--ghrs-bg-card)' }}>
+                            <div className="flex items-center justify-between mb-2">
+                              <p className="text-sm font-semibold" style={{ color: 'var(--ghrs-text-primary)' }}>{new Date(completion.completed_at).toLocaleDateString('ar')}</p>
+                              <span className="px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: 'var(--ghrs-amber-100)', color: 'var(--ghrs-amber-700)' }}>بانتظار</span>
+                            </div>
                             <div className="flex gap-2">
-                              <button onClick={() => handleApprove(completion.id, task.id)} className="px-3 py-1 rounded-lg text-xs font-bold" style={{ background: 'var(--ghrs-green-500)', color: 'white' }}><CheckIcon size={14} className="inline" /> موافقة</button>
-                              <button onClick={() => handleReject(completion.id, task.id)} className="px-3 py-1 rounded-lg text-xs font-bold" style={{ background: 'var(--ghrs-red-500)', color: 'white' }}><RejectIcon size={14} className="inline" /> رفض</button>
+                              <button onClick={() => handleApprove(completion.id, task.id)} className="flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-xs font-bold" style={{ background: 'var(--ghrs-green-500)', color: 'white' }}><CheckIcon size={14} className="inline" /> موافقة</button>
+                              <button onClick={() => handleReject(completion.id, task.id)} className="flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-xs font-bold" style={{ background: 'var(--ghrs-red-500)', color: 'white' }}><RejectIcon size={14} className="inline" /> رفض</button>
                             </div>
                           </div>
                         ))}
