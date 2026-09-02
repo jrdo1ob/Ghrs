@@ -204,6 +204,22 @@ export default function ChildModePage() {
       />
 
       <div className="p-4 md:p-8 max-w-2xl mx-auto pb-32">
+        {/* Theme Toggle */}
+        <div className="flex justify-end mb-4">
+          <button
+            onClick={() => {
+              const newTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'
+              document.documentElement.setAttribute('data-theme', newTheme)
+              localStorage.setItem('ghrs-theme', newTheme)
+            }}
+            className="p-3 rounded-xl transition-all"
+            style={{ background: 'var(--ghrs-bg-card)', border: '2px solid var(--ghrs-border-default)' }}
+            aria-label="تبديل المظهر"
+          >
+            {document.documentElement.getAttribute('data-theme') === 'dark' ? '☀️' : '🌙'}
+          </button>
+        </div>
+
         {/* Garden Hero */}
         <div className="ghrs-card p-6 mb-6 text-center relative overflow-hidden">
           {/* Background gradient based on level */}

@@ -90,7 +90,12 @@ export default function StoryReader({ show, title, content, storyType, storyUrl,
                       </div>
                     ) : null}
 
-                    <p className="text-lg leading-relaxed whitespace-pre-wrap" style={{ color: 'var(--ghrs-text-primary)' }}>
+                    <p className="text-lg leading-relaxed whitespace-pre-wrap" style={{ 
+                      color: 'var(--ghrs-text-primary)',
+                      fontFamily: "'Cairo', 'Amiri', sans-serif",
+                      fontSize: '1.15rem',
+                      lineHeight: '2',
+                    }}>
                       {pages[currentPage]}
                     </p>
                   </motion.div>

@@ -99,6 +99,22 @@ export default function ChildGiftsPage() {
       />
 
       <div className="p-4 md:p-8 max-w-2xl mx-auto pb-32">
+        {/* Theme Toggle */}
+        <div className="flex justify-end mb-4">
+          <button
+            onClick={() => {
+              const newTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'
+              document.documentElement.setAttribute('data-theme', newTheme)
+              localStorage.setItem('ghrs-theme', newTheme)
+            }}
+            className="p-3 rounded-xl transition-all"
+            style={{ background: 'var(--ghrs-bg-card)', border: '2px solid var(--ghrs-border-default)' }}
+            aria-label="تبديل المظهر"
+          >
+            {document.documentElement.getAttribute('data-theme') === 'dark' ? '☀️' : '🌙'}
+          </button>
+        </div>
+
         {/* XP Display */}
         <div className="ghrs-card p-5 mb-6 text-center" style={{ background: 'linear-gradient(135deg, var(--ghrs-amber-50), var(--ghrs-green-50))', border: '2px solid var(--ghrs-amber-200)' }}>
           <div className="w-14 h-14 rounded-full mx-auto mb-2 flex items-center justify-center" style={{ background: 'var(--ghrs-amber-100)' }}>

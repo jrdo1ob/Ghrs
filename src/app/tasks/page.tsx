@@ -232,8 +232,13 @@ export default function TasksPage() {
 
   const handleApprove = async (completionId: string, taskId: string) => {
     if (!authUser) return
-    const { error } = await supabase.rpc('approve_task_completion', { p_completion_id: completionId, p_approved_by: authUser.memberId })
-    if (error) { setToast({ type: 'error', message: 'حدث خطأ' }); return }
+    console.log('[GHRS] Approving completion:', completionId, 'by:', authUser.memberId)
+    const { data, error } = await supabase.rpc('approve_task_completion', { p_completion_id: completionId, p_approved_by: authUser.memberId })
+    if (error) {
+      console.error('[GHRS] Approve error:', error.message, error)
+      setToast({ type: 'error', message: 'حدث خطأ: ' + error.message }); return
+    }
+    console.log('[GHRS] Approve success:', data)
     setTasks(tasks.map(t => t.id === taskId ? {
       ...t, completions: t.completions.filter((c: any) => c.id !== completionId),
       pendingCount: Math.max(0, (t.pendingCount || 1) - 1)
@@ -243,8 +248,13 @@ export default function TasksPage() {
 
   const handleReject = async (completionId: string, taskId: string) => {
     if (!authUser) return
-    const { error } = await supabase.rpc('reject_task_completion', { p_completion_id: completionId, p_rejected_by: authUser.memberId })
-    if (error) { setToast({ type: 'error', message: 'حدث خطأ' }); return }
+    console.log('[GHRS] Rejecting completion:', completionId, 'by:', authUser.memberId)
+    const { data, error } = await supabase.rpc('reject_task_completion', { p_completion_id: completionId, p_rejected_by: authUser.memberId })
+    if (error) {
+      console.error('[GHRS] Reject error:', error.message, error)
+      setToast({ type: 'error', message: 'حدث خطأ: ' + error.message }); return
+    }
+    console.log('[GHRS] Reject success:', data)
     setTasks(tasks.map(t => t.id === taskId ? {
       ...t, completions: t.completions.filter((c: any) => c.id !== completionId),
       pendingCount: Math.max(0, (t.pendingCount || 1) - 1)
