@@ -223,6 +223,15 @@ export default function DashboardPage() {
                 </div>
               </Link>
 
+              <Link href="/activity" className="ghrs-card p-4 ghrs-card-interactive">
+                <div className="text-center">
+                  <div className="w-12 h-12 rounded-xl mx-auto mb-2 flex items-center justify-center" style={{ background: 'var(--ghrs-amber-50)' }}>
+                    <ClockIcon size={24} color="var(--ghrs-amber-600)" />
+                  </div>
+                  <p className="font-bold text-sm" style={{ color: 'var(--ghrs-text-primary)' }}>سجل النشاط</p>
+                </div>
+              </Link>
+
               <Link href="/quran" className="ghrs-card p-4 ghrs-card-interactive">
                 <div className="text-center">
                   <div className="w-12 h-12 rounded-xl mx-auto mb-2 flex items-center justify-center" style={{ background: 'var(--ghrs-green-50)' }}>
