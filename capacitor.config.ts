@@ -24,7 +24,8 @@ const config: CapacitorConfig = {
       overlaysWebView: true,
     },
     App: {
-      // App configuration
+      // Deep Linking scheme
+      androidScheme: 'com.ghrs.app',
     },
   },
   android: {

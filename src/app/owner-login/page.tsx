@@ -45,7 +45,7 @@ function OwnerLoginContent() {
     setGoogleLoading(true)
     setError('')
 
-    const { error } = await supabase.auth.signInWithOAuth({
+    const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo: `${window.location.origin}/auth/callback`,
@@ -58,6 +58,18 @@ function OwnerLoginContent() {
     if (error) {
       setError('حدث خطأ أثناء تسجيل الدخول بحساب Google: ' + error.message)
       setGoogleLoading(false)
+      return
+    }
+
+    // For Capacitor: Open in system browser
+    if (data?.url) {
+      try {
+        const { Browser } = await import('@capacitor/browser')
+        await Browser.open({ url: data.url })
+      } catch (e) {
+        // Fallback for web - normal redirect
+        window.location.href = data.url
+      }
     }
   }
 
