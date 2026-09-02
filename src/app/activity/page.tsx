@@ -92,12 +92,13 @@ export default function ActivityLogPage() {
 
       const { data: member } = await supabase.from('members').select('name').eq('id', h.member_id).single()
       const { data: performer } = h.performed_by ? await supabase.from('members').select('name').eq('id', h.performed_by).single() : { data: null }
+      const { data: task } = await supabase.from('tasks').select('title').eq('id', h.task_id).single()
 
       allEvents.push({
         id: h.id,
         type: h.action,
         child_name: member?.name || 'غير معروف',
-        task_title: h.task_id,
+        task_title: task?.title || 'مهمة محذوفة',
         xp_amount: 0,
         performed_by: performer?.name || null,
         timestamp: h.created_at,
