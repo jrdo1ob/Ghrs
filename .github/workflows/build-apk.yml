@@ -45,7 +45,7 @@ jobs:
       - name: Build Android APK
         run: |
           cd android
-          ./gradlew assembleDebug --continue > build.log 2>&1 || { cat build.log | grep -A 5 "FAILED"; exit 1; }
+          ./gradlew assembleDebug --continue > build.log 2>&1 || { tail -n 20 build.log; exit 1; }
 
       - name: Upload APK Artifact
         if: success()
