@@ -1,13 +1,15 @@
 # Dependencies
 node_modules
 
-# Android build files
-android/app/build
-android/.gradle
-android/build
+# Next.js build
+.next
+
+# Android (no longer needed)
+android
 
 # Capacitor
-android/capacitor-cordova-android-plugins
+capacitor.config.ts
+capacitor.config.json
 
 # IDE
 .vscode
@@ -32,9 +34,6 @@ Thumbs.db
 # TypeScript build info
 *.tsbuildinfo
 
-# Next.js build cache
-.next/cache
-
 # Vercel
 .vercel
 
@@ -51,3 +50,9 @@ update_*.js
 add_*.js
 reset_*.js
 verify_*.js
+
+# Misc
+AGENTS.md
+CLAUDE.md
+README.md
+GOOGLE_OAUTH_SETUP.md
