@@ -85,13 +85,28 @@ export default function TasksPage() {
       const { data: tasksData } = await supabase
         .from('tasks').select('*').eq('family_id', user.familyId).eq('is_deleted', false).order('created_at', { ascending: false })
 
-      const withCompletions = await Promise.all(
-        (tasksData || []).map(async (task) => {
-          const { data: completions } = await supabase
-            .from('task_completions').select('*').eq('task_id', task.id).is('approved', null)
-          return { ...task, completions: completions || [], pendingCount: completions?.length || 0 }
-        })
-      )
+      // Batch fetch all pending completions in one query (instead of per-task)
+      let completionsByTaskId = new Map<string, any[]>()
+      if (tasksData && tasksData.length > 0) {
+        const taskIds = tasksData.map(t => t.id)
+        const { data: allCompletions } = await supabase
+          .from('task_completions')
+          .select('*')
+          .in('task_id', taskIds)
+          .is('approved', null)
+
+        // Build map: taskId → completions[]
+        for (const c of allCompletions || []) {
+          const existing = completionsByTaskId.get(c.task_id) || []
+          existing.push(c)
+          completionsByTaskId.set(c.task_id, existing)
+        }
+      }
+
+      const withCompletions = (tasksData || []).map(task => {
+        const completions = completionsByTaskId.get(task.id) || []
+        return { ...task, completions, pendingCount: completions.length }
+      })
 
       setTasks(withCompletions)
       setLoading(false)
