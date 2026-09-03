@@ -75,66 +75,45 @@ export default function ChildTasksPage() {
     if (!childId || completingTask) return
     setCompletingTask(taskId)
 
-    console.log('[GHRS] Completing task:', taskId, 'for child:', childId)
-    
-    // Log task details for debugging
-    const task = tasks.find(t => t.id === taskId)
-    if (task) {
-      console.log('[GHRS] Task details:', {
-        id: task.id,
-        title: task.title,
-        family_id: task.family_id,
-        requires_approval: task.requires_approval,
-        xp_reward: task.xp_reward,
-        money_reward: task.money_reward,
-        is_active: task.is_active,
-        is_deleted: task.is_deleted,
-        assigned_to: task.assigned_to
+    try {
+      // Call secure server-side API route
+      // Browser does NOT send member_id - server obtains it from session
+      const response = await fetch('/api/tasks/complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ task_id: taskId }),
       })
-    }
 
-    const { data, error } = await supabase.rpc('complete_task_with_rewards', { p_task_id: taskId, p_member_id: childId })
-    
-    if (error) {
-      console.error('[GHRS] Complete task error:', error)
-      console.error('[GHRS] Error code:', error.code)
-      console.error('[GHRS] Error message:', error.message)
-      console.error('[GHRS] Error details:', error.details)
-      console.error('[GHRS] Error hint:', error.hint)
-      
-      // Show a more helpful error message
-      let errorMsg = 'تعذر تسجيل إنجاز المهمة، حاول مرة أخرى'
-      if (error.message?.includes('Task not found')) {
-        errorMsg = 'المهمة غير موجودة'
-      } else if (error.message?.includes('Member not found')) {
-        errorMsg = 'المستخدم غير موجود'
-      } else if (error.message?.includes('not authorized')) {
-        errorMsg = 'غير مصرح لك بإتمام هذه المهمة'
-      } else if (error.message?.includes('already completed')) {
-        errorMsg = 'لقد أنجزت هذه المهمة اليوم بالفعل'
-      } else if (error.message?.includes('different families')) {
-        errorMsg = 'هذه المهمة ليست من عائلتك'
+      const result = await response.json()
+
+      if (!response.ok || !result.success) {
+        setToast({ type: 'error', message: result.error || 'حدث خطأ أثناء إنجاز المهمة' })
+        setCompletingTask(null)
+        return
       }
-      setToast({ type: 'error', message: errorMsg })
-      setCompletingTask(null); return
+
+      // Success
+      const task = tasks.find(t => t.id === taskId)
+      const needsApproval = task?.requires_approval !== false
+
+      setPendingToday([...pendingToday, taskId])
+      setShowTaskModal(false)
+
+      if (!needsApproval) {
+        setShowConfetti(true)
+        setTimeout(() => setShowConfetti(false), 2500)
+      }
+
+      setToast({
+        type: 'success',
+        message: needsApproval ? 'تم إنجاز المهمة! بانتظار موافقة الوالد' : 'تم إنجاز المهمة وحصلت على المكافآت!'
+      })
+    } catch (err) {
+      console.error('[GHRS] Complete task error:', err)
+      setToast({ type: 'error', message: 'حدث خطأ أثناء إنجاز المهمة' })
+    } finally {
+      setCompletingTask(null)
     }
-
-    console.log('[GHRS] Task completed successfully')
-    const needsApproval = task?.requires_approval !== false
-
-    setPendingToday([...pendingToday, taskId])
-    setCompletingTask(null)
-    setShowTaskModal(false)
-
-    if (!needsApproval) {
-      setShowConfetti(true)
-      setTimeout(() => setShowConfetti(false), 2500)
-    }
-
-    setToast({
-      type: 'success',
-      message: needsApproval ? 'تم إنجاز المهمة! بانتظار موافقة الوالد' : 'تم إنجاز المهمة وحصلت على المكافآت!'
-    })
   }
 
   const openTaskModal = (task: any) => {
