@@ -10,7 +10,7 @@ import { StarIcon, CoinIcon, CheckIcon, RejectIcon, ClockIcon, ChildIcon, TasksI
 
 interface ActivityEvent {
   id: string
-  type: 'completed' | 'approved' | 'rejected' | 'revoke'
+  type: 'completed' | 'approved' | 'rejected' | 'revoked'
   child_name: string
   task_title: string
   xp_amount: number
@@ -31,6 +31,7 @@ export default function ActivityLogPage() {
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
   const [revokeConfirm, setRevokeConfirm] = useState<ActivityEvent | null>(null)
   const [revokeReason, setRevokeReason] = useState('')
+  const [processingId, setProcessingId] = useState<string | null>(null)
   const router = useRouter()
   const supabase = createClient()
   const { format: fmtMoney } = useFamilyCurrency()
@@ -72,9 +73,6 @@ export default function ActivityLogPage() {
       if (c.approved === true) currentStatus = 'approved'
       else if (c.approved === false) currentStatus = 'rejected'
 
-      // Filter by type
-      if (typeFilter !== 'all' && typeFilter !== currentStatus) continue
-
       // Get the LATEST action from history for this completion
       const { data: latestHistory } = await supabase
         .from('task_approval_history')
@@ -90,6 +88,27 @@ export default function ActivityLogPage() {
 
       // The event type is the LATEST action, not always 'completed'
       const eventType = latestHistory?.action || 'completed'
+
+      // Map filter types to currentStatus for filtering
+      // 'completed' filter -> show pending (approved === null)
+      // 'approved' filter -> show approved
+      // 'rejected' filter -> show rejected
+      // 'revoked' filter -> show revoked (latestHistory.action === 'revoked')
+      let shouldInclude = true
+      if (typeFilter !== 'all') {
+        if (typeFilter === 'completed') {
+          shouldInclude = (c.approved === null)
+        } else if (typeFilter === 'approved') {
+          shouldInclude = (c.approved === true)
+        } else if (typeFilter === 'rejected') {
+          shouldInclude = (c.approved === false)
+        } else if (typeFilter === 'revoked') {
+          shouldInclude = (latestHistory?.action === 'revoked')
+        } else {
+          shouldInclude = (typeFilter === currentStatus)
+        }
+      }
+      if (!shouldInclude) continue
 
       allEvents.push({
         id: `comp-${c.id}`,
@@ -118,46 +137,67 @@ export default function ActivityLogPage() {
 
   const handleApprove = async (completionId: string) => {
     if (!authUser) return
+    if (processingId === completionId) return
+    setProcessingId(completionId)
     console.log('[GHRS] Approving completion:', completionId)
-    const { data, error } = await supabase.rpc('approve_task_completion', { p_completion_id: completionId, p_approve: true })
-    if (error) {
-      console.error('[GHRS] Approve error:', error.message)
-      setToast({ type: 'error', message: 'حدث خطأ: ' + error.message }); return
+    try {
+      const { data, error } = await supabase.rpc('approve_task_completion', { p_completion_id: completionId, p_approve: true })
+      if (error) {
+        console.error('[GHRS] Approve error:', error.message)
+        setToast({ type: 'error', message: 'حدث خطأ: ' + error.message })
+        return
+      }
+      console.log('[GHRS] Approve success:', data)
+      setToast({ type: 'success', message: 'تمت الموافقة!' })
+      // Reload events
+      if (authUser) await loadEvents(authUser.familyId, filterChild, filterType)
+    } finally {
+      setProcessingId(null)
     }
-    console.log('[GHRS] Approve success:', data)
-    setToast({ type: 'success', message: 'تمت الموافقة!' })
-    // Reload events
-    if (authUser) await loadEvents(authUser.familyId, filterChild, filterType)
   }
 
   const handleReject = async (completionId: string) => {
     if (!authUser) return
+    if (processingId === completionId) return
+    setProcessingId(completionId)
     console.log('[GHRS] Rejecting completion:', completionId)
-    const { data, error } = await supabase.rpc('reject_task_completion', { p_completion_id: completionId, p_rejected_by: authUser.memberId })
-    if (error) {
-      console.error('[GHRS] Reject error:', error.message)
-      setToast({ type: 'error', message: 'حدث خطأ: ' + error.message }); return
+    try {
+      const { data, error } = await supabase.rpc('reject_task_completion', { p_completion_id: completionId, p_rejected_by: authUser.memberId })
+      if (error) {
+        console.error('[GHRS] Reject error:', error.message)
+        setToast({ type: 'error', message: 'حدث خطأ: ' + error.message })
+        return
+      }
+      console.log('[GHRS] Reject success:', data)
+      setToast({ type: 'success', message: 'تم رفض الإنجاز' })
+      // Reload events
+      if (authUser) await loadEvents(authUser.familyId, filterChild, filterType)
+    } finally {
+      setProcessingId(null)
     }
-    console.log('[GHRS] Reject success:', data)
-    setToast({ type: 'success', message: 'تم رفض الإنجاز' })
-    // Reload events
-    if (authUser) await loadEvents(authUser.familyId, filterChild, filterType)
   }
 
   const handleRevoke = async (completionId: string) => {
     if (!authUser) return
+    if (processingId === completionId) return
+    setProcessingId(completionId)
     console.log('[GHRS] Revoking approval:', completionId)
-    const { data, error } = await supabase.rpc('revoke_task_approval', { p_completion_id: completionId, p_reason: revokeReason || null })
-    if (error) {
-      console.error('[GHRS] Revoke error:', error.message)
-      setToast({ type: 'error', message: 'حدث خطأ: ' + error.message }); return
+    try {
+      const { data, error } = await supabase.rpc('revoke_task_approval', { p_completion_id: completionId, p_reason: revokeReason || null })
+      if (error) {
+        console.error('[GHRS] Revoke error:', error.message)
+        setToast({ type: 'error', message: 'حدث خطأ: ' + error.message })
+        return
+      }
+      console.log('[GHRS] Revoke success:', data)
+      setToast({ type: 'success', message: 'تم سحب الاعتماد بنجاح' })
+      setRevokeConfirm(null)
+      setRevokeReason('')
+      // Reload events
+      if (authUser) await loadEvents(authUser.familyId, filterChild, filterType)
+    } finally {
+      setProcessingId(null)
     }
-    console.log('[GHRS] Revoke success:', data)
-    setToast({ type: 'success', message: 'تم سحب الاعتماد بنجاح' })
-    setRevokeConfirm(null)
-    setRevokeReason('')
-    // Reload events
-    if (authUser) await loadEvents(authUser.familyId, filterChild, filterType)
   }
 
   const getEventIcon = (type: string) => {
@@ -165,7 +205,7 @@ export default function ActivityLogPage() {
       case 'completed': return '🟡'
       case 'approved': return '🟢'
       case 'rejected': return '🔴'
-      case 'revoke': return '↩️'
+      case 'revoked': return '↩️'
       default: return '⚪'
     }
   }
@@ -175,7 +215,7 @@ export default function ActivityLogPage() {
       case 'completed': return 'إنجاز'
       case 'approved': return 'اعتماد'
       case 'rejected': return 'رفض'
-      case 'revoke': return 'سحب الاعتماد'
+      case 'revoked': return 'سحب الاعتماد'
       default: return type
     }
   }
@@ -185,7 +225,7 @@ export default function ActivityLogPage() {
       case 'completed': return 'أنجز'
       case 'approved': return 'تم اعتماد إنجاز'
       case 'rejected': return 'تم رفض إنجاز'
-      case 'revoke': return 'تم سحب اعتماد'
+      case 'revoked': return 'تم سحب اعتماد'
       default: return 'أنجز'
     }
   }
@@ -249,9 +289,9 @@ export default function ActivityLogPage() {
                 style={{ background: filterType === 'rejected' ? 'var(--ghrs-red-100)' : 'var(--ghrs-bg-tertiary)', color: filterType === 'rejected' ? 'var(--ghrs-red-700)' : 'var(--ghrs-text-secondary)' }}>
                 🔴 رفض
               </button>
-              <button onClick={() => handleFilterChange(filterChild, 'revoke')}
+              <button onClick={() => handleFilterChange(filterChild, 'revoked')}
                 className="px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap"
-                style={{ background: filterType === 'revoke' ? 'var(--ghrs-purple-100)' : 'var(--ghrs-bg-tertiary)', color: filterType === 'revoke' ? 'var(--ghrs-purple-700)' : 'var(--ghrs-text-secondary)' }}>
+                style={{ background: filterType === 'revoked' ? 'var(--ghrs-purple-100)' : 'var(--ghrs-bg-tertiary)', color: filterType === 'revoked' ? 'var(--ghrs-purple-700)' : 'var(--ghrs-text-secondary)' }}>
                 ↩️ سحب
               </button>
             </div>
@@ -311,20 +351,20 @@ export default function ActivityLogPage() {
                     </p>
 
                     {/* Approval Actions */}
-                    {event.type === 'completed' && event.approved === null && event.completion_id && (
+                    {event.approved === null && event.completion_id && (
                       <div className="flex gap-2 mt-3">
-                        <button onClick={() => handleApprove(event.completion_id!)} className="flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-xs font-bold" style={{ background: 'var(--ghrs-green-500)', color: 'white' }}>
-                          <CheckIcon size={14} className="inline" /> اعتماد
+                        <button onClick={() => handleApprove(event.completion_id!)} disabled={processingId === event.completion_id} className="flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-xs font-bold" style={{ background: 'var(--ghrs-green-500)', color: 'white' }}>
+                          <CheckIcon size={14} className="inline" /> {processingId === event.completion_id ? 'جاري...' : 'اعتماد'}
                         </button>
-                        <button onClick={() => handleReject(event.completion_id!)} className="flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-xs font-bold" style={{ background: 'var(--ghrs-red-500)', color: 'white' }}>
-                          <RejectIcon size={14} className="inline" /> رفض
+                        <button onClick={() => handleReject(event.completion_id!)} disabled={processingId === event.completion_id} className="flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-xs font-bold" style={{ background: 'var(--ghrs-red-500)', color: 'white' }}>
+                          <RejectIcon size={14} className="inline" /> {processingId === event.completion_id ? 'جاري...' : 'رفض'}
                         </button>
                       </div>
                     )}
 
-                    {event.type === 'completed' && event.approved === true && event.completion_id && (
+                    {event.approved === true && event.completion_id && (
                       <div className="flex gap-2 mt-3">
-                        <button onClick={() => setRevokeConfirm(event)} className="flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-xs font-bold" style={{ background: 'var(--ghrs-red-50)', color: 'var(--ghrs-red-600)', border: '1px solid var(--ghrs-red-200)' }}>
+                        <button onClick={() => setRevokeConfirm(event)} disabled={processingId === event.completion_id} className="flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-xs font-bold" style={{ background: 'var(--ghrs-red-50)', color: 'var(--ghrs-red-600)', border: '1px solid var(--ghrs-red-200)' }}>
                           <RejectIcon size={14} className="inline" /> سحب الاعتماد
                         </button>
                       </div>
