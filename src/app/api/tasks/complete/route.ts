@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createServiceRoleClient } from '@/lib/supabase/service-role'
 
 export async function POST(request: NextRequest) {
   try {
@@ -23,8 +23,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 3. Validate session using server-side RPC
-    const supabase = await createClient()
+    // 3. Validate session using server-side RPC with service-role client
+    const supabase = createServiceRoleClient()
 
     const { data: sessionData, error: sessionError } = await supabase.rpc('validate_member_session', {
       p_session_token: sessionToken,
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
     // 5. Get verified member_id from session (NOT from browser)
     const verifiedMemberId = member.member_id
 
-    // 6. Call complete_task_with_rewards with verified member_id
+    // 6. Call complete_task_with_rewards with verified member_id using service-role client
     const { data, error } = await supabase.rpc('complete_task_with_rewards', {
       p_task_id: task_id,
       p_member_id: verifiedMemberId,

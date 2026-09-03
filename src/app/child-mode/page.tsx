@@ -121,31 +121,42 @@ export default function ChildModePage() {
     const authUser = await getCurrentUser()
     if (!authUser || authUser.role !== 'child' || completingTask) return
 
-    const childId = authUser.memberId
     setCompletingTask(taskId)
 
-    const { error } = await supabase.rpc('complete_task_with_rewards', {
-      p_task_id: taskId,
-      p_member_id: childId
-    })
+    try {
+      // Call secure server-side API route
+      // Browser does NOT send member_id - server obtains it from session
+      const response = await fetch('/api/tasks/complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ task_id: taskId }),
+      })
 
-    if (error) {
+      const result = await response.json()
+
+      if (!response.ok || !result.success) {
+        setToast({ type: 'error', message: result.error || 'حدث خطأ أثناء إنجاز المهمة' })
+        setCompletingTask(null)
+        return
+      }
+
+      // Success
+      const task = tasks.find(t => t.id === taskId)
+      const needsApproval = task?.requires_approval !== false
+
+      setPendingToday([...pendingToday, taskId])
+      setToast({ 
+        type: 'success', 
+        message: needsApproval 
+          ? 'تم إنجاز المهمة! بانتظار موافقة الوالد'
+          : 'تم إنجاز المهمة وحصلت على المكافآت!'
+      })
+    } catch (err) {
+      console.error('[GHRS] Complete task error:', err)
       setToast({ type: 'error', message: 'حدث خطأ أثناء إنجاز المهمة' })
+    } finally {
       setCompletingTask(null)
-      return
     }
-
-    const task = tasks.find(t => t.id === taskId)
-    const needsApproval = task?.requires_approval !== false
-
-    setPendingToday([...pendingToday, taskId])
-    setCompletingTask(null)
-    setToast({ 
-      type: 'success', 
-      message: needsApproval 
-        ? 'تم إنجاز المهمة! بانتظار موافقة الوالد'
-        : 'تم إنجاز المهمة وحصلت على المكافآت!'
-    })
   }
 
   const handleLogout = () => {
