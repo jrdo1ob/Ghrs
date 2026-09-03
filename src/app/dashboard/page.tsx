@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -17,6 +17,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const router = useRouter()
   const supabase = createClient()
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
     const getData = async () => {
@@ -42,21 +43,31 @@ export default function DashboardPage() {
     }
     getData()
 
+    // Debounced refetch: coalesce rapid realtime events into a single refetch
+    const debouncedRefetch = () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current)
+      }
+      debounceTimerRef.current = setTimeout(async () => {
+        const user = await getCurrentUser()
+        if (!user) return
+        const { data: t } = await supabase.from('tasks').select('id').eq('family_id', user.familyId).eq('is_active', true)
+        const ids = t?.map(x => x.id) || []
+        if (ids.length > 0) {
+          const { data: p } = await supabase.from('task_completions').select('id').is('approved', null).in('task_id', ids)
+          setPendingApprovals(p?.length || 0)
+        }
+      }, 400)
+    }
+
     const channel = supabase.channel('dashboard-completions')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'task_completions' }, () => {
-        const refresh = async () => {
-          const user = await getCurrentUser()
-          if (!user) return
-          const { data: t } = await supabase.from('tasks').select('id').eq('family_id', user.familyId).eq('is_active', true)
-          const ids = t?.map(x => x.id) || []
-          if (ids.length > 0) {
-            const { data: p } = await supabase.from('task_completions').select('id').is('approved', null).in('task_id', ids)
-            setPendingApprovals(p?.length || 0)
-          }
-        }
-        refresh()
+        debouncedRefetch()
       }).subscribe()
-    return () => { supabase.removeChannel(channel) }
+    return () => {
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current)
+      supabase.removeChannel(channel)
+    }
   }, [])
 
   const handleLogout = async () => {
