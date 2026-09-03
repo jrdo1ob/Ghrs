@@ -3,21 +3,22 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 import { ParentBottomNav, ParentSidebar, PageHeader, EmptyState, Toast, Skeleton } from '@/components/layout'
 import { getCurrentUser, AuthUser } from '@/lib/auth/helper'
 import { useFamilyCurrency } from '@/hooks/useFamilyCurrency'
-import { StarIcon, CoinIcon, CheckIcon, RejectIcon, ClockIcon, ChildIcon, TasksIcon, EditIcon } from '@/components/icons'
+import { StarIcon, CoinIcon, CheckIcon, RejectIcon, ClockIcon, ChildIcon, TasksIcon, EditIcon, CopyIcon, DeleteIcon } from '@/components/icons'
 
 interface ActivityEvent {
   id: string
-  type: 'completed' | 'approved' | 'rejected' | 'revoked'
+  type: 'completed' | 'approved' | 'rejected' | 'revoke'
   child_name: string
   task_title: string
   xp_amount: number
   performed_by: string | null
   timestamp: string
   description: string | null
+  completion_id: string | null
+  approved: boolean | null
 }
 
 export default function ActivityLogPage() {
@@ -28,6 +29,8 @@ export default function ActivityLogPage() {
   const [filterType, setFilterType] = useState<string>('all')
   const [children, setChildren] = useState<any[]>([])
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
+  const [revokeConfirm, setRevokeConfirm] = useState<ActivityEvent | null>(null)
+  const [revokeReason, setRevokeReason] = useState('')
   const router = useRouter()
   const supabase = createClient()
   const { format: fmtMoney } = useFamilyCurrency()
@@ -75,6 +78,8 @@ export default function ActivityLogPage() {
           performed_by: null,
           timestamp: c.completed_at,
           description: null,
+          completion_id: c.id,
+          approved: c.approved,
         })
       }
     }
@@ -103,6 +108,8 @@ export default function ActivityLogPage() {
         performed_by: performer?.name || null,
         timestamp: h.created_at,
         description: h.reason,
+        completion_id: h.completion_id,
+        approved: null,
       })
     }
 
@@ -115,6 +122,50 @@ export default function ActivityLogPage() {
     setFilterChild(child)
     setFilterType(type)
     if (authUser) await loadEvents(authUser.familyId, child, type)
+  }
+
+  const handleApprove = async (completionId: string) => {
+    if (!authUser) return
+    console.log('[GHRS] Approving completion:', completionId)
+    const { data, error } = await supabase.rpc('approve_task_completion', { p_completion_id: completionId, p_approve: true })
+    if (error) {
+      console.error('[GHRS] Approve error:', error.message)
+      setToast({ type: 'error', message: 'حدث خطأ: ' + error.message }); return
+    }
+    console.log('[GHRS] Approve success:', data)
+    setToast({ type: 'success', message: 'تمت الموافقة!' })
+    // Reload events
+    if (authUser) await loadEvents(authUser.familyId, filterChild, filterType)
+  }
+
+  const handleReject = async (completionId: string) => {
+    if (!authUser) return
+    console.log('[GHRS] Rejecting completion:', completionId)
+    const { data, error } = await supabase.rpc('reject_task_completion', { p_completion_id: completionId, p_rejected_by: authUser.memberId })
+    if (error) {
+      console.error('[GHRS] Reject error:', error.message)
+      setToast({ type: 'error', message: 'حدث خطأ: ' + error.message }); return
+    }
+    console.log('[GHRS] Reject success:', data)
+    setToast({ type: 'success', message: 'تم رفض الإنجاز' })
+    // Reload events
+    if (authUser) await loadEvents(authUser.familyId, filterChild, filterType)
+  }
+
+  const handleRevoke = async (completionId: string) => {
+    if (!authUser) return
+    console.log('[GHRS] Revoking approval:', completionId)
+    const { data, error } = await supabase.rpc('revoke_task_approval', { p_completion_id: completionId, p_reason: revokeReason || null })
+    if (error) {
+      console.error('[GHRS] Revoke error:', error.message)
+      setToast({ type: 'error', message: 'حدث خطأ: ' + error.message }); return
+    }
+    console.log('[GHRS] Revoke success:', data)
+    setToast({ type: 'success', message: 'تم سحب الاعتماد بنجاح' })
+    setRevokeConfirm(null)
+    setRevokeReason('')
+    // Reload events
+    if (authUser) await loadEvents(authUser.familyId, filterChild, filterType)
   }
 
   const getEventIcon = (type: string) => {
@@ -152,10 +203,26 @@ export default function ActivityLogPage() {
   return (
     <div className="min-h-screen" style={{ background: 'var(--ghrs-bg-primary)' }}>
       {toast && <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />}
+      {revokeConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.5)' }} onClick={() => setRevokeConfirm(null)}>
+          <div className="ghrs-card p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
+            <h2 className="text-lg font-bold mb-2" style={{ color: 'var(--ghrs-red-600)' }}>سحب الاعتماد</h2>
+            <p className="text-sm mb-4" style={{ color: 'var(--ghrs-text-secondary)' }}>هل أنت متأكد من سحب اعتماد هذه المهمة؟ سيتم خصم النقاط.</p>
+            <div className="mb-4">
+              <label className="block text-sm font-semibold mb-1" style={{ color: 'var(--ghrs-text-secondary)' }}>السبب (اختياري)</label>
+              <input type="text" value={revokeReason} onChange={e => setRevokeReason(e.target.value)} className="ghrs-input w-full" placeholder="مثال: تم الاعتماد بالخطأ" />
+            </div>
+            <div className="flex gap-2">
+              <button onClick={() => handleRevoke(revokeConfirm.completion_id!)} className="flex-1 px-4 py-2 rounded-xl text-sm font-bold" style={{ background: 'var(--ghrs-red-500)', color: 'white' }}>سحب الاعتماد</button>
+              <button onClick={() => { setRevokeConfirm(null); setRevokeReason('') }} className="flex-1 px-4 py-2 rounded-xl text-sm font-bold" style={{ background: 'var(--ghrs-bg-tertiary)', color: 'var(--ghrs-text-secondary)' }}>إلغاء</button>
+            </div>
+          </div>
+        </div>
+      )}
       <ParentSidebar />
       <div className="md:mr-[var(--ghrs-sidebar-width)] pb-24 md:pb-8">
         <div className="p-4 md:p-8 max-w-4xl mx-auto">
-          <PageHeader title="سجل النشاط" subtitle="تاريخ الإنجازات والموافقات" backHref="/dashboard" />
+          <PageHeader title="سجل النشاط" subtitle="إدارة اعتماد إنجازات المهام" backHref="/dashboard" />
 
           {/* Filters */}
           <div className="mb-6">
@@ -231,25 +298,35 @@ export default function ActivityLogPage() {
                       }}>
                         {getEventIcon(event.type)} {getEventLabel(event.type)}
                       </span>
-                      {event.xp_amount !== 0 && (
-                        <span className="text-xs font-bold" style={{ color: event.xp_amount > 0 ? 'var(--ghrs-green-600)' : 'var(--ghrs-red-600)' }}>
-                          {event.xp_amount > 0 ? '+' : ''}{event.xp_amount} XP
-                        </span>
-                      )}
                     </div>
                     {event.performed_by && (
                       <p className="text-xs" style={{ color: 'var(--ghrs-text-tertiary)' }}>
                         بواسطة: {event.performed_by}
                       </p>
                     )}
-                    {event.description && (
-                      <p className="text-xs" style={{ color: 'var(--ghrs-text-tertiary)' }}>
-                        السبب: {event.description}
-                      </p>
-                    )}
                     <p className="text-xs" style={{ color: 'var(--ghrs-text-tertiary)' }}>
                       {new Date(event.timestamp).toLocaleString('ar')}
                     </p>
+
+                    {/* Approval Actions */}
+                    {event.type === 'completed' && event.approved === null && event.completion_id && (
+                      <div className="flex gap-2 mt-3">
+                        <button onClick={() => handleApprove(event.completion_id!)} className="flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-xs font-bold" style={{ background: 'var(--ghrs-green-500)', color: 'white' }}>
+                          <CheckIcon size={14} className="inline" /> اعتماد
+                        </button>
+                        <button onClick={() => handleReject(event.completion_id!)} className="flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-xs font-bold" style={{ background: 'var(--ghrs-red-500)', color: 'white' }}>
+                          <RejectIcon size={14} className="inline" /> رفض
+                        </button>
+                      </div>
+                    )}
+
+                    {event.type === 'completed' && event.approved === true && event.completion_id && (
+                      <div className="flex gap-2 mt-3">
+                        <button onClick={() => setRevokeConfirm(event)} className="flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-xs font-bold" style={{ background: 'var(--ghrs-red-50)', color: 'var(--ghrs-red-600)', border: '1px solid var(--ghrs-red-200)' }}>
+                          <RejectIcon size={14} className="inline" /> سحب الاعتماد
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

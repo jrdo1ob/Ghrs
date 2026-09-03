@@ -663,26 +663,14 @@ export default function TasksPage() {
                       <div className="space-y-2">
                         {task.completions.map((completion: any) => (
                           <div key={completion.id} className="p-3 rounded-lg" style={{ background: 'var(--ghrs-bg-card)' }}>
-                            <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center justify-between">
                               <p className="text-sm font-semibold" style={{ color: 'var(--ghrs-text-primary)' }}>{new Date(completion.completed_at).toLocaleDateString('ar')}</p>
                               <span className="px-2 py-0.5 rounded-full text-xs font-bold" style={{ 
-                                background: completion.approved === true ? 'var(--ghrs-green-100)' : 'var(--ghrs-amber-100)', 
-                                color: completion.approved === true ? 'var(--ghrs-green-700)' : 'var(--ghrs-amber-700)' 
+                                background: completion.approved === true ? 'var(--ghrs-green-100)' : completion.approved === false ? 'var(--ghrs-red-100)' : 'var(--ghrs-amber-100)', 
+                                color: completion.approved === true ? 'var(--ghrs-green-700)' : completion.approved === false ? 'var(--ghrs-red-700)' : 'var(--ghrs-amber-700)' 
                               }}>
-                                {completion.approved === true ? '✅ معتمدة' : '⏳ بانتظار'}
+                                {completion.approved === true ? '✅ معتمدة' : completion.approved === false ? '❌ مرفوضة' : '⏳ بانتظار'}
                               </span>
-                            </div>
-                            <div className="flex gap-2">
-                              {completion.approved === false ? (
-                                <>
-                                  <button onClick={() => handleApprove(completion.id, task.id)} className="flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-xs font-bold" style={{ background: 'var(--ghrs-green-500)', color: 'white' }}><CheckIcon size={14} className="inline" /> موافقة</button>
-                                  <button onClick={() => handleReject(completion.id, task.id)} className="flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-xs font-bold" style={{ background: 'var(--ghrs-red-500)', color: 'white' }}><RejectIcon size={14} className="inline" /> رفض</button>
-                                </>
-                              ) : (
-                                <button onClick={() => setRevokeConfirm(completion)} className="flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-xs font-bold" style={{ background: 'var(--ghrs-red-50)', color: 'var(--ghrs-red-600)', border: '1px solid var(--ghrs-red-200)' }}>
-                                  <RejectIcon size={14} className="inline" /> سحب الاعتماد
-                                </button>
-                              )}
                             </div>
                           </div>
                         ))}
