@@ -11,9 +11,9 @@ ALTER TABLE tasks ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'pending'
 -- First drop the existing constraint
 ALTER TABLE task_approval_history DROP CONSTRAINT IF EXISTS task_approval_history_action_check;
 
--- Add new constraint with all allowed values
+-- Add new constraint with all allowed values (including 'revoke' for existing data)
 ALTER TABLE task_approval_history ADD CONSTRAINT task_approval_history_action_check
-  CHECK (action IN ('approved', 'rejected', 'revoked', 'completed', 'pending'));
+  CHECK (action IN ('approved', 'rejected', 'revoke', 'revoked', 'completed', 'pending'));
 
 -- 3. Update complete_task_with_rewards to set status=completed
 DROP FUNCTION IF EXISTS complete_task_with_rewards(UUID, UUID);
