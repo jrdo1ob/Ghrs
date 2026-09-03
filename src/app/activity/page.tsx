@@ -52,48 +52,84 @@ export default function ActivityLogPage() {
   }, [])
 
   const loadEvents = async (familyId: string, childFilter: string, typeFilter: string) => {
-    const allEvents: ActivityEvent[] = []
-
-    // Step 1: Get ALL completions (these are the primary events)
+    // Step 1: Get ALL completions (1 query)
     const { data: completions } = await supabase
       .from('task_completions')
       .select('id, task_id, member_id, approved, completed_at, rejected_by, rejected_at')
       .order('completed_at', { ascending: false })
       .limit(100)
 
-    for (const c of completions || []) {
-      const { data: task } = await supabase.from('tasks').select('title, family_id').eq('id', c.task_id).single()
-      const { data: member } = await supabase.from('members').select('name, family_id').eq('id', c.member_id).single()
+    if (!completions || completions.length === 0) {
+      setEvents([])
+      return
+    }
+
+    // Step 2: Collect all IDs for batch queries
+    const taskIds = [...new Set(completions.map(c => c.task_id))]
+    const memberIds = [...new Set(completions.map(c => c.member_id))]
+    const completionIds = completions.map(c => c.id)
+
+    // Step 3: Batch fetch tasks (1 query)
+    const { data: tasks } = await supabase
+      .from('tasks')
+      .select('id, title, family_id')
+      .in('id', taskIds)
+
+    // Step 4: Batch fetch members (1 query) - both children and performers
+    const { data: members } = await supabase
+      .from('members')
+      .select('id, name, family_id')
+      .in('id', memberIds)
+
+    // Step 5: Batch fetch latest history for ALL completions (1 query)
+    // Get all histories, then pick the latest per completion in memory
+    const { data: allHistories } = await supabase
+      .from('task_approval_history')
+      .select('completion_id, action, performed_by, created_at')
+      .in('completion_id', completionIds)
+      .order('created_at', { ascending: false })
+
+    // Step 6: Collect performer IDs from histories and batch fetch them (1 query)
+    const performerIds = [...new Set(
+      (allHistories || [])
+        .map(h => h.performed_by)
+        .filter((id): id is string => id !== null)
+    )]
+
+    const { data: performers } = performerIds.length > 0
+      ? await supabase.from('members').select('id, name').in('id', performerIds)
+      : { data: [] }
+
+    // Step 7: Build Maps for O(1) lookup
+    const tasksById = new Map((tasks || []).map(t => [t.id, t]))
+    const membersById = new Map((members || []).map(m => [m.id, m]))
+    const performersById = new Map((performers || []).map(p => [p.id, p]))
+
+    // Build latest history per completion (first entry is latest due to order)
+    const latestHistoryByCompletion = new Map<string, { completion_id: string; action: string; performed_by: string | null; created_at: string }>()
+    for (const h of allHistories || []) {
+      if (!latestHistoryByCompletion.has(h.completion_id)) {
+        latestHistoryByCompletion.set(h.completion_id, h)
+      }
+    }
+
+    // Step 8: Assemble events WITHOUT any queries
+    const allEvents: ActivityEvent[] = []
+
+    for (const c of completions) {
+      const task = tasksById.get(c.task_id)
+      const member = membersById.get(c.member_id)
 
       if (!task || !member || task.family_id !== familyId) continue
       if (childFilter !== 'all' && c.member_id !== childFilter) continue
 
-      // Determine the CURRENT status of this completion
-      let currentStatus: 'pending' | 'approved' | 'rejected' = 'pending'
-      if (c.approved === true) currentStatus = 'approved'
-      else if (c.approved === false) currentStatus = 'rejected'
+      const latestHistory = latestHistoryByCompletion.get(c.id)
+      const performer = latestHistory?.performed_by ? performersById.get(latestHistory.performed_by) : null
 
-      // Get the LATEST action from history for this completion
-      const { data: latestHistory } = await supabase
-        .from('task_approval_history')
-        .select('action, performed_by, created_at')
-        .eq('completion_id', c.id)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single()
-
-      const { data: performer } = latestHistory?.performed_by
-        ? await supabase.from('members').select('name').eq('id', latestHistory.performed_by).single()
-        : { data: null }
-
-      // The event type is the LATEST action, not always 'completed'
+      // The event type is the LATEST action
       const eventType = latestHistory?.action || 'completed'
 
-      // Map filter types to currentStatus for filtering
-      // 'completed' filter -> show pending (approved === null)
-      // 'approved' filter -> show approved
-      // 'rejected' filter -> show rejected
-      // 'revoked' filter -> show revoked (latestHistory.action === 'revoked')
+      // Filter logic (same as before)
       let shouldInclude = true
       if (typeFilter !== 'all') {
         if (typeFilter === 'completed') {
@@ -105,14 +141,14 @@ export default function ActivityLogPage() {
         } else if (typeFilter === 'revoked') {
           shouldInclude = (latestHistory?.action === 'revoked')
         } else {
-          shouldInclude = (typeFilter === currentStatus)
+          shouldInclude = (typeFilter === (c.approved === null ? 'pending' : c.approved === true ? 'approved' : 'rejected'))
         }
       }
       if (!shouldInclude) continue
 
       allEvents.push({
         id: `comp-${c.id}`,
-        type: eventType,
+        type: eventType as ActivityEvent['type'],
         child_name: member.name,
         task_title: task.title,
         xp_amount: 0,
