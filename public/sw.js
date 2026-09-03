@@ -1,18 +1,9 @@
-const CACHE_NAME = 'ghrs-v1'
-const STATIC_ASSETS = [
-  '/',
-  '/owner-login',
-  '/family-login',
-  '/child-mode',
-  '/manifest.json',
-]
+// GHRS Service Worker - Static Asset Caching Only
+// HTML/navigation requests are NOT cached to prevent stale version issues
+
+const CACHE_NAME = 'ghrs-static-v2'
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(STATIC_ASSETS)
-    })
-  )
   self.skipWaiting()
 })
 
@@ -38,6 +29,13 @@ self.addEventListener('fetch', (event) => {
   // Skip Supabase API calls (always go to network)
   if (request.url.includes('supabase')) return
   
+  // Skip navigation requests - NEVER cache HTML pages to prevent stale versions
+  if (request.mode === 'navigate') {
+    event.respondWith(fetch(request))
+    return
+  }
+  
+  // For all other requests (static assets), use stale-while-revalidate
   event.respondWith(
     caches.match(request).then((cachedResponse) => {
       if (cachedResponse) {
@@ -63,10 +61,6 @@ self.addEventListener('fetch', (event) => {
         }
         return networkResponse
       }).catch(() => {
-        // Return offline page for navigation requests
-        if (request.mode === 'navigate') {
-          return caches.match('/')
-        }
         return new Response('Offline', { status: 503 })
       })
     })
