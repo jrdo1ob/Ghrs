@@ -37,14 +37,16 @@ export default function ChildrenPage() {
       if (!user || user.role === 'child') { router.push('/family-login'); return }
       setAuthUser(user)
 
-      const { data: familyData } = await supabase.from('families').select('*').eq('id', user.familyId).single()
-      setFamily(familyData)
+      // Run all 3 independent queries in parallel
+      const [familyResult, childrenResult, parentsResult] = await Promise.all([
+        supabase.from('families').select('*').eq('id', user.familyId).single(),
+        supabase.from('members').select('*').eq('family_id', user.familyId).eq('role', 'child').order('created_at', { ascending: true }),
+        supabase.from('members').select('*').eq('family_id', user.familyId).in('role', ['parent', 'owner']).order('created_at', { ascending: true }),
+      ])
 
-      const { data: childrenData } = await supabase.from('members').select('*').eq('family_id', user.familyId).eq('role', 'child').order('created_at', { ascending: true })
-      setChildren(childrenData || [])
-
-      const { data: parentsData } = await supabase.from('members').select('*').eq('family_id', user.familyId).in('role', ['parent', 'owner']).order('created_at', { ascending: true })
-      setParents(parentsData || [])
+      setFamily(familyResult.data)
+      setChildren(childrenResult.data || [])
+      setParents(parentsResult.data || [])
       setLoading(false)
     }
     getData()
