@@ -59,20 +59,14 @@ export default function LedgerPage() {
 
     if (childIds.length === 0) { setXpTransactions([]); setMoneyTransactions([]); return }
 
-    const { data: xpData } = await supabase
-      .from('xp_transactions').select('*')
-      .in('member_id', childIds)
-      .order('created_at', { ascending: false })
-      .limit(100)
+    // Run xp and money queries in parallel (independent of each other)
+    const [xpResult, moneyResult] = await Promise.all([
+      supabase.from('xp_transactions').select('*').in('member_id', childIds).order('created_at', { ascending: false }).limit(100),
+      supabase.from('money_transactions').select('*').in('member_id', childIds).order('created_at', { ascending: false }).limit(100),
+    ])
 
-    const { data: moneyData } = await supabase
-      .from('money_transactions').select('*')
-      .in('member_id', childIds)
-      .order('created_at', { ascending: false })
-      .limit(100)
-
-    setXpTransactions(xpData || [])
-    setMoneyTransactions(moneyData || [])
+    setXpTransactions(xpResult.data || [])
+    setMoneyTransactions(moneyResult.data || [])
   }
 
   const handleChildChange = async (childId: string) => {
