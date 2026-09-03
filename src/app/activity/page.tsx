@@ -52,41 +52,8 @@ export default function ActivityLogPage() {
 
   const loadEvents = async (familyId: string, childFilter: string, typeFilter: string) => {
     const allEvents: ActivityEvent[] = []
-    const seenCompletionIds = new Set<string>()
 
-    // Get approval history FIRST (these are the authoritative events)
-    const { data: history } = await supabase
-      .from('task_approval_history')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(100)
-
-    for (const h of history || []) {
-      if (childFilter !== 'all' && h.member_id !== childFilter) continue
-      if (typeFilter !== 'all' && typeFilter !== h.action) continue
-
-      const { data: member } = await supabase.from('members').select('name').eq('id', h.member_id).single()
-      const { data: performer } = h.performed_by ? await supabase.from('members').select('name').eq('id', h.performed_by).single() : { data: null }
-      const { data: task } = await supabase.from('tasks').select('title').eq('id', h.task_id).single()
-
-      allEvents.push({
-        id: h.id,
-        type: h.action,
-        child_name: member?.name || 'غير معروف',
-        task_title: task?.title || 'مهمة محذوفة',
-        xp_amount: 0,
-        performed_by: performer?.name || null,
-        timestamp: h.created_at,
-        description: h.reason,
-        completion_id: h.completion_id,
-        approved: null,
-      })
-      
-      // Track which completions already have history
-      if (h.completion_id) seenCompletionIds.add(h.completion_id)
-    }
-
-    // Get completions - only those WITHOUT history entries (truly pending)
+    // Step 1: Get ALL completions (these are the primary events)
     const { data: completions } = await supabase
       .from('task_completions')
       .select('id, task_id, member_id, approved, completed_at, rejected_by, rejected_at')
@@ -94,24 +61,44 @@ export default function ActivityLogPage() {
       .limit(100)
 
     for (const c of completions || []) {
-      // Skip if this completion already has a history entry
-      if (seenCompletionIds.has(c.id)) continue
-      
       const { data: task } = await supabase.from('tasks').select('title, family_id').eq('id', c.task_id).single()
       const { data: member } = await supabase.from('members').select('name, family_id').eq('id', c.member_id).single()
 
       if (!task || !member || task.family_id !== familyId) continue
       if (childFilter !== 'all' && c.member_id !== childFilter) continue
-      if (typeFilter !== 'all' && typeFilter !== 'completed') continue
+
+      // Determine the CURRENT status of this completion
+      let currentStatus: 'pending' | 'approved' | 'rejected' = 'pending'
+      if (c.approved === true) currentStatus = 'approved'
+      else if (c.approved === false) currentStatus = 'rejected'
+
+      // Filter by type
+      if (typeFilter !== 'all' && typeFilter !== currentStatus) continue
+
+      // Get the LATEST action from history for this completion
+      const { data: latestHistory } = await supabase
+        .from('task_approval_history')
+        .select('action, performed_by, created_at')
+        .eq('completion_id', c.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single()
+
+      const { data: performer } = latestHistory?.performed_by
+        ? await supabase.from('members').select('name').eq('id', latestHistory.performed_by).single()
+        : { data: null }
+
+      // The event type is the LATEST action, not always 'completed'
+      const eventType = latestHistory?.action || 'completed'
 
       allEvents.push({
         id: `comp-${c.id}`,
-        type: 'completed',
+        type: eventType,
         child_name: member.name,
         task_title: task.title,
         xp_amount: 0,
-        performed_by: null,
-        timestamp: c.completed_at,
+        performed_by: performer?.name || null,
+        timestamp: latestHistory?.created_at || c.completed_at,
         description: null,
         completion_id: c.id,
         approved: c.approved,
