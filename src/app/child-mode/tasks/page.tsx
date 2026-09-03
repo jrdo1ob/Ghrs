@@ -8,6 +8,7 @@ import { useFamilyCurrency } from '@/hooks/useFamilyCurrency'
 import ParticleEffects from '@/components/ParticleEffects'
 import TaskDetailsModal from '@/components/TaskDetailsModal'
 import { ClockIcon, StarIcon, CoinIcon, CheckIcon, CopyIcon, QuranIcon, SparkleIcon, BookIcon } from '@/components/icons'
+import { getCurrentUser } from '@/lib/auth/helper'
 
 const PRIORITY_MAP: Record<string, { color: string; label: string }> = {
   high: { color: 'var(--ghrs-red-500)', label: 'عالية' },
@@ -33,8 +34,10 @@ export default function ChildTasksPage() {
 
   useEffect(() => {
     const getData = async () => {
-      const storedId = localStorage.getItem('child_id')
-      if (!storedId) { router.push('/family-login'); return }
+      // Get authenticated user from secure session
+      const authUser = await getCurrentUser()
+      if (!authUser || authUser.role !== 'child') { router.push('/family-login'); return }
+      const storedId = authUser.memberId
       setChildId(storedId)
 
       const { data: memberData } = await supabase.from('members').select('*').eq('id', storedId).single()

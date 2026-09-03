@@ -7,6 +7,7 @@ import { ChildBottomNav, EmptyState, Toast } from '@/components/layout'
 import { useFamilyCurrency } from '@/hooks/useFamilyCurrency'
 import RewardDetailsModal from '@/components/RewardDetailsModal'
 import { GiftsIcon, StarIcon, CoinIcon, ClockIcon, LockIcon } from '@/components/icons'
+import { getCurrentUser } from '@/lib/auth/helper'
 
 export default function ChildGiftsPage() {
   const [gifts, setGifts] = useState<any[]>([])
@@ -17,14 +18,18 @@ export default function ChildGiftsPage() {
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
   const [selectedGift, setSelectedGift] = useState<any>(null)
   const [showGiftModal, setShowGiftModal] = useState(false)
+  const [childId, setChildId] = useState<string | null>(null)
   const router = useRouter()
   const { format: fmtMoney } = useFamilyCurrency()
   const supabase = createClient()
 
   useEffect(() => {
     const getData = async () => {
-      const childId = localStorage.getItem('child_id')
-      if (!childId) { router.push('/family-login'); return }
+      // Get authenticated user from secure session
+      const authUser = await getCurrentUser()
+      if (!authUser || authUser.role !== 'child') { router.push('/family-login'); return }
+      const childId = authUser.memberId
+      setChildId(childId)
 
       const { data: memberData } = await supabase.from('members').select('*').eq('id', childId).single()
       if (!memberData || memberData.role !== 'child') { router.push('/family-login'); return }
@@ -47,9 +52,11 @@ export default function ChildGiftsPage() {
   }, [])
 
   const handleRedeem = async (giftId: string) => {
-    const childId = localStorage.getItem('child_id')
-    if (!childId || redeeming) return
+    // Get authenticated user from secure session
+    const authUser = await getCurrentUser()
+    if (!authUser || authUser.role !== 'child' || redeeming) return
 
+    const childId = authUser.memberId
     setRedeeming(giftId)
     setShowGiftModal(false)
 

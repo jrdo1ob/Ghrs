@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { ChildBottomNav } from '@/components/layout'
 import { LEVELS, getLevel, Level } from '@/lib/gamification'
 import { StarIcon, FireIcon, CheckIcon, TasksIcon, LeafIcon } from '@/components/icons'
+import { getCurrentUser } from '@/lib/auth/helper'
 
 export default function ChildProfilePage() {
   const [member, setMember] = useState<any>(null)
@@ -19,11 +20,14 @@ export default function ChildProfilePage() {
 
   useEffect(() => {
     const getData = async () => {
-      const childId = localStorage.getItem('child_id')
-      if (!childId) {
+      // Get authenticated user from secure session
+      const authUser = await getCurrentUser()
+      if (!authUser || authUser.role !== 'child') {
         router.push('/family-login')
         return
       }
+
+      const childId = authUser.memberId
 
       const { data: memberData } = await supabase
         .from('members')

@@ -9,6 +9,7 @@ import { useFamilyCurrency } from '@/hooks/useFamilyCurrency'
 import { LEVELS, getLevel, getNextLevel, Level } from '@/lib/gamification'
 import CelebrationModal from '@/components/CelebrationModal'
 import { CopyIcon, StarIcon, CoinIcon, ClockIcon, CheckIcon, LeafIcon, FireIcon, PartyIcon, TrophyIcon, ShieldIcon } from '@/components/icons'
+import { getCurrentUser } from '@/lib/auth/helper'
 
 export default function ChildModePage() {
   const [tasks, setTasks] = useState<any[]>([])
@@ -30,11 +31,14 @@ export default function ChildModePage() {
 
   useEffect(() => {
     const getData = async () => {
-      const childId = localStorage.getItem('child_id')
-      if (!childId) {
+      // Get authenticated user from secure session
+      const authUser = await getCurrentUser()
+      if (!authUser || authUser.role !== 'child') {
         router.push('/family-login')
         return
       }
+
+      const childId = authUser.memberId
 
       // Step 1: Get member data first (needed for tasks query)
       const { data: memberData } = await supabase
@@ -113,9 +117,11 @@ export default function ChildModePage() {
   }, [level])
 
   const handleCompleteTask = async (taskId: string) => {
-    const childId = localStorage.getItem('child_id')
-    if (!childId || completingTask) return
+    // Get authenticated user from secure session
+    const authUser = await getCurrentUser()
+    if (!authUser || authUser.role !== 'child' || completingTask) return
 
+    const childId = authUser.memberId
     setCompletingTask(taskId)
 
     const { error } = await supabase.rpc('complete_task_with_rewards', {

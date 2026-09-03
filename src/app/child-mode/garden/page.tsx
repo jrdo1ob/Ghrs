@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { ChildBottomNav } from '@/components/layout'
 import { LEVELS, getLevel, getNextLevel, Level } from '@/lib/gamification'
 import { GardenIcon, PartyIcon, TrophyIcon, ShieldIcon, CheckIcon, LockIcon, LeafIcon, FireIcon, WaterIcon, SparkleIcon } from '@/components/icons'
+import { getCurrentUser } from '@/lib/auth/helper'
 
 export default function ChildGardenPage() {
   const [xp, setXp] = useState(0)
@@ -16,11 +17,14 @@ export default function ChildGardenPage() {
 
   useEffect(() => {
     const getData = async () => {
-      const childId = localStorage.getItem('child_id')
-      if (!childId) {
+      // Get authenticated user from secure session
+      const authUser = await getCurrentUser()
+      if (!authUser || authUser.role !== 'child') {
         router.push('/family-login')
         return
       }
+
+      const childId = authUser.memberId
 
       const { data: memberData } = await supabase
         .from('members')
