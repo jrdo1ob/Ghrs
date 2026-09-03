@@ -25,16 +25,21 @@ export default function DashboardPage() {
       if (!user || user.role === 'child') { router.push('/family-login'); return }
       setAuthUser(user)
 
-      const { data: familyData } = await supabase.from('families').select('*').eq('id', user.familyId).single()
-      setFamily(familyData)
+      // Run independent queries in parallel
+      const [familyResult, childrenResult, tasksResult] = await Promise.all([
+        supabase.from('families').select('*').eq('id', user.familyId).single(),
+        supabase.from('members').select('*').eq('family_id', user.familyId).eq('role', 'child'),
+        supabase.from('tasks').select('*').eq('family_id', user.familyId).eq('is_active', true),
+      ])
 
-      const { data: childrenData } = await supabase.from('members').select('*').eq('family_id', user.familyId).eq('role', 'child')
-      setChildren(childrenData || [])
+      setFamily(familyResult.data)
+      setChildren(childrenResult.data || [])
 
-      const { data: tasksData } = await supabase.from('tasks').select('*').eq('family_id', user.familyId).eq('is_active', true)
-      setTasks(tasksData || [])
+      const tasksData = tasksResult.data || []
+      setTasks(tasksData)
 
-      const taskIds = tasksData?.map(t => t.id) || []
+      // Sequential: pending completions depends on tasks
+      const taskIds = tasksData.map(t => t.id)
       if (taskIds.length > 0) {
         const { data: pendingData } = await supabase.from('task_completions').select('id').is('approved', null).in('task_id', taskIds)
         setPendingApprovals(pendingData?.length || 0)
