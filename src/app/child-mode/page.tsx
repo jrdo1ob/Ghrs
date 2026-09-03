@@ -55,17 +55,18 @@ export default function ChildModePage() {
       const today = new Date().toISOString().split('T')[0]
       const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString()
 
-      const [tasksResult, xpResult, moneyResult, completionsResult, recentManualResult] = await Promise.all([
+      const [tasksResult, allXpResult, moneyResult, completionsResult] = await Promise.all([
         supabase.from('tasks').select('*').eq('family_id', memberData.family_id).eq('is_active', true).eq('is_deleted', false).eq('is_paused', false),
-        supabase.from('xp_transactions').select('amount').eq('member_id', childId),
+        supabase.from('xp_transactions').select('amount, description, created_at, source').eq('member_id', childId),
         supabase.from('money_transactions').select('amount, type').eq('member_id', childId).eq('status', 'approved'),
         supabase.from('task_completions').select('task_id, approved').eq('member_id', childId).gte('completed_at', today),
-        supabase.from('xp_transactions').select('amount, description, created_at').eq('member_id', childId).eq('source', 'manual').gte('created_at', fiveMinAgo).order('created_at', { ascending: false }).limit(1),
       ])
 
       setTasks(tasksResult.data || [])
 
-      const totalXp = xpResult.data?.reduce((sum, t) => sum + t.amount, 0) || 0
+      // Calculate total XP from all transactions
+      const allXp = allXpResult.data || []
+      const totalXp = allXp.reduce((sum, t) => sum + t.amount, 0)
       setXp(totalXp)
 
       const totalMoney = moneyResult.data?.reduce((sum, t) => sum + (t.type === 'earned' ? t.amount : -t.amount), 0) || 0
@@ -76,16 +77,16 @@ export default function ChildModePage() {
       setCompletedToday(completedIds)
       setPendingToday(pendingIds)
 
-      const recentManual = recentManualResult.data
-      if (recentManual && recentManual.length > 0) {
-        const adj = recentManual[0]
-        const isReward = adj.amount > 0
+      // Get recent manual adjustment from the same XP data (no extra query)
+      const recentManual = allXp.find(t => t.source === 'manual' && new Date(t.created_at) >= new Date(fiveMinAgo))
+      if (recentManual) {
+        const isReward = recentManual.amount > 0
         setTimeout(() => {
           setToast({
             type: isReward ? 'success' : 'error',
             message: isReward
-              ? `مكافأة من الوالد: ${adj.description} (+${adj.amount} XP)`
-              : `تنبيه من الوالد: ${adj.description} (${adj.amount} XP)`
+              ? `مكافأة من الوالد: ${recentManual.description} (+${recentManual.amount} XP)`
+              : `تنبيه من الوالد: ${recentManual.description} (${recentManual.amount} XP)`
           })
         }, 1500)
       }
