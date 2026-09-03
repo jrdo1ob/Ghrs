@@ -36,6 +36,7 @@ export default function ChildModePage() {
         return
       }
 
+      // Step 1: Get member data first (needed for tasks query)
       const { data: memberData } = await supabase
         .from('members')
         .select('*')
@@ -48,64 +49,34 @@ export default function ChildModePage() {
       }
 
       setMember(memberData)
-
-      // Use server-side streak from members table
       setStreak(memberData.current_streak || 0)
 
-      const { data: tasksData } = await supabase
-        .from('tasks')
-        .select('*')
-        .eq('family_id', memberData.family_id)
-        .eq('is_active', true)
-        .eq('is_deleted', false)
-        .eq('is_paused', false)
+      // Step 2: Run independent queries in parallel
+      const today = new Date().toISOString().split('T')[0]
+      const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString()
 
-      setTasks(tasksData || [])
+      const [tasksResult, xpResult, moneyResult, completionsResult, recentManualResult] = await Promise.all([
+        supabase.from('tasks').select('*').eq('family_id', memberData.family_id).eq('is_active', true).eq('is_deleted', false).eq('is_paused', false),
+        supabase.from('xp_transactions').select('amount').eq('member_id', childId),
+        supabase.from('money_transactions').select('amount, type').eq('member_id', childId).eq('status', 'approved'),
+        supabase.from('task_completions').select('task_id, approved').eq('member_id', childId).gte('completed_at', today),
+        supabase.from('xp_transactions').select('amount, description, created_at').eq('member_id', childId).eq('source', 'manual').gte('created_at', fiveMinAgo).order('created_at', { ascending: false }).limit(1),
+      ])
 
-      // Get XP
-      const { data: xpData } = await supabase
-        .from('xp_transactions')
-        .select('amount')
-        .eq('member_id', childId)
+      setTasks(tasksResult.data || [])
 
-      const totalXp = xpData?.reduce((sum, t) => sum + t.amount, 0) || 0
+      const totalXp = xpResult.data?.reduce((sum, t) => sum + t.amount, 0) || 0
       setXp(totalXp)
 
-      // Get money balance
-      const { data: moneyData } = await supabase
-        .from('money_transactions')
-        .select('amount, type')
-        .eq('member_id', childId)
-        .eq('status', 'approved')
-
-      const totalMoney = moneyData?.reduce((sum, t) => sum + (t.type === 'earned' ? t.amount : -t.amount), 0) || 0
+      const totalMoney = moneyResult.data?.reduce((sum, t) => sum + (t.type === 'earned' ? t.amount : -t.amount), 0) || 0
       setMoneyBalance(totalMoney)
 
-      // Get today's completions
-      const today = new Date().toISOString().split('T')[0]
-      const { data: completions } = await supabase
-        .from('task_completions')
-        .select('task_id, approved')
-        .eq('member_id', childId)
-        .gte('completed_at', today)
-
-      const completedIds = completions?.filter(c => c.approved).map(c => c.task_id) || []
-      const pendingIds = completions?.filter(c => !c.approved).map(c => c.task_id) || []
-      
+      const completedIds = completionsResult.data?.filter(c => c.approved).map(c => c.task_id) || []
+      const pendingIds = completionsResult.data?.filter(c => !c.approved).map(c => c.task_id) || []
       setCompletedToday(completedIds)
       setPendingToday(pendingIds)
 
-      // Check for recent manual adjustments (last 5 minutes)
-      const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString()
-      const { data: recentManual } = await supabase
-        .from('xp_transactions')
-        .select('amount, description, created_at')
-        .eq('member_id', childId)
-        .eq('source', 'manual')
-        .gte('created_at', fiveMinAgo)
-        .order('created_at', { ascending: false })
-        .limit(1)
-
+      const recentManual = recentManualResult.data
       if (recentManual && recentManual.length > 0) {
         const adj = recentManual[0]
         const isReward = adj.amount > 0
