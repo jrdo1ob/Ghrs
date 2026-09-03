@@ -52,44 +52,14 @@ export default function ActivityLogPage() {
 
   const loadEvents = async (familyId: string, childFilter: string, typeFilter: string) => {
     const allEvents: ActivityEvent[] = []
+    const seenCompletionIds = new Set<string>()
 
-    // Get completions
-    const { data: completions } = await supabase
-      .from('task_completions')
-      .select('id, task_id, member_id, approved, completed_at, rejected_by, rejected_at')
-      .order('completed_at', { ascending: false })
-      .limit(50)
-
-    for (const c of completions || []) {
-      const { data: task } = await supabase.from('tasks').select('title, family_id').eq('id', c.task_id).single()
-      const { data: member } = await supabase.from('members').select('name, family_id').eq('id', c.member_id).single()
-
-      if (!task || !member || task.family_id !== familyId) continue
-      if (childFilter !== 'all' && c.member_id !== childFilter) continue
-
-      // Add completion event
-      if (typeFilter === 'all' || typeFilter === 'completed') {
-        allEvents.push({
-          id: `comp-${c.id}`,
-          type: 'completed',
-          child_name: member.name,
-          task_title: task.title,
-          xp_amount: 0,
-          performed_by: null,
-          timestamp: c.completed_at,
-          description: null,
-          completion_id: c.id,
-          approved: c.approved,
-        })
-      }
-    }
-
-    // Get approval history
+    // Get approval history FIRST (these are the authoritative events)
     const { data: history } = await supabase
       .from('task_approval_history')
       .select('*')
       .order('created_at', { ascending: false })
-      .limit(50)
+      .limit(100)
 
     for (const h of history || []) {
       if (childFilter !== 'all' && h.member_id !== childFilter) continue
@@ -110,6 +80,41 @@ export default function ActivityLogPage() {
         description: h.reason,
         completion_id: h.completion_id,
         approved: null,
+      })
+      
+      // Track which completions already have history
+      if (h.completion_id) seenCompletionIds.add(h.completion_id)
+    }
+
+    // Get completions - only those WITHOUT history entries (truly pending)
+    const { data: completions } = await supabase
+      .from('task_completions')
+      .select('id, task_id, member_id, approved, completed_at, rejected_by, rejected_at')
+      .order('completed_at', { ascending: false })
+      .limit(100)
+
+    for (const c of completions || []) {
+      // Skip if this completion already has a history entry
+      if (seenCompletionIds.has(c.id)) continue
+      
+      const { data: task } = await supabase.from('tasks').select('title, family_id').eq('id', c.task_id).single()
+      const { data: member } = await supabase.from('members').select('name, family_id').eq('id', c.member_id).single()
+
+      if (!task || !member || task.family_id !== familyId) continue
+      if (childFilter !== 'all' && c.member_id !== childFilter) continue
+      if (typeFilter !== 'all' && typeFilter !== 'completed') continue
+
+      allEvents.push({
+        id: `comp-${c.id}`,
+        type: 'completed',
+        child_name: member.name,
+        task_title: task.title,
+        xp_amount: 0,
+        performed_by: null,
+        timestamp: c.completed_at,
+        description: null,
+        completion_id: c.id,
+        approved: c.approved,
       })
     }
 
@@ -185,6 +190,16 @@ export default function ActivityLogPage() {
       case 'rejected': return 'رفض'
       case 'revoke': return 'سحب الاعتماد'
       default: return type
+    }
+  }
+
+  const getEventVerb = (type: string) => {
+    switch (type) {
+      case 'completed': return 'أنجز'
+      case 'approved': return 'تم اعتماد إنجاز'
+      case 'rejected': return 'تم رفض إنجاز'
+      case 'revoke': return 'تم سحب اعتماد'
+      default: return 'أنجز'
     }
   }
 
@@ -284,7 +299,7 @@ export default function ActivityLogPage() {
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>{event.child_name}</span>
-                      <span className="text-sm" style={{ color: 'var(--ghrs-text-secondary)' }}>أنجز</span>
+                      <span className="text-sm" style={{ color: 'var(--ghrs-text-secondary)' }}>{getEventVerb(event.type)}</span>
                       <span className="font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>{event.task_title}</span>
                     </div>
                     <div className="flex items-center gap-2 mb-1">
