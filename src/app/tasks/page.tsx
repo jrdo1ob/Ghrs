@@ -187,6 +187,7 @@ export default function TasksPage() {
         p_frequency: formData.frequency, p_priority: formData.priority,
         p_schedule_days: taskData.schedule_days, p_assigned_to: taskData.assigned_to,
         p_requires_approval: formData.requires_approval,
+        p_icon: formData.icon || null,
       })
       if (rpcError) { setError(rpcError.message); return }
 
