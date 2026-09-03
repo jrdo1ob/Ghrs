@@ -2,7 +2,6 @@
 
 import { useState, useEffect, Suspense } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { setMemberSession } from '@/lib/auth/session'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 
@@ -48,50 +47,40 @@ function FamilyLoginContent() {
     setLoading(true)
     setError('')
 
-    // First, look up the member by login_code
-    const { data: memberLookup, error: lookupError } = await supabase
-      .from('members')
-      .select('id, family_id, role, name')
-      .eq('login_code', loginCode.toUpperCase())
-      .single()
-
-    if (lookupError || !memberLookup) {
-      setError('الكود غير صحيح')
-      setLoading(false)
-      return
-    }
-
-    // Then verify the PIN (returns TABLE with member_id, member_name, member_role, family_id)
-    const { data: pinResult, error: pinError } = await supabase
-      .rpc('verify_member_pin', {
-        p_member_id: memberLookup.id,
-        p_pin: pin,
+    try {
+      // Call secure server-side login API
+      const response = await fetch('/api/auth/member-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ loginCode: loginCode.toUpperCase(), pin }),
       })
 
-    if (pinError || !pinResult || pinResult.length === 0) {
-      setError('الرمز غير صحيح')
+      const result = await response.json()
+
+      if (!response.ok || !result.success) {
+        setError(result.error || 'الكود أو الرمز غير صحيح')
+        setLoading(false)
+        return
+      }
+
+      // Store only role and name in localStorage (for UI purposes only)
+      // member_id and family_id are NO LONGER stored in localStorage
+      localStorage.setItem('ghrs_session_role', result.role)
+      localStorage.setItem('family_code', loginCode.toUpperCase())
+      if (result.name) {
+        localStorage.setItem('member_name', result.name)
+      }
+
+      // Redirect based on role
+      if (result.role === 'child') {
+        router.push('/child-mode')
+      } else {
+        router.push('/dashboard')
+      }
+    } catch (err) {
+      console.error('[GHRS LOGIN] Error:', err)
+      setError('حدث خطأ أثناء تسجيل الدخول')
       setLoading(false)
-      return
-    }
-
-    const memberData = pinResult[0]
-
-    if (memberData.member_role === 'child') {
-      // Child login
-      localStorage.setItem('child_id', memberData.member_id)
-      localStorage.setItem('family_id', memberData.family_id)
-      localStorage.setItem('family_code', loginCode.toUpperCase())
-      setMemberSession(memberData.member_id, 'child')
-      router.push('/child-mode')
-    } else if (memberData.member_role === 'parent' || memberData.member_role === 'owner') {
-      // Parent/Owner login via code + PIN
-      localStorage.setItem('parent_id', memberData.member_id)
-      localStorage.setItem('family_id', memberData.family_id)
-      localStorage.setItem('family_code', loginCode.toUpperCase())
-      setMemberSession(memberData.member_id, memberData.member_role)
-      router.push('/dashboard')
-    } else {
-      router.push('/dashboard')
     }
   }
 

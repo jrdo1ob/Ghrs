@@ -8,7 +8,7 @@ export interface AuthUser {
   role: 'owner' | 'parent' | 'child'
   name: string
   loginCode?: string
-  via: 'supabase' | 'localStorage'
+  via: 'supabase' | 'session'
 }
 
 export async function getCurrentUser(): Promise<AuthUser | null> {
@@ -44,49 +44,46 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
     return null
   }
 
-  // Method 2: Check localStorage for parent login
-  const parentId = localStorage.getItem('parent_id')
-  if (parentId) {
-    const { data: member } = await supabase
-      .from('members')
-      .select('id, family_id, role, name, login_code')
-      .eq('id', parentId)
-      .single()
+  // Method 2: Check session cookie for parent/child login
+  // The cookie contains session_token (NOT member_id)
+  // We validate it server-side via API call
+  const sessionToken = getSessionTokenFromCookie()
+  if (sessionToken) {
+    try {
+      const response = await fetch('/api/auth/validate-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionToken }),
+      })
 
-    if (member && (member.role === 'parent' || member.role === 'owner')) {
-      return {
-        memberId: member.id,
-        familyId: member.family_id,
-        role: member.role as 'owner' | 'parent',
-        name: member.name,
-        loginCode: member.login_code,
-        via: 'localStorage'
+      if (response.ok) {
+        const data = await response.json()
+        if (data.success && data.member) {
+          return {
+            memberId: data.member.member_id,
+            familyId: data.member.family_id,
+            role: data.member.role as 'owner' | 'parent' | 'child',
+            name: data.member.name,
+            loginCode: data.member.login_code,
+            via: 'session'
+          }
+        }
       }
-    }
-  }
-
-  // Method 3: Check localStorage for child login
-  const childId = localStorage.getItem('child_id')
-  if (childId) {
-    const { data: member } = await supabase
-      .from('members')
-      .select('id, family_id, role, name, login_code')
-      .eq('id', childId)
-      .single()
-
-    if (member && member.role === 'child') {
-      return {
-        memberId: member.id,
-        familyId: member.family_id,
-        role: 'child',
-        name: member.name,
-        loginCode: member.login_code,
-        via: 'localStorage'
-      }
+    } catch (err) {
+      console.error('[GHRS] Session validation error:', err)
     }
   }
 
   return null
+}
+
+// Helper to get session token from cookie
+function getSessionTokenFromCookie(): string | null {
+  if (typeof document === 'undefined') return null
+  const cookies = document.cookie.split(';')
+  const sessionCookie = cookies.find(c => c.trim().startsWith('ghrs_member_session='))
+  if (!sessionCookie) return null
+  return sessionCookie.split('=')[1]?.trim() || null
 }
 
 export async function requireAuth(allowedRoles?: ('owner' | 'parent' | 'child')[]): Promise<AuthUser> {
@@ -103,11 +100,22 @@ export async function requireAuth(allowedRoles?: ('owner' | 'parent' | 'child')[
   return user
 }
 
-export function clearAuth() {
+export async function clearAuth() {
+  // Call logout API to delete session from database
+  try {
+    await fetch('/api/auth/logout', { method: 'POST' })
+  } catch (err) {
+    console.error('[GHRS] Logout API error:', err)
+  }
+  
+  // Clear cookie
+  document.cookie = 'ghrs_member_session=; path=/; max-age=0'
+  
+  // Clear localStorage (UI-only data)
   localStorage.removeItem('parent_id')
   localStorage.removeItem('child_id')
   localStorage.removeItem('family_id')
   localStorage.removeItem('ghrs_session_role')
-  // Clear session cookie
-  document.cookie = 'ghrs_member_session=; path=/; max-age=0'
+  localStorage.removeItem('family_code')
+  localStorage.removeItem('member_name')
 }
