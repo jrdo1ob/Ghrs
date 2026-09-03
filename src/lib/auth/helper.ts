@@ -44,46 +44,33 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
     return null
   }
 
-  // Method 2: Check session cookie for parent/child login
-  // The cookie contains session_token (NOT member_id)
-  // We validate it server-side via API call
-  const sessionToken = getSessionTokenFromCookie()
-  if (sessionToken) {
-    try {
-      const response = await fetch('/api/auth/validate-session', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionToken }),
-      })
+  // Method 2: Validate session via server-side API
+  // The API route reads the HttpOnly cookie directly from the request
+  // JavaScript never sees the session token
+  try {
+    const response = await fetch('/api/auth/validate-session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    })
 
-      if (response.ok) {
-        const data = await response.json()
-        if (data.success && data.member) {
-          return {
-            memberId: data.member.member_id,
-            familyId: data.member.family_id,
-            role: data.member.role as 'owner' | 'parent' | 'child',
-            name: data.member.name,
-            loginCode: data.member.login_code,
-            via: 'session'
-          }
+    if (response.ok) {
+      const data = await response.json()
+      if (data.success && data.member) {
+        return {
+          memberId: data.member.member_id,
+          familyId: data.member.family_id,
+          role: data.member.role as 'owner' | 'parent' | 'child',
+          name: data.member.name,
+          via: 'session'
         }
       }
-    } catch (err) {
-      console.error('[GHRS] Session validation error:', err)
     }
+  } catch (err) {
+    console.error('[GHRS] Session validation error:', err)
   }
 
   return null
-}
-
-// Helper to get session token from cookie
-function getSessionTokenFromCookie(): string | null {
-  if (typeof document === 'undefined') return null
-  const cookies = document.cookie.split(';')
-  const sessionCookie = cookies.find(c => c.trim().startsWith('ghrs_member_session='))
-  if (!sessionCookie) return null
-  return sessionCookie.split('=')[1]?.trim() || null
 }
 
 export async function requireAuth(allowedRoles?: ('owner' | 'parent' | 'child')[]): Promise<AuthUser> {

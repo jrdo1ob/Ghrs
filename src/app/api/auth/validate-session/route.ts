@@ -1,14 +1,16 @@
-import { NextResponse } from 'next/server'
+import { NextResponse, type NextRequest } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
-    const { sessionToken } = await request.json()
+    // Read session token directly from HttpOnly cookie
+    // The browser cannot read this cookie - only the server can
+    const sessionToken = request.cookies.get('ghrs_member_session')?.value
 
     if (!sessionToken) {
       return NextResponse.json(
-        { success: false, error: 'Session token required' },
-        { status: 400 }
+        { success: false, error: 'No session found' },
+        { status: 401 }
       )
     }
 
