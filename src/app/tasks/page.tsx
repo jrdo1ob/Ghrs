@@ -428,10 +428,10 @@ export default function TasksPage() {
 
           {error && <div className="mb-4 p-3 rounded-xl text-sm font-semibold" style={{ background: 'var(--ghrs-red-50)', color: 'var(--ghrs-red-600)' }}>{error}</div>}
 
-          {/* Add/Edit Form */}
-          {showAdd && (
+          {/* Add Form - only for new tasks */}
+          {showAdd && !editingTask && (
             <div className="ghrs-card p-6 mb-6 ghrs-animate-scale-in">
-              <h2 className="text-lg font-bold mb-4" style={{ color: 'var(--ghrs-text-primary)' }}>{editingTask ? 'تعديل المهمة' : 'مهمة جديدة'}</h2>
+              <h2 className="text-lg font-bold mb-4" style={{ color: 'var(--ghrs-text-primary)' }}>مهمة جديدة</h2>
               <form onSubmit={handleSaveTask} className="space-y-4">
 
                 {/* Task Type Selector */}
@@ -714,6 +714,102 @@ export default function TasksPage() {
                           </div>
                         ))}
                       </div>
+                    </div>
+                  )}
+
+                  {/* Edit Form - Rendered inline when editing this task */}
+                  {editingTask?.id === task.id && showAdd && (
+                    <div className="mt-4 ghrs-card p-6 ghrs-animate-scale-in">
+                      <h2 className="text-lg font-bold mb-4" style={{ color: 'var(--ghrs-text-primary)' }}>تعديل المهمة</h2>
+                      <form onSubmit={handleSaveTask} className="space-y-4">
+                        {/* Task Type Selector */}
+                        <div>
+                          <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--ghrs-text-secondary)' }}>نوع المهمة</label>
+                          <div className="flex gap-2">
+                            {TASK_TYPES.map(tt => (
+                              <button key={tt.value} type="button" onClick={() => setFormData({ ...formData, task_type: tt.value as any, surah_number: 0, from_ayah: 1, to_ayah: 1, custom_title: '', custom_content_text: '', quran_action_type: '' })}
+                                className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-bold transition-all border-2 flex-1"
+                                style={{ borderColor: formData.task_type === tt.value ? 'var(--ghrs-green-500)' : 'var(--ghrs-border-default)', background: formData.task_type === tt.value ? 'var(--ghrs-green-50)' : 'transparent', color: formData.task_type === tt.value ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)' }}>
+                                {tt.icon} {tt.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                        {/* Title */}
+                        <div>
+                          <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--ghrs-text-secondary)' }}>اسم المهمة</label>
+                          <input type="text" value={formData.title} onChange={e => setFormData({ ...formData, title: e.target.value })} className="ghrs-input w-full" placeholder="مثال: قراءة القرآن" />
+                        </div>
+                        {/* Description */}
+                        <div>
+                          <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--ghrs-text-secondary)' }}>الوصف</label>
+                          <textarea value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} className="ghrs-input w-full" rows={2} placeholder="وصف المهمة (اختياري)" />
+                        </div>
+                        {/* XP & Money */}
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--ghrs-text-secondary)' }}>نقاط XP</label>
+                            <input type="number" min="1" value={formData.xp_reward} onChange={e => setFormData({ ...formData, xp_reward: parseInt(e.target.value) || 1 })} className="ghrs-input w-full" />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--ghrs-text-secondary)' }}>المكافأة المالية</label>
+                            <input type="number" min="0" value={formData.money_reward} onChange={e => setFormData({ ...formData, money_reward: parseInt(e.target.value) || 0 })} className="ghrs-input w-full" />
+                          </div>
+                        </div>
+                        {/* Frequency */}
+                        <div>
+                          <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--ghrs-text-secondary)' }}>التكرار</label>
+                          <select value={formData.frequency} onChange={e => setFormData({ ...formData, frequency: e.target.value as any })} className="ghrs-input w-full">
+                            <option value="daily">يومي</option>
+                            <option value="weekly">أسبوعي</option>
+                            <option value="monthly">شهري</option>
+                            <option value="once">مرة واحدة</option>
+                            <option value="custom">أيام محددة</option>
+                          </select>
+                        </div>
+                        {/* Custom Days */}
+                        {formData.frequency === 'custom' && (
+                          <div><label className="block text-sm font-semibold mb-1" style={{ color: 'var(--ghrs-text-secondary)' }}>اختر الأيام</label>
+                            <div className="flex flex-wrap gap-2">
+                              {DAYS.map(d => (
+                                <button key={d.value} type="button" onClick={() => toggleScheduleDay(d.value)}
+                                  className="w-10 h-10 rounded-xl text-sm font-bold transition-all border-2"
+                                  style={{ borderColor: formData.schedule_days.includes(d.value) ? 'var(--ghrs-green-500)' : 'var(--ghrs-border-default)', background: formData.schedule_days.includes(d.value) ? 'var(--ghrs-green-100)' : 'transparent', color: formData.schedule_days.includes(d.value) ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)' }}>
+                                  {d.short}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {/* Child Assignment */}
+                        {children.length > 0 && (
+                          <div><label className="block text-sm font-semibold mb-1" style={{ color: 'var(--ghrs-text-secondary)' }}>تعيين لـ</label>
+                            <div className="flex flex-wrap gap-2">
+                              <button type="button" onClick={() => setFormData({ ...formData, assigned_to: [] })}
+                                className="px-3 py-2 rounded-xl text-sm font-bold transition-all border-2"
+                                style={{ borderColor: formData.assigned_to.length === 0 ? 'var(--ghrs-green-500)' : 'var(--ghrs-border-default)', background: formData.assigned_to.length === 0 ? 'var(--ghrs-green-100)' : 'transparent', color: formData.assigned_to.length === 0 ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)' }}>
+                                <FamilyIcon size={14} className="inline" /> الجميع
+                              </button>
+                              {children.map(child => (
+                                <button key={child.id} type="button" onClick={() => toggleAssignedChild(child.id)}
+                                  className="px-3 py-2 rounded-xl text-sm font-bold transition-all border-2"
+                                  style={{ borderColor: formData.assigned_to.includes(child.id) ? 'var(--ghrs-green-500)' : 'var(--ghrs-border-default)', background: formData.assigned_to.includes(child.id) ? 'var(--ghrs-green-100)' : 'transparent', color: formData.assigned_to.includes(child.id) ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)' }}>
+                                  <ChildIcon size={14} className="inline" /> {child.name}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {/* Requires Approval */}
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input type="checkbox" checked={formData.requires_approval} onChange={e => setFormData({ ...formData, requires_approval: e.target.checked })} className="w-4 h-4 accent-green-600" />
+                          <span className="text-sm font-semibold" style={{ color: 'var(--ghrs-text-secondary)' }}>تتطلب موافقة الوالد</span>
+                        </label>
+                        <div className="flex gap-2">
+                          <button type="submit" className="ghrs-btn-primary">حفظ التعديلات</button>
+                          <button type="button" onClick={() => { setShowAdd(false); setEditingTask(null); setQuranPreview('') }} className="ghrs-btn-secondary">إلغاء</button>
+                        </div>
+                      </form>
                     </div>
                   )}
                 </div>
