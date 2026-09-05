@@ -255,16 +255,26 @@ export default function TasksPage() {
 
   const handleDeleteTask = async () => {
     if (!deleteConfirm) return
-    const { error: rpcError } = await supabase.rpc('delete_task', { p_task_id: deleteConfirm.id })
-    if (rpcError) { setToast({ type: 'error', message: 'حدث خطأ أثناء الحذف' }); setDeleteConfirm(null); return }
+    const response = await fetch('/api/tasks/delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ task_id: deleteConfirm.id }),
+    })
+    const result = await response.json()
+    if (!response.ok || !result.success) { setToast({ type: 'error', message: 'حدث خطأ أثناء الحذف' }); setDeleteConfirm(null); return }
     setTasks(tasks.filter(t => t.id !== deleteConfirm.id))
     setToast({ type: 'success', message: 'تم حذف المهمة بنجاح' })
     setDeleteConfirm(null)
   }
 
   const handleTogglePause = async (task: TaskWithCompletions) => {
-    const { error: rpcError } = await supabase.rpc('toggle_task_pause', { p_task_id: task.id })
-    if (rpcError) { setToast({ type: 'error', message: 'حدث خطأ' }); return }
+    const response = await fetch('/api/tasks/toggle-pause', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ task_id: task.id }),
+    })
+    const result = await response.json()
+    if (!response.ok || !result.success) { setToast({ type: 'error', message: 'حدث خطأ' }); return }
     setTasks(tasks.map(t => t.id === task.id ? { ...t, is_paused: !t.is_paused } : t))
     setToast({ type: 'success', message: task.is_paused ? 'تم تفعيل المهمة' : 'تم إيقاف المهمة مؤقتاً' })
   }
@@ -272,12 +282,16 @@ export default function TasksPage() {
   const handleApprove = async (completionId: string, taskId: string) => {
     if (!authUser) return
     console.log('[GHRS] Approving completion:', completionId, 'by:', authUser.memberId)
-    const { data, error } = await supabase.rpc('approve_task_completion', { p_completion_id: completionId, p_approve: true })
-    if (error) {
-      console.error('[GHRS] Approve error:', error.message, error)
-      setToast({ type: 'error', message: 'حدث خطأ: ' + error.message }); return
+    const response = await fetch('/api/tasks/approve', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ completion_id: completionId, approve: true }),
+    })
+    const result = await response.json()
+    if (!response.ok || !result.success) {
+      console.error('[GHRS] Approve error:', result.error)
+      setToast({ type: 'error', message: 'حدث خطأ: ' + (result.error || '') }); return
     }
-    console.log('[GHRS] Approve success:', data)
     setTasks(tasks.map(t => t.id === taskId ? {
       ...t, completions: t.completions.filter((c: any) => c.id !== completionId),
       pendingCount: Math.max(0, (t.pendingCount || 1) - 1)
@@ -288,12 +302,16 @@ export default function TasksPage() {
   const handleReject = async (completionId: string, taskId: string) => {
     if (!authUser) return
     console.log('[GHRS] Rejecting completion:', completionId, 'by:', authUser.memberId)
-    const { data, error } = await supabase.rpc('reject_task_completion', { p_completion_id: completionId, p_rejected_by: authUser.memberId })
-    if (error) {
-      console.error('[GHRS] Reject error:', error.message, error)
-      setToast({ type: 'error', message: 'حدث خطأ: ' + error.message }); return
+    const response = await fetch('/api/tasks/reject', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ completion_id: completionId }),
+    })
+    const result = await response.json()
+    if (!response.ok || !result.success) {
+      console.error('[GHRS] Reject error:', result.error)
+      setToast({ type: 'error', message: 'حدث خطأ: ' + (result.error || '') }); return
     }
-    console.log('[GHRS] Reject success:', data)
     setTasks(tasks.map(t => t.id === taskId ? {
       ...t, completions: t.completions.filter((c: any) => c.id !== completionId),
       pendingCount: Math.max(0, (t.pendingCount || 1) - 1)
@@ -307,13 +325,16 @@ export default function TasksPage() {
   const handleRevoke = async (completionId: string, taskId: string) => {
     if (!authUser) return
     console.log('[GHRS] Revoking approval:', completionId)
-    const { data, error } = await supabase.rpc('revoke_task_approval', { p_completion_id: completionId, p_reason: revokeReason || null })
-    if (error) {
-      console.error('[GHRS] Revoke error:', error.message)
-      setToast({ type: 'error', message: 'حدث خطأ: ' + error.message }); return
+    const response = await fetch('/api/tasks/revoke', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ completion_id: completionId, reason: revokeReason || null }),
+    })
+    const result = await response.json()
+    if (!response.ok || !result.success) {
+      console.error('[GHRS] Revoke error:', result.error)
+      setToast({ type: 'error', message: 'حدث خطأ: ' + (result.error || '') }); return
     }
-    console.log('[GHRS] Revoke success:', data)
-    // Update the completion status to revoked
     setTasks(tasks.map(t => t.id === taskId ? {
       ...t, completions: t.completions.map((c: any) => c.id === completionId ? { ...c, approved: false } : c)
     } : t))

@@ -60,10 +60,16 @@ export default function ChildGiftsPage() {
     setRedeeming(giftId)
     setShowGiftModal(false)
 
-    const { data, error } = await supabase.rpc('redeem_gift', { p_gift_id: giftId, p_member_id: childId })
+    const response = await fetch('/api/gifts/redeem', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ gift_id: giftId }),
+    })
 
-    if (error || !data?.success) {
-      setToast({ type: 'error', message: data?.message || 'حدث خطأ' })
+    const data = await response.json()
+
+    if (!response.ok || !data.success) {
+      setToast({ type: 'error', message: data.error || 'حدث خطأ' })
       setRedeeming(null); return
     }
 

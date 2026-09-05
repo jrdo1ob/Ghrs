@@ -54,21 +54,37 @@ export default function RewardsPage() {
     if (!authUser) return
 
     if (editingGift) {
-      const { error: updateError } = await supabase
-        .from('gifts').update({ title: formData.title, description: formData.description || null, cost_xp: formData.cost_xp, cost_money: formData.cost_money || null, icon: formData.icon || null }).eq('id', editingGift.id)
-      if (updateError) { setError(updateError.message); return }
+      const response = await fetch('/api/gifts/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          gift_id: editingGift.id,
+          title: formData.title,
+          description: formData.description || null,
+          cost_xp: formData.cost_xp,
+          cost_money: formData.cost_money || null,
+          icon: formData.icon || null,
+        }),
+      })
+      const result = await response.json()
+      if (!response.ok || !result.success) { setError(result.error || 'حدث خطأ'); return }
       setGifts(gifts.map(g => g.id === editingGift.id ? { ...g, ...formData } : g))
       setToast({ type: 'success', message: 'تم تعديل الهدية بنجاح!' })
     } else {
-      const { data: gift, error: insertError } = await supabase
-        .from('gifts').insert({
-          family_id: authUser.familyId, title: formData.title,
-          description: formData.description || null, cost_xp: formData.cost_xp,
-          cost_money: formData.cost_money || null, icon: formData.icon || null,
-          is_active: true, created_by: authUser.memberId,
-        }).select().single()
-      if (insertError) { setError(insertError.message); return }
-      setGifts([gift, ...gifts])
+      const response = await fetch('/api/gifts/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: formData.title,
+          description: formData.description || null,
+          cost_xp: formData.cost_xp,
+          cost_money: formData.cost_money || null,
+          icon: formData.icon || null,
+        }),
+      })
+      const result = await response.json()
+      if (!response.ok || !result.success) { setError(result.error || 'حدث خطأ'); return }
+      setGifts([result.gift, ...gifts])
       setToast({ type: 'success', message: 'تم إضافة الهدية بنجاح!' })
     }
     setShowAdd(false); setEditingGift(null); setFormData({ title: '', description: '', cost_xp: 100, cost_money: 0, icon: '' })
@@ -76,16 +92,26 @@ export default function RewardsPage() {
 
   const handleDeleteGift = async () => {
     if (!deleteConfirm) return
-    const { error } = await supabase.from('gifts').delete().eq('id', deleteConfirm.id)
-    if (error) { setToast({ type: 'error', message: 'حدث خطأ' }); setDeleteConfirm(null); return }
+    const response = await fetch('/api/gifts/delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ gift_id: deleteConfirm.id }),
+    })
+    const result = await response.json()
+    if (!response.ok || !result.success) { setToast({ type: 'error', message: 'حدث خطأ' }); setDeleteConfirm(null); return }
     setGifts(gifts.filter(g => g.id !== deleteConfirm.id))
     setToast({ type: 'success', message: 'تم حذف الهدية' })
     setDeleteConfirm(null)
   }
 
   const handleToggleActive = async (gift: any) => {
-    const { error } = await supabase.from('gifts').update({ is_active: !gift.is_active }).eq('id', gift.id)
-    if (error) { setToast({ type: 'error', message: 'حدث خطأ' }); return }
+    const response = await fetch('/api/gifts/update', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ gift_id: gift.id, is_active: !gift.is_active }),
+    })
+    const result = await response.json()
+    if (!response.ok || !result.success) { setToast({ type: 'error', message: 'حدث خطأ' }); return }
     setGifts(gifts.map(g => g.id === gift.id ? { ...g, is_active: !g.is_active } : g))
     setToast({ type: 'success', message: gift.is_active ? 'تم إخفاء الهدية' : 'تم تفعيل الهدية' })
   }

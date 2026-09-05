@@ -52,27 +52,21 @@ export default function ChildrenPage() {
     getData()
   }, [])
 
-  const generateLoginCode = async (role: 'child' | 'parent') => {
-    if (!family || !authUser) return ''
-    const { data, error } = await supabase.rpc('generate_unique_login_code', { p_family_code: family.code, p_role: role })
-    if (error) {
-      const { count } = await supabase.from('members').select('*', { count: 'exact', head: true }).eq('family_id', authUser.familyId).eq('role', role)
-      const prefix = role === 'child' ? '100' : '000'
-      return `${family.code}-${prefix + (count || 0) + 1}`
-    }
-    return data
-  }
-
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     if (!authUser || !newName.trim() || !newPin) return
     const role = activeTab === 'children' ? 'child' : 'parent'
-    const loginCode = await generateLoginCode(role)
-    const { data: member, error: memberError } = await supabase.from('members').insert({ family_id: authUser.familyId, name: newName, role, login_code: loginCode }).select().single()
-    if (memberError) { setError(memberError.message); return }
-    const { error: pinError } = await supabase.rpc('set_member_pin', { p_member_id: member.id, p_pin: newPin })
-    if (pinError) { setError(pinError.message); return }
+    const response = await fetch('/api/members/create', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: newName, role, pin: newPin }),
+    })
+    const result = await response.json()
+    if (!response.ok || !result.success) {
+      setError(result.error || 'حدث خطأ'); return
+    }
+    const member = result.member
     if (role === 'child') setChildren([...children, { ...member }])
     else setParents([...parents, { ...member }])
     setShowAdd(false); setNewName(''); setNewPin('')
@@ -82,8 +76,13 @@ export default function ChildrenPage() {
   const handleUpdateName = async (memberId: string) => {
     setError('')
     if (!editName.trim()) { setError('الاسم لا يمكن أن يكون فارغاً'); return }
-    const { error } = await supabase.from('members').update({ name: editName }).eq('id', memberId)
-    if (error) { setError(error.message); return }
+    const response = await fetch('/api/members/update', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ member_id: memberId, name: editName }),
+    })
+    const result = await response.json()
+    if (!response.ok || !result.success) { setError(result.error || 'حدث خطأ'); return }
     setChildren(children.map(c => c.id === memberId ? { ...c, name: editName } : c))
     setParents(parents.map(p => p.id === memberId ? { ...p, name: editName } : p))
     setEditingId(null); setToast({ type: 'success', message: 'تم تعديل الاسم!' })
@@ -92,15 +91,25 @@ export default function ChildrenPage() {
   const handleUpdatePin = async (memberId: string) => {
     setError('')
     if (!editPin || editPin.length < 4) { setError('الرمز يجب أن يكون 4 أرقام على الأقل'); return }
-    const { error } = await supabase.rpc('set_member_pin', { p_member_id: memberId, p_pin: editPin })
-    if (error) { setError(error.message); return }
+    const response = await fetch('/api/members/update', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ member_id: memberId, pin: editPin }),
+    })
+    const result = await response.json()
+    if (!response.ok || !result.success) { setError(result.error || 'حدث خطأ'); return }
     setEditingId(null); setToast({ type: 'success', message: 'تم تعديل رمز PIN!' })
   }
 
   const handleDelete = async (memberId: string, memberName: string) => {
     if (!confirm(`هل أنت متأكد من حذف "${memberName}"؟`)) return
-    const { error } = await supabase.from('members').delete().eq('id', memberId)
-    if (error) { setError(error.message); return }
+    const response = await fetch('/api/members/delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ member_id: memberId }),
+    })
+    const result = await response.json()
+    if (!response.ok || !result.success) { setError(result.error || 'حدث خطأ'); return }
     setChildren(children.filter(c => c.id !== memberId))
     setParents(parents.filter(p => p.id !== memberId))
     setToast({ type: 'success', message: `تم حذف ${memberName}` })
@@ -110,16 +119,22 @@ export default function ChildrenPage() {
     if (!manualModal || !manualForm.reason.trim() || manualForm.amount <= 0) return
     setProcessingId(manualModal.child.id)
 
-    const { data, error } = await supabase.rpc('apply_manual_adjustment', {
-      p_child_id: manualModal.child.id,
-      p_type: manualModal.type,
-      p_currency_type: manualForm.currencyType,
-      p_amount: manualForm.amount,
-      p_reason: manualForm.reason,
+    const response = await fetch('/api/members/adjust', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        child_id: manualModal.child.id,
+        type: manualModal.type,
+        currency_type: manualForm.currencyType,
+        amount: manualForm.amount,
+        reason: manualForm.reason,
+      }),
     })
 
-    if (error || !data?.success) {
-      setToast({ type: 'error', message: error?.message || data?.message || 'حدث خطأ' })
+    const data = await response.json()
+
+    if (!response.ok || !data.success) {
+      setToast({ type: 'error', message: data.error || 'حدث خطأ' })
       setProcessingId(null); setManualModal(null); return
     }
 

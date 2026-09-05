@@ -98,8 +98,13 @@ export default function StoriesPage() {
 
   const handleDeleteStory = async () => {
     if (!deleteConfirm) return
-    const { error } = await supabase.rpc('delete_story', { p_story_id: deleteConfirm.id })
-    if (error) { setToast({ type: 'error', message: 'حدث خطأ' }); setDeleteConfirm(null); return }
+    const response = await fetch('/api/stories/delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ story_id: deleteConfirm.id }),
+    })
+    const result = await response.json()
+    if (!response.ok || !result.success) { setToast({ type: 'error', message: 'حدث خطأ' }); setDeleteConfirm(null); return }
     setStories(stories.filter(s => s.id !== deleteConfirm.id))
     setToast({ type: 'success', message: 'تم حذف القصة' })
     setDeleteConfirm(null)

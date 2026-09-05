@@ -40,15 +40,6 @@ export default function FamilySetupPage() {
     checkExisting()
   }, [])
 
-  const generateFamilyCode = () => {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
-    let code = ''
-    for (let i = 0; i < 6; i++) {
-      code += chars.charAt(Math.floor(Math.random() * chars.length))
-    }
-    return code
-  }
-
   const handleSetup = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
@@ -60,52 +51,15 @@ export default function FamilySetupPage() {
       return
     }
 
-    // Create family
-    const familyCode = generateFamilyCode()
-    const { data: family, error: familyError } = await supabase
-      .from('families')
-      .insert({
-        name: familyName,
-        code: familyCode,
-        created_by: user.id,
-      })
-      .select()
-      .single()
+    const response = await fetch('/api/family-setup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ family_name: familyName, owner_name: ownerName }),
+    })
+    const result = await response.json()
 
-    if (familyError) {
-      setError(familyError.message)
-      setLoading(false)
-      return
-    }
-
-    // Create owner member
-    const { data: member, error: memberError } = await supabase
-      .from('members')
-      .insert({
-        family_id: family.id,
-        name: ownerName,
-        role: 'owner',
-      })
-      .select()
-      .single()
-
-    if (memberError) {
-      setError(memberError.message)
-      setLoading(false)
-      return
-    }
-
-    // Link auth identity
-    const { error: linkError } = await supabase
-      .from('auth_identities')
-      .insert({
-        member_id: member.id,
-        auth_user_id: user.id,
-        provider: 'email',
-      })
-
-    if (linkError) {
-      setError(linkError.message)
+    if (!response.ok || !result.success) {
+      setError(result.error || 'حدث خطأ')
       setLoading(false)
       return
     }

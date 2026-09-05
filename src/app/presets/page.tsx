@@ -63,15 +63,16 @@ export default function PresetTasksPage() {
 
     setAdding(preset.id)
 
-    const { data, error } = await supabase.rpc('add_preset_task', {
-      p_preset_id: preset.id,
-      p_family_id: user.familyId,
-      p_created_by: user.memberId,
+    const response = await fetch('/api/tasks/add-preset', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ preset_id: preset.id }),
     })
+    const result = await response.json()
 
-    if (error) {
-      console.error('Add preset error:', error)
-      setToast({ type: 'error', message: 'حدث خطأ أثناء إضافة المهمة: ' + error.message })
+    if (!response.ok || !result.success) {
+      console.error('Add preset error:', result.error)
+      setToast({ type: 'error', message: 'حدث خطأ أثناء إضافة المهمة: ' + (result.error || '') })
       setAdding(null)
       return
     }
