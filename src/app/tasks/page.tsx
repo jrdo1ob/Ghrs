@@ -195,25 +195,37 @@ export default function TasksPage() {
     }
 
     if (editingTask) {
-      const { error: rpcError } = await supabase.rpc('update_task', {
-        p_task_id: editingTask.id, p_title: title,
-        p_description: taskData.description, p_xp_reward: formData.xp_reward,
-        p_money_reward: formData.money_reward || null,
-        p_frequency: formData.frequency, p_priority: formData.priority,
-        p_schedule_days: taskData.schedule_days, p_assigned_to: taskData.assigned_to,
-        p_requires_approval: formData.requires_approval,
-        p_icon: formData.icon || null,
+      // Use secure server API for update
+      const response = await fetch('/api/tasks/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          task_id: editingTask.id,
+          title,
+          description: taskData.description,
+          xp_reward: formData.xp_reward,
+          money_reward: formData.money_reward || null,
+          frequency: formData.frequency,
+          priority: formData.priority,
+          schedule_days: taskData.schedule_days,
+          assigned_to: taskData.assigned_to,
+          requires_approval: formData.requires_approval,
+          task_type: formData.task_type,
+          quran_action_type: formData.quran_action_type || null,
+          surah_number: formData.surah_number || null,
+          from_ayah: formData.from_ayah || null,
+          to_ayah: formData.to_ayah || null,
+          custom_title: formData.custom_title || null,
+          custom_content_text: formData.custom_content_text || quranPreview || null,
+          icon: formData.icon || null,
+        }),
       })
-      if (rpcError) { setError(rpcError.message); return }
 
-      // Update quran fields directly
-      const { error: updateError } = await supabase.from('tasks').update({
-        task_type: formData.task_type, quran_action_type: formData.quran_action_type || null,
-        surah_number: formData.surah_number || null, from_ayah: formData.from_ayah || null,
-        to_ayah: formData.to_ayah || null, custom_title: formData.custom_title || null,
-        custom_content_text: formData.custom_content_text || quranPreview || null,
-      }).eq('id', editingTask.id)
-      if (updateError) { setError(updateError.message); return }
+      const result = await response.json()
+      if (!response.ok || !result.success) {
+        setError(result.error || 'تعذر تعديل المهمة، حاول مرة أخرى')
+        return
+      }
 
       setTasks(tasks.map(t => t.id === editingTask.id ? {
         ...t, ...taskData, frequency: formData.frequency as Task['frequency'],
@@ -222,9 +234,20 @@ export default function TasksPage() {
       } : t) as TaskWithCompletions[])
       setToast({ type: 'success', message: 'تم تعديل المهمة بنجاح!' })
     } else {
-      const { data: task, error: insertError } = await supabase.from('tasks').insert(taskData).select().single()
-      if (insertError) { setError(insertError.message); return }
-      setTasks([{ ...task, completions: [], pendingCount: 0 } as TaskWithCompletions, ...tasks])
+      // Use secure server API for create
+      const response = await fetch('/api/tasks/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(taskData),
+      })
+
+      const result = await response.json()
+      if (!response.ok || !result.success) {
+        setError(result.error || 'تعذر إنشاء المهمة، حاول مرة أخرى')
+        return
+      }
+
+      setTasks([{ ...result.task, completions: [], pendingCount: 0 } as TaskWithCompletions, ...tasks])
       setToast({ type: 'success', message: 'تم إضافة المهمة بنجاح!' })
     }
     setShowAdd(false); setEditingTask(null); setFormData(emptyTask); setQuranPreview('')
