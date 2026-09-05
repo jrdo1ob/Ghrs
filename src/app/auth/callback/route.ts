@@ -43,13 +43,27 @@ export async function GET(request: Request) {
         .eq('auth_user_id', data.user.id)
         .single()
 
-      // If user has identity, go to dashboard; otherwise, go to family setup
-      const redirectPath = identity ? '/dashboard' : '/family-setup'
+      if (!identity) {
+        // No member identity found, go to family setup
+        return NextResponse.redirect(`${origin}/family-setup`)
+      }
+
+      // Create internal user_sessions record using the new RPC
+      const { data: sessionToken, error: sessionError } = await supabase.rpc('create_oauth_session', {
+        p_member_id: identity.member_id,
+      })
+
+      if (sessionError || !sessionToken) {
+        console.error('[GHRS AUTH CALLBACK] Failed to create OAuth session:', sessionError?.message)
+        return NextResponse.redirect(
+          `${origin}/owner-login?error=${encodeURIComponent('فشل إنشاء الجلسة')}`
+        )
+      }
+
+      const response = NextResponse.redirect(`${origin}/dashboard`)
       
-      const response = NextResponse.redirect(`${origin}${redirectPath}`)
-      
-      // Set session cookie
-      response.cookies.set('ghrs_member_session', data.session.access_token, {
+      // Set session cookie with INTERNAL session token (NOT JWT)
+      response.cookies.set('ghrs_member_session', sessionToken, {
         path: '/',
         httpOnly: true,
         secure: true,

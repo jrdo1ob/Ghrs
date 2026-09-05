@@ -57,7 +57,15 @@ export async function POST(request: NextRequest) {
     })
 
     if (error) {
-      console.error('[GHRS COMPLETE TASK] RPC error:', error.message)
+      // Log detailed error information for debugging
+      console.error('[GHRS COMPLETE TASK] RPC ERROR')
+      console.error('[GHRS COMPLETE TASK] error.message:', error.message)
+      console.error('[GHRS COMPLETE TASK] error.code:', error.code)
+      console.error('[GHRS COMPLETE TASK] error.details:', error.details)
+      console.error('[GHRS COMPLETE TASK] error.hint:', error.hint)
+      console.error('[GHRS COMPLETE TASK] task_id:', task_id)
+      console.error('[GHRS COMPLETE TASK] verifiedMemberId:', verifiedMemberId)
+      
       return NextResponse.json(
         { success: false, error: 'حدث خطأ أثناء إنجاز المهمة' },
         { status: 500 }
