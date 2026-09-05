@@ -44,11 +44,12 @@ function FamilyLoginContent() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (loading) return // Prevent duplicate submissions
     setLoading(true)
     setError('')
 
     try {
-      // Call secure server-side login API
+      // Step 1: Call secure server-side login API
       const response = await fetch('/api/auth/member-login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -63,15 +64,37 @@ function FamilyLoginContent() {
         return
       }
 
-      // Store only role and name in localStorage (for UI purposes only)
-      // member_id and family_id are NO LONGER stored in localStorage
+      // Step 2: Validate session BEFORE navigation
+      // This confirms the cookie is set and the session is valid
+      const validateResponse = await fetch('/api/auth/validate-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      })
+
+      const validateResult = await validateResponse.json()
+
+      if (!validateResponse.ok || !validateResult.success) {
+        setError('فشل التحقق من الجلسة، حاول مرة أخرى')
+        setLoading(false)
+        return
+      }
+
+      // Step 3: Confirm role matches
+      if (validateResult.member.role !== result.role) {
+        setError('خطأ في بيانات الجلسة')
+        setLoading(false)
+        return
+      }
+
+      // Step 4: Store only role and name in localStorage (for UI purposes only)
       localStorage.setItem('ghrs_session_role', result.role)
       localStorage.setItem('family_code', loginCode.toUpperCase())
       if (result.name) {
         localStorage.setItem('member_name', result.name)
       }
 
-      // Redirect based on role
+      // Step 5: Navigate based on role (session is now confirmed valid)
       if (result.role === 'child') {
         router.push('/child-mode')
       } else {
