@@ -17,7 +17,7 @@ CREATE OR REPLACE FUNCTION create_oauth_session(
 RETURNS TEXT
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public
+SET search_path TO 'public', 'extensions'
 AS $$
 DECLARE
   v_member_id UUID;
