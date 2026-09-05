@@ -124,10 +124,19 @@ export default function ActivityLogPage() {
       if (childFilter !== 'all' && c.member_id !== childFilter) continue
 
       const latestHistory = latestHistoryByCompletion.get(c.id)
-      const performer = latestHistory?.performed_by ? performersById.get(latestHistory.performed_by) : null
-
+      
       // The event type is the LATEST action
-      const eventType = latestHistory?.action || 'completed'
+      // Normalize 'revoke' and 'revoked' to a single value 'revoked'
+      const eventType = (latestHistory?.action === 'revoke' || latestHistory?.action === 'revoked')
+        ? 'revoked'
+        : (latestHistory?.action || 'completed')
+      
+      // Only show performer for administrative actions (approved, rejected, revoked)
+      // NOT for ordinary completions - the child is the subject, not an administrative actor
+      const isAdministrativeAction = eventType === 'approved' || eventType === 'rejected' || eventType === 'revoked'
+      const performer = isAdministrativeAction && latestHistory?.performed_by 
+        ? performersById.get(latestHistory.performed_by) 
+        : null
 
       // Filter logic (same as before)
       let shouldInclude = true
@@ -175,18 +184,28 @@ export default function ActivityLogPage() {
     if (!authUser) return
     if (processingId === completionId) return
     setProcessingId(completionId)
-    console.log('[GHRS] Approving completion:', completionId)
+
     try {
-      const { data, error } = await supabase.rpc('approve_task_completion', { p_completion_id: completionId, p_approve: true })
-      if (error) {
-        console.error('[GHRS] Approve error:', error.message)
-        setToast({ type: 'error', message: 'حدث خطأ: ' + error.message })
+      // Call secure server-side API
+      const response = await fetch('/api/tasks/approve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ completion_id: completionId, approve: true }),
+      })
+
+      const result = await response.json()
+
+      if (!response.ok || !result.success) {
+        setToast({ type: 'error', message: result.error || 'حدث خطأ أثناء الاعتماد' })
         return
       }
-      console.log('[GHRS] Approve success:', data)
+
       setToast({ type: 'success', message: 'تمت الموافقة!' })
       // Reload events
-      if (authUser) await loadEvents(authUser.familyId, filterChild, filterType)
+      await loadEvents(authUser.familyId, filterChild, filterType)
+    } catch (err) {
+      console.error('[GHRS] Approve error:', err)
+      setToast({ type: 'error', message: 'حدث خطأ أثناء الاعتماد' })
     } finally {
       setProcessingId(null)
     }
@@ -196,18 +215,28 @@ export default function ActivityLogPage() {
     if (!authUser) return
     if (processingId === completionId) return
     setProcessingId(completionId)
-    console.log('[GHRS] Rejecting completion:', completionId)
+
     try {
-      const { data, error } = await supabase.rpc('reject_task_completion', { p_completion_id: completionId, p_rejected_by: authUser.memberId })
-      if (error) {
-        console.error('[GHRS] Reject error:', error.message)
-        setToast({ type: 'error', message: 'حدث خطأ: ' + error.message })
+      // Call secure server-side API
+      const response = await fetch('/api/tasks/reject', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ completion_id: completionId }),
+      })
+
+      const result = await response.json()
+
+      if (!response.ok || !result.success) {
+        setToast({ type: 'error', message: result.error || 'حدث خطأ أثناء الرفض' })
         return
       }
-      console.log('[GHRS] Reject success:', data)
+
       setToast({ type: 'success', message: 'تم رفض الإنجاز' })
       // Reload events
-      if (authUser) await loadEvents(authUser.familyId, filterChild, filterType)
+      await loadEvents(authUser.familyId, filterChild, filterType)
+    } catch (err) {
+      console.error('[GHRS] Reject error:', err)
+      setToast({ type: 'error', message: 'حدث خطأ أثناء الرفض' })
     } finally {
       setProcessingId(null)
     }
@@ -217,20 +246,30 @@ export default function ActivityLogPage() {
     if (!authUser) return
     if (processingId === completionId) return
     setProcessingId(completionId)
-    console.log('[GHRS] Revoking approval:', completionId)
+
     try {
-      const { data, error } = await supabase.rpc('revoke_task_approval', { p_completion_id: completionId, p_reason: revokeReason || null })
-      if (error) {
-        console.error('[GHRS] Revoke error:', error.message)
-        setToast({ type: 'error', message: 'حدث خطأ: ' + error.message })
+      // Call secure server-side API
+      const response = await fetch('/api/tasks/revoke', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ completion_id: completionId, reason: revokeReason || null }),
+      })
+
+      const result = await response.json()
+
+      if (!response.ok || !result.success) {
+        setToast({ type: 'error', message: result.error || 'حدث خطأ أثناء سحب الاعتماد' })
         return
       }
-      console.log('[GHRS] Revoke success:', data)
+
       setToast({ type: 'success', message: 'تم سحب الاعتماد بنجاح' })
       setRevokeConfirm(null)
       setRevokeReason('')
       // Reload events
-      if (authUser) await loadEvents(authUser.familyId, filterChild, filterType)
+      await loadEvents(authUser.familyId, filterChild, filterType)
+    } catch (err) {
+      console.error('[GHRS] Revoke error:', err)
+      setToast({ type: 'error', message: 'حدث خطأ أثناء سحب الاعتماد' })
     } finally {
       setProcessingId(null)
     }
