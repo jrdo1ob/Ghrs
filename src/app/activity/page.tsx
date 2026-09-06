@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { ParentBottomNav, ParentSidebar, PageHeader, EmptyState, Toast, Skeleton } from '@/components/layout'
 import { getCurrentUser, AuthUser } from '@/lib/auth/helper'
@@ -33,7 +32,6 @@ export default function ActivityLogPage() {
   const [revokeReason, setRevokeReason] = useState('')
   const [processingId, setProcessingId] = useState<string | null>(null)
   const router = useRouter()
-  const supabase = createClient()
   const { format: fmtMoney } = useFamilyCurrency()
 
   useEffect(() => {
@@ -42,16 +40,14 @@ export default function ActivityLogPage() {
       if (!user || user.role === 'child') { router.push('/family-login'); return }
       setAuthUser(user)
 
-      const { data: childrenData } = await supabase.from('members').select('id, name').eq('family_id', user.familyId).eq('role', 'child')
-      setChildren(childrenData || [])
-
-      await loadEvents(user.familyId, 'all', 'all')
+      // Children list is folded into the events API response
+      await loadEvents('all', 'all')
       setLoading(false)
     }
     init()
   }, [])
 
-  const loadEvents = async (familyId: string, childFilter: string, typeFilter: string) => {
+  const loadEvents = async (childFilter: string, typeFilter: string) => {
     try {
       const response = await fetch('/api/activity/events', {
         method: 'POST',
@@ -67,6 +63,7 @@ export default function ActivityLogPage() {
       }
 
       setEvents(result.events || [])
+      setChildren(result.children || [])
     } catch (err) {
       console.error('[GHRS] Load events error:', err)
       setEvents([])
@@ -76,7 +73,7 @@ export default function ActivityLogPage() {
   const handleFilterChange = async (child: string, type: string) => {
     setFilterChild(child)
     setFilterType(type)
-    if (authUser) await loadEvents(authUser.familyId, child, type)
+    await loadEvents(child, type)
   }
 
   const handleApprove = async (completionId: string) => {
@@ -101,7 +98,7 @@ export default function ActivityLogPage() {
 
       setToast({ type: 'success', message: 'تمت الموافقة!' })
       // Reload events
-      await loadEvents(authUser.familyId, filterChild, filterType)
+      await loadEvents(filterChild, filterType)
     } catch (err) {
       console.error('[GHRS] Approve error:', err)
       setToast({ type: 'error', message: 'حدث خطأ أثناء الاعتماد' })
@@ -132,7 +129,7 @@ export default function ActivityLogPage() {
 
       setToast({ type: 'success', message: 'تم رفض الإنجاز' })
       // Reload events
-      await loadEvents(authUser.familyId, filterChild, filterType)
+      await loadEvents(filterChild, filterType)
     } catch (err) {
       console.error('[GHRS] Reject error:', err)
       setToast({ type: 'error', message: 'حدث خطأ أثناء الرفض' })
@@ -165,7 +162,7 @@ export default function ActivityLogPage() {
       setRevokeConfirm(null)
       setRevokeReason('')
       // Reload events
-      await loadEvents(authUser.familyId, filterChild, filterType)
+      await loadEvents(filterChild, filterType)
     } catch (err) {
       console.error('[GHRS] Revoke error:', err)
       setToast({ type: 'error', message: 'حدث خطأ أثناء سحب الاعتماد' })

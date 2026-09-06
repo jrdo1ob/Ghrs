@@ -1,4 +1,5 @@
 import { type NextRequest } from 'next/server'
+import { createServerClient } from '@supabase/ssr'
 import { createServiceRoleClient } from '@/lib/supabase/service-role'
 
 export interface SessionMember {
@@ -13,6 +14,12 @@ export interface SessionValidationResult {
   member?: SessionMember
   error?: string
   status?: number
+  /**
+   * Which session type authorized the request:
+   * - 'ghrs'    = HttpOnly ghrs_member_session cookie (Parent/Child code+PIN login)
+   * - 'supabase' = Supabase Auth session (owner email/password or OAuth login)
+   */
+  via?: 'ghrs' | 'supabase'
 }
 
 export async function validateSession(request: NextRequest): Promise<SessionValidationResult> {
@@ -31,7 +38,84 @@ export async function validateSession(request: NextRequest): Promise<SessionVali
   }
 
   const member = sessionData[0] as SessionMember
-  return { success: true, member }
+  return { success: true, member, via: 'ghrs' }
+}
+
+/**
+ * Validates a request against BOTH of GHRS's supported session types:
+ *
+ * 1. The internal GHRS member session (HttpOnly `ghrs_member_session` cookie)
+ *    used by Parent/Child code+PIN logins — resolved via validateSession().
+ * 2. A Supabase Auth session (owner email/password or OAuth login). The browser
+ *    stores this session in cookies managed by @supabase/ssr, so a server-side
+ *    getUser() works from any request. The supabase user is then mapped to a
+ *    GHRS member via auth_identities (service-role, so it bypasses RLS).
+ *
+ * Between the two, every authenticated GHRS session type is supported. This is
+ * the single entry point for ALL server read APIs created in Phase 3.
+ */
+export async function validateRequestAuth(request: NextRequest): Promise<SessionValidationResult> {
+  // Method 1: Internal GHRS member session (Parent/Child code+PIN)
+  const ghrsResult = await validateSession(request)
+  if (ghrsResult.success && ghrsResult.member) {
+    return ghrsResult
+  }
+
+  // Method 2: Supabase Auth session (owner email/password or OAuth)
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll()
+        },
+        // Read-only validation — never write cookies from read APIs
+        setAll() {},
+      },
+    }
+  )
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) {
+    return { success: false, error: 'يجب تسجيل الدخول أولاً', status: 401 }
+  }
+
+  // Map the supabase auth user to a GHRS member using service-role (bypass RLS)
+  const srv = createServiceRoleClient()
+
+  const { data: identities, error: identityError } = await srv
+    .from('auth_identities')
+    .select('member_id')
+    .eq('auth_user_id', user.id)
+    .limit(1)
+
+  if (identityError || !identities || identities.length === 0) {
+    return { success: false, error: 'الحساب غير مرتبط بعضو في العائلة', status: 401 }
+  }
+
+  const { data: member, error: memberError } = await srv
+    .from('members')
+    .select('id, family_id, role, name')
+    .eq('id', identities[0].member_id)
+    .single()
+
+  if (memberError || !member) {
+    return { success: false, error: 'العضو غير موجود', status: 401 }
+  }
+
+  return {
+    success: true,
+    via: 'supabase',
+    member: {
+      member_id: member.id,
+      member_name: member.name,
+      member_role: member.role as SessionMember['member_role'],
+      family_id: member.family_id,
+    },
+  }
 }
 
 export function requireParentRole(member: SessionMember): { ok: boolean; error?: string; status?: number } {

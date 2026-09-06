@@ -32,6 +32,15 @@ export async function POST(request: NextRequest) {
 
     const supabase = createServiceRoleClient()
 
+    // Family children list (used by the page for the filter dropdown)
+    const { data: familyChildren } = await supabase
+      .from('members')
+      .select('id, name')
+      .eq('family_id', member.family_id)
+      .eq('role', 'child')
+      .eq('is_deleted', false)
+      .order('created_at', { ascending: true })
+
     // Step 1: Get family's tasks
     const { data: familyTasks } = await supabase
       .from('tasks')
@@ -39,7 +48,7 @@ export async function POST(request: NextRequest) {
       .eq('family_id', member.family_id)
 
     if (!familyTasks || familyTasks.length === 0) {
-      return NextResponse.json({ success: true, events: [] })
+      return NextResponse.json({ success: true, events: [], children: familyChildren || [] })
     }
 
     const taskIds = familyTasks.map(t => t.id)
@@ -55,7 +64,7 @@ export async function POST(request: NextRequest) {
     const { data: completions } = await completionsQuery
 
     if (!completions || completions.length === 0) {
-      return NextResponse.json({ success: true, events: [] })
+      return NextResponse.json({ success: true, events: [], children: familyChildren || [] })
     }
 
     // Step 3: Collect IDs for batch queries
@@ -144,7 +153,7 @@ export async function POST(request: NextRequest) {
 
     events.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
 
-    return NextResponse.json({ success: true, events })
+    return NextResponse.json({ success: true, events, children: familyChildren || [] })
   } catch (err) {
     console.error('[GHRS ACTIVITY EVENTS] Unexpected error:', err)
     return NextResponse.json({ success: false, error: 'حدث خطأ غير متوقع' }, { status: 500 })

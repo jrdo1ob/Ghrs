@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { ChildBottomNav, EmptyState, Toast } from '@/components/layout'
 import { useFamilyCurrency } from '@/hooks/useFamilyCurrency'
@@ -21,7 +20,6 @@ export default function ChildGiftsPage() {
   const [childId, setChildId] = useState<string | null>(null)
   const router = useRouter()
   const { format: fmtMoney } = useFamilyCurrency()
-  const supabase = createClient()
 
   useEffect(() => {
     const getData = async () => {
@@ -31,20 +29,18 @@ export default function ChildGiftsPage() {
       const childId = authUser.memberId
       setChildId(childId)
 
-      const { data: memberData } = await supabase.from('members').select('*').eq('id', childId).single()
-      if (!memberData || memberData.role !== 'child') { router.push('/family-login'); return }
+      // Gifts + balances are resolved server-side, scoped to this child
+      const response = await fetch('/api/child-mode/data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ section: 'gifts' }),
+      })
+      const result = await response.json()
+      if (!response.ok || !result.success) { router.push('/family-login'); return }
 
-      const { data: giftsData } = await supabase
-        .from('gifts').select('*').eq('family_id', memberData.family_id).eq('is_active', true)
-      setGifts(giftsData || [])
-
-      const { data: xpData } = await supabase.from('xp_transactions').select('amount').eq('member_id', childId)
-      const totalXp = xpData?.reduce((sum, t) => sum + t.amount, 0) || 0
-      setXp(totalXp)
-
-      const { data: moneyData } = await supabase.from('money_transactions').select('amount, type').eq('member_id', childId).eq('status', 'approved')
-      const totalMoney = moneyData?.reduce((sum, t) => sum + (t.type === 'earned' ? t.amount : -t.amount), 0) || 0
-      setMoneyBalance(totalMoney)
+      setGifts(result.gifts)
+      setXp(result.xp)
+      setMoneyBalance(result.money_balance)
 
       setLoading(false)
     }
@@ -73,9 +69,18 @@ export default function ChildGiftsPage() {
       setRedeeming(null); return
     }
 
-    const { data: xpData } = await supabase.from('xp_transactions').select('amount').eq('member_id', childId)
-    const totalXp = xpData?.reduce((sum, t) => sum + t.amount, 0) || 0
-    setXp(totalXp)
+    // Refresh balances server-side after a successful redemption
+    const refreshResponse = await fetch('/api/child-mode/data', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ section: 'gifts' }),
+    })
+    const refreshResult = await refreshResponse.json()
+    if (refreshResponse.ok && refreshResult.success) {
+      setXp(refreshResult.xp)
+      setMoneyBalance(refreshResult.money_balance)
+    }
+
     setRedeeming(null)
     setToast({ type: 'success', message: 'تم طلب الهدية! انتظر موافقة الوالد' })
   }

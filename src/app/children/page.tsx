@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ParentBottomNav, ParentSidebar, PageHeader, EmptyState, Toast, Skeleton } from '@/components/layout'
@@ -29,7 +28,6 @@ export default function ChildrenPage() {
   const [manualForm, setManualForm] = useState({ reason: '', currencyType: 'xp' as 'xp' | 'money', amount: 10 })
   const [processingId, setProcessingId] = useState<string | null>(null)
   const router = useRouter()
-  const supabase = createClient()
 
   useEffect(() => {
     const getData = async () => {
@@ -37,16 +35,18 @@ export default function ChildrenPage() {
       if (!user || user.role === 'child') { router.push('/family-login'); return }
       setAuthUser(user)
 
-      // Run all 3 independent queries in parallel
-      const [familyResult, childrenResult, parentsResult] = await Promise.all([
-        supabase.from('families').select('*').eq('id', user.familyId).single(),
-        supabase.from('members').select('*').eq('family_id', user.familyId).eq('role', 'child').order('created_at', { ascending: true }),
-        supabase.from('members').select('*').eq('family_id', user.familyId).in('role', ['parent', 'owner']).order('created_at', { ascending: true }),
-      ])
+      // All family data is read server-side via the authenticated data API
+      const response = await fetch('/api/children/data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      })
+      const result = await response.json()
+      if (!response.ok || !result.success) { router.push('/family-login'); return }
 
-      setFamily(familyResult.data)
-      setChildren(childrenResult.data || [])
-      setParents(parentsResult.data || [])
+      setFamily(result.family)
+      setChildren(result.children)
+      setParents(result.parents)
       setLoading(false)
     }
     getData()

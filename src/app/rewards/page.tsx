@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ParentBottomNav, ParentSidebar, PageHeader, EmptyState, Toast, Skeleton } from '@/components/layout'
@@ -23,7 +22,6 @@ export default function RewardsPage() {
   const [deleteConfirm, setDeleteConfirm] = useState<any | null>(null)
   const [showIconPicker, setShowIconPicker] = useState(false)
   const router = useRouter()
-  const supabase = createClient()
   const { format: fmtMoney, symbol: currencySymbol } = useFamilyCurrency()
 
   useEffect(() => {
@@ -32,10 +30,16 @@ export default function RewardsPage() {
       if (!user) { router.push('/owner-login'); return }
       setAuthUser(user)
 
-      const { data: giftsData } = await supabase
-        .from('gifts').select('*').eq('family_id', user.familyId).order('created_at', { ascending: false })
+      // Gifts are family data — resolved server-side
+      const response = await fetch('/api/rewards/data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      })
+      const result = await response.json()
+      if (!response.ok || !result.success) { router.push('/owner-login'); return }
 
-      setGifts(giftsData || [])
+      setGifts(result.gifts)
       setLoading(false)
     }
     getGifts()

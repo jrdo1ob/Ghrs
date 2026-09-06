@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ChildBottomNav, EmptyState, Toast } from '@/components/layout'
@@ -26,7 +25,6 @@ export default function ChildModePage() {
   const [celebrationLevel, setCelebrationLevel] = useState<Level | null>(null)
   const prevLevelRef = useRef<Level | null>(null)
   const router = useRouter()
-  const supabase = createClient()
   const { format: fmtMoney } = useFamilyCurrency()
 
   useEffect(() => {
@@ -38,60 +36,29 @@ export default function ChildModePage() {
         return
       }
 
-      const childId = authUser.memberId
-
-      // Step 1: Get member data first (needed for tasks query)
-      const { data: memberData } = await supabase
-        .from('members')
-        .select('*')
-        .eq('id', childId)
-        .single()
-
-      if (!memberData || memberData.role !== 'child') {
+      // All child data is resolved server-side, scoped to the session member
+      const response = await fetch('/api/child-mode/data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ section: 'home' }),
+      })
+      const result = await response.json()
+      if (!response.ok || !result.success) {
         router.push('/family-login')
         return
       }
 
-      setMember(memberData)
-      setStreak(memberData.current_streak || 0)
+      setMember(result.member)
+      setStreak(result.member.current_streak || 0)
+      setTasks(result.tasks)
+      setXp(result.xp)
+      setMoneyBalance(result.money_balance)
+      setCompletedToday(result.completed_today)
+      setPendingToday(result.pending_today)
 
-      // Step 2: Run independent queries in parallel
-      const today = new Date().toISOString().split('T')[0]
-      const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString()
-
-      const [tasksResult, allXpResult, moneyResult, completionsResult] = await Promise.all([
-        supabase.from('tasks').select('*').eq('family_id', memberData.family_id).eq('is_active', true).eq('is_deleted', false).eq('is_paused', false),
-        supabase.from('xp_transactions').select('amount, description, created_at, source').eq('member_id', childId),
-        supabase.from('money_transactions').select('amount, type').eq('member_id', childId).eq('status', 'approved'),
-        supabase.from('task_completions').select('task_id, approved').eq('member_id', childId).gte('completed_at', today),
-      ])
-
-      setTasks(tasksResult.data || [])
-
-      // Calculate total XP from all transactions
-      const allXp = allXpResult.data || []
-      const totalXp = allXp.reduce((sum, t) => sum + t.amount, 0)
-      setXp(totalXp)
-
-      const totalMoney = moneyResult.data?.reduce((sum, t) => sum + (t.type === 'earned' ? t.amount : -t.amount), 0) || 0
-      setMoneyBalance(totalMoney)
-
-      const completedIds = completionsResult.data?.filter(c => c.approved).map(c => c.task_id) || []
-      const pendingIds = completionsResult.data?.filter(c => !c.approved).map(c => c.task_id) || []
-      setCompletedToday(completedIds)
-      setPendingToday(pendingIds)
-
-      // Get recent manual adjustment from the same XP data (no extra query)
-      const recentManual = allXp.find(t => t.source === 'manual' && new Date(t.created_at) >= new Date(fiveMinAgo))
-      if (recentManual) {
-        const isReward = recentManual.amount > 0
+      if (result.recent_manual) {
         setTimeout(() => {
-          setToast({
-            type: isReward ? 'success' : 'error',
-            message: isReward
-              ? `مكافأة من الوالد: ${recentManual.description} (+${recentManual.amount} XP)`
-              : `تنبيه من الوالد: ${recentManual.description} (${recentManual.amount} XP)`
-          })
+          setToast({ type: result.recent_manual.type, message: result.recent_manual.message })
         }, 1500)
       }
 

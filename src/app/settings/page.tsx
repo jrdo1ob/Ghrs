@@ -32,26 +32,22 @@ export default function SettingsPage() {
         return
       }
 
-      const { data: memberData } = await supabase
-        .from('members')
-        .select('*')
-        .eq('id', user.memberId)
-        .single()
+      // Member + family profile data is resolved server-side
+      const response = await fetch('/api/settings/data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      })
+      const result = await response.json()
+      if (!response.ok || !result.success) return
 
-      if (!memberData) {
+      if (!result.member) {
         router.push('/family-setup')
         return
       }
 
-      setMember(memberData)
-
-      const { data: familyData } = await supabase
-        .from('families')
-        .select('*')
-        .eq('id', user.familyId)
-        .single()
-
-      setFamily(familyData)
+      setMember(result.member)
+      setFamily(result.family)
       setLoading(false)
     }
 

@@ -22,20 +22,16 @@ export default function PaymentsPage() {
         return
       }
 
-      const { data: membersData } = await supabase
-        .from('members')
-        .select('id')
-        .eq('family_id', user.familyId)
+      // Family-wide money transactions are resolved server-side
+      const response = await fetch('/api/payments/data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      })
+      const result = await response.json()
+      if (!response.ok || !result.success) return
 
-      const memberIds = membersData?.map(m => m.id) || []
-
-      const { data: transactionsData } = await supabase
-        .from('money_transactions')
-        .select('*')
-        .in('member_id', memberIds)
-        .order('created_at', { ascending: false })
-
-      setTransactions(transactionsData || [])
+      setTransactions(result.transactions)
       setLoading(false)
     }
 

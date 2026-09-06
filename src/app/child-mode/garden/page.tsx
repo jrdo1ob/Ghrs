@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { ChildBottomNav } from '@/components/layout'
 import { LEVELS, getLevel, getNextLevel, Level } from '@/lib/gamification'
@@ -13,7 +12,6 @@ export default function ChildGardenPage() {
   const [loading, setLoading] = useState(true)
   const [member, setMember] = useState<any>(null)
   const router = useRouter()
-  const supabase = createClient()
 
   useEffect(() => {
     const getData = async () => {
@@ -24,28 +22,20 @@ export default function ChildGardenPage() {
         return
       }
 
-      const childId = authUser.memberId
-
-      const { data: memberData } = await supabase
-        .from('members')
-        .select('*')
-        .eq('id', childId)
-        .single()
-
-      if (!memberData || memberData.role !== 'child') {
+      // Garden data is resolved server-side, scoped to the session member
+      const response = await fetch('/api/child-mode/data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ section: 'garden' }),
+      })
+      const result = await response.json()
+      if (!response.ok || !result.success) {
         router.push('/family-login')
         return
       }
 
-      setMember(memberData)
-
-      const { data: xpData } = await supabase
-        .from('xp_transactions')
-        .select('amount')
-        .eq('member_id', childId)
-
-      const totalXp = xpData?.reduce((sum, t) => sum + t.amount, 0) || 0
-      setXp(totalXp)
+      setMember(result.member)
+      setXp(result.xp)
       setLoading(false)
     }
 

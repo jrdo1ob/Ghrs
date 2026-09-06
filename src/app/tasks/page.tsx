@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ParentBottomNav, ParentSidebar, PageHeader, EmptyState, Toast, Skeleton } from '@/components/layout'
@@ -69,7 +68,6 @@ export default function TasksPage() {
   const [quranPreview, setQuranPreview] = useState('')
   const [showIconPicker, setShowIconPicker] = useState(false)
   const router = useRouter()
-  const supabase = createClient()
   const { format: fmtMoney, symbol: currencySymbol } = useFamilyCurrency()
 
   useEffect(() => {
@@ -78,37 +76,18 @@ export default function TasksPage() {
       if (!user || user.role === 'child') { router.push('/family-login'); return }
       setAuthUser(user)
 
-      const { data: childrenData } = await supabase
-        .from('members').select('id, name').eq('family_id', user.familyId).eq('role', 'child').eq('is_deleted', false)
-      setChildren(childrenData || [])
-
-      const { data: tasksData } = await supabase
-        .from('tasks').select('*').eq('family_id', user.familyId).eq('is_deleted', false).order('created_at', { ascending: false })
-
-      // Batch fetch all pending completions in one query (instead of per-task)
-      let completionsByTaskId = new Map<string, any[]>()
-      if (tasksData && tasksData.length > 0) {
-        const taskIds = tasksData.map(t => t.id)
-        const { data: allCompletions } = await supabase
-          .from('task_completions')
-          .select('*')
-          .in('task_id', taskIds)
-          .is('approved', null)
-
-        // Build map: taskId → completions[]
-        for (const c of allCompletions || []) {
-          const existing = completionsByTaskId.get(c.task_id) || []
-          existing.push(c)
-          completionsByTaskId.set(c.task_id, existing)
-        }
-      }
-
-      const withCompletions = (tasksData || []).map(task => {
-        const completions = completionsByTaskId.get(task.id) || []
-        return { ...task, completions, pendingCount: completions.length }
+      // All family data (children + tasks + pending completions) is resolved
+      // server-side via the authenticated data API
+      const response = await fetch('/api/tasks/data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
       })
+      const result = await response.json()
+      if (!response.ok || !result.success) { router.push('/family-login'); return }
 
-      setTasks(withCompletions)
+      setChildren(result.children)
+      setTasks(result.tasks)
       setLoading(false)
     }
     init()

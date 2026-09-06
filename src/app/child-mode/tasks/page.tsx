@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { ChildBottomNav, EmptyState, Toast } from '@/components/layout'
 import { useFamilyCurrency } from '@/hooks/useFamilyCurrency'
@@ -29,7 +28,6 @@ export default function ChildTasksPage() {
   const [selectedTask, setSelectedTask] = useState<any>(null)
   const [showTaskModal, setShowTaskModal] = useState(false)
   const router = useRouter()
-  const supabase = createClient()
   const { format: fmtMoney } = useFamilyCurrency()
 
   useEffect(() => {
@@ -40,32 +38,19 @@ export default function ChildTasksPage() {
       const storedId = authUser.memberId
       setChildId(storedId)
 
-      const { data: memberData } = await supabase.from('members').select('*').eq('id', storedId).single()
-      if (!memberData || memberData.role !== 'child') { router.push('/family-login'); return }
-      setChildName(memberData.name)
+      // Tasks + today's completions are resolved server-side, scoped to this child
+      const response = await fetch('/api/child-mode/data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ section: 'tasks' }),
+      })
+      const result = await response.json()
+      if (!response.ok || !result.success) { router.push('/family-login'); return }
 
-      const { data: tasksData } = await supabase
-        .from('tasks')
-        .select('*')
-        .eq('family_id', memberData.family_id)
-        .eq('is_active', true)
-        .eq('is_deleted', false)
-        .eq('is_paused', false)
-        .or(`assigned_to.is.null,assigned_to.cs.{${storedId}}`)
-
-      const priorityOrder: Record<string, number> = { high: 0, medium: 1, low: 2 }
-      const sorted = (tasksData || []).sort((a, b) => (priorityOrder[a.priority || 'medium'] || 1) - (priorityOrder[b.priority || 'medium'] || 1))
-      setTasks(sorted)
-
-      const today = new Date().toISOString().split('T')[0]
-      const { data: completions } = await supabase
-        .from('task_completions')
-        .select('task_id, approved')
-        .eq('member_id', storedId)
-        .gte('completed_at', today)
-
-      setCompletedToday(completions?.filter(c => c.approved === true).map(c => c.task_id) || [])
-      setPendingToday(completions?.filter(c => c.approved === null).map(c => c.task_id) || [])
+      setChildName(result.member.name)
+      setTasks(result.tasks)
+      setCompletedToday(result.completed_today)
+      setPendingToday(result.pending_today)
       setLoading(false)
     }
     getData()

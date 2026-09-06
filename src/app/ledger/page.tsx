@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { ParentBottomNav, ParentSidebar, PageHeader, EmptyState, Toast, Skeleton } from '@/components/layout'
 import { getCurrentUser, AuthUser } from '@/lib/auth/helper'
@@ -29,7 +28,6 @@ export default function LedgerPage() {
   const [activeTab, setActiveTab] = useState<'xp' | 'money'>('xp')
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
   const router = useRouter()
-  const supabase = createClient()
   const { format: fmtMoney, symbol: currencySymbol } = useFamilyCurrency()
 
   useEffect(() => {
@@ -38,40 +36,30 @@ export default function LedgerPage() {
       if (!user || user.role === 'child') { router.push('/family-login'); return }
       setAuthUser(user)
 
-      const { data: childrenData } = await supabase
-        .from('members').select('id, name, role').eq('family_id', user.familyId).order('created_at')
-      setChildren(childrenData || [])
-
-      await loadData(user.familyId, 'all')
+      await loadData('all')
       setLoading(false)
     }
     init()
   }, [])
 
-  const loadData = async (familyId: string, childId: string) => {
-    let childIds: string[] = []
-    if (childId === 'all') {
-      const { data } = await supabase.from('members').select('id').eq('family_id', familyId).eq('role', 'child')
-      childIds = (data || []).map(c => c.id)
-    } else {
-      childIds = [childId]
-    }
+  const loadData = async (childId: string) => {
+    // All ledger + member data is resolved server-side (family-scoped)
+    const response = await fetch('/api/ledger/data', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ child_id: childId }),
+    })
+    const result = await response.json()
+    if (!response.ok || !result.success) return
 
-    if (childIds.length === 0) { setXpTransactions([]); setMoneyTransactions([]); return }
-
-    // Run xp and money queries in parallel (independent of each other)
-    const [xpResult, moneyResult] = await Promise.all([
-      supabase.from('xp_transactions').select('*').in('member_id', childIds).order('created_at', { ascending: false }).limit(100),
-      supabase.from('money_transactions').select('*').in('member_id', childIds).order('created_at', { ascending: false }).limit(100),
-    ])
-
-    setXpTransactions(xpResult.data || [])
-    setMoneyTransactions(moneyResult.data || [])
+    setChildren(result.members)
+    setXpTransactions(result.xp_transactions)
+    setMoneyTransactions(result.money_transactions)
   }
 
   const handleChildChange = async (childId: string) => {
     setSelectedChild(childId)
-    if (authUser) await loadData(authUser.familyId, childId)
+    await loadData(childId)
   }
 
   const getChildName = (id: string) => children.find(c => c.id === id)?.name || '—'

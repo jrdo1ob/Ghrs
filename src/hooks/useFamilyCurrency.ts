@@ -1,25 +1,26 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import { CURRENCIES } from '@/lib/currency'
 
 export function useFamilyCurrency() {
   const [currency, setCurrency] = useState<string>('KWD')
-  const supabase = createClient()
 
   useEffect(() => {
     const fetchCurrency = async () => {
-      const familyId = localStorage.getItem('family_id')
-      if (!familyId) return
-
-      const { data } = await supabase
-        .from('families')
-        .select('currency')
-        .eq('id', familyId)
-        .single()
-
-      if (data?.currency) setCurrency(data.currency)
+      try {
+        // Currency is family-private data — resolve it server-side
+        // (the browser can no longer read `families` directly)
+        const response = await fetch('/api/family/currency', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({}),
+        })
+        const data = await response.json()
+        if (data?.success && data.currency) setCurrency(data.currency)
+      } catch (err) {
+        console.error('[GHRS FAMILY CURRENCY] Fetch error:', err)
+      }
     }
 
     fetchCurrency()

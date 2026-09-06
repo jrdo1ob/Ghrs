@@ -36,12 +36,16 @@ export default function QuranPage() {
         return
       }
 
-      const { data: progressData } = await supabase
-        .from('quran_progress')
-        .select('*')
-        .eq('member_id', user.memberId)
+      // Progress is resolved server-side, scoped to the authenticated member
+      const response = await fetch('/api/quran/data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      })
+      const result = await response.json()
+      if (!response.ok || !result.success) return
 
-      setProgress(progressData || [])
+      setProgress(result.progress)
       setLoading(false)
     }
 

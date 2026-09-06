@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { ChildBottomNav } from '@/components/layout'
 import { LEVELS, getLevel, Level } from '@/lib/gamification'
@@ -16,7 +15,6 @@ export default function ChildProfilePage() {
   const [streak, setStreak] = useState(0)
   const [loading, setLoading] = useState(true)
   const router = useRouter()
-  const supabase = createClient()
 
   useEffect(() => {
     const getData = async () => {
@@ -27,48 +25,23 @@ export default function ChildProfilePage() {
         return
       }
 
-      const childId = authUser.memberId
-
-      const { data: memberData } = await supabase
-        .from('members')
-        .select('*')
-        .eq('id', childId)
-        .single()
-
-      if (!memberData || memberData.role !== 'child') {
+      // Profile data is resolved server-side, scoped to the session member
+      const response = await fetch('/api/child-mode/data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ section: 'profile' }),
+      })
+      const result = await response.json()
+      if (!response.ok || !result.success) {
         router.push('/family-login')
         return
       }
 
-      setMember(memberData)
-
-      // XP
-      const { data: xpData } = await supabase
-        .from('xp_transactions')
-        .select('amount')
-        .eq('member_id', childId)
-
-      const totalXp = xpData?.reduce((sum, t) => sum + t.amount, 0) || 0
-      setXp(totalXp)
-
-      // Tasks
-      const { data: tasksData } = await supabase
-        .from('tasks')
-        .select('id')
-        .eq('family_id', memberData.family_id)
-        .eq('is_active', true)
-
-      setTotalTasks(tasksData?.length || 0)
-
-      const { data: completionsData } = await supabase
-        .from('task_completions')
-        .select('id')
-        .eq('member_id', childId)
-
-      setCompletedTasks(completionsData?.length || 0)
-
-      // Use server-side streak from members table
-      setStreak(memberData.current_streak || 0)
+      setMember(result.member)
+      setXp(result.xp)
+      setTotalTasks(result.total_tasks)
+      setCompletedTasks(result.completed_tasks)
+      setStreak(result.member.current_streak || 0)
 
       setLoading(false)
     }

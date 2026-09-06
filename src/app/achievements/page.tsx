@@ -22,18 +22,23 @@ export default function AchievementsPage() {
         return
       }
 
+      // Global reference data — still safe to read directly
       const { data: achievementsData } = await supabase
         .from('achievement_definitions')
         .select('*')
 
       setAchievements(achievementsData || [])
 
-      const { data: memberAchievementsData } = await supabase
-        .from('member_achievements')
-        .select('*')
-        .eq('member_id', user.memberId)
+      // Viewer's own achievements are resolved server-side (member-scoped)
+      const response = await fetch('/api/achievements/data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      })
+      const result = await response.json()
+      if (!response.ok || !result.success) return
 
-      setMemberAchievements(memberAchievementsData || [])
+      setMemberAchievements(result.member_achievements)
       setLoading(false)
     }
 

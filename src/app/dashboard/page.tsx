@@ -25,25 +25,19 @@ export default function DashboardPage() {
       if (!user || user.role === 'child') { router.push('/family-login'); return }
       setAuthUser(user)
 
-      // Run independent queries in parallel
-      const [familyResult, childrenResult, tasksResult] = await Promise.all([
-        supabase.from('families').select('*').eq('id', user.familyId).single(),
-        supabase.from('members').select('*').eq('family_id', user.familyId).eq('role', 'child'),
-        supabase.from('tasks').select('*').eq('family_id', user.familyId).eq('is_active', true),
-      ])
+      // All family data is read server-side via the authenticated data API
+      const response = await fetch('/api/dashboard/data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      })
+      const result = await response.json()
+      if (!response.ok || !result.success) { router.push('/family-login'); return }
 
-      setFamily(familyResult.data)
-      setChildren(childrenResult.data || [])
-
-      const tasksData = tasksResult.data || []
-      setTasks(tasksData)
-
-      // Sequential: pending completions depends on tasks
-      const taskIds = tasksData.map(t => t.id)
-      if (taskIds.length > 0) {
-        const { data: pendingData } = await supabase.from('task_completions').select('id').is('approved', null).in('task_id', taskIds)
-        setPendingApprovals(pendingData?.length || 0)
-      }
+      setFamily(result.family)
+      setChildren(result.children)
+      setTasks(result.tasks)
+      setPendingApprovals(result.pendingApprovals)
       setLoading(false)
     }
     getData()
@@ -54,13 +48,16 @@ export default function DashboardPage() {
         clearTimeout(debounceTimerRef.current)
       }
       debounceTimerRef.current = setTimeout(async () => {
-        const user = await getCurrentUser()
-        if (!user) return
-        const { data: t } = await supabase.from('tasks').select('id').eq('family_id', user.familyId).eq('is_active', true)
-        const ids = t?.map(x => x.id) || []
-        if (ids.length > 0) {
-          const { data: p } = await supabase.from('task_completions').select('id').is('approved', null).in('task_id', ids)
-          setPendingApprovals(p?.length || 0)
+        const response = await fetch('/api/dashboard/data', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({}),
+        })
+        const result = await response.json()
+        if (response.ok && result.success) {
+          setTasks(result.tasks)
+          setPendingApprovals(result.pendingApprovals)
+          setChildren(result.children)
         }
       }, 400)
     }

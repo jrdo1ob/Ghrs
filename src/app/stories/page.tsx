@@ -32,17 +32,21 @@ export default function StoriesPage() {
       if (!user || user.role === 'child') { router.push('/family-login'); return }
       setAuthUser(user)
 
-      const { data: childrenData } = await supabase
-        .from('members').select('id, name').eq('family_id', user.familyId).eq('role', 'child').eq('is_deleted', false)
-      setChildren(childrenData || [])
+      // Family stories + children are resolved server-side
+      const response = await fetch('/api/stories/data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      })
+      const result = await response.json()
+      if (!response.ok || !result.success) { router.push('/family-login'); return }
+      setChildren(result.children)
+      setStories(result.stories)
 
-      const [storiesRes, presetsRes] = await Promise.all([
-        supabase.from('stories').select('*').eq('family_id', user.familyId).order('created_at', { ascending: false }),
-        supabase.from('preset_stories').select('*').order('sort_order'),
-      ])
-
-      setStories(storiesRes.data || [])
-      setPresetStories(presetsRes.data || [])
+      // Global reference data — still safe to read directly
+      const { data: presetsData } = await supabase
+        .from('preset_stories').select('*').order('sort_order')
+      setPresetStories(presetsData || [])
       setLoading(false)
     }
     init()

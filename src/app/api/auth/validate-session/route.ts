@@ -1,50 +1,28 @@
 import { NextResponse, type NextRequest } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { validateRequestAuth } from '@/lib/auth/server-session'
 
 export async function POST(request: NextRequest) {
   try {
-    // Read session token directly from HttpOnly cookie
-    // The browser cannot read this cookie - only the server can
-    const sessionToken = request.cookies.get('ghrs_member_session')?.value
+    // Validate against BOTH session types:
+    //  1. GHRS internal session (HttpOnly ghrs_member_session cookie — code+PIN login)
+    //  2. Supabase Auth session (owner email/password or OAuth login)
+    const result = await validateRequestAuth(request)
 
-    if (!sessionToken) {
+    if (!result.success || !result.member) {
       return NextResponse.json(
-        { success: false, error: 'No session found' },
-        { status: 401 }
+        { success: false, error: result.error || 'No session found' },
+        { status: result.status || 401 }
       )
     }
-
-    // Validate session using server-side RPC
-    const supabase = await createClient()
-    
-    const { data, error } = await supabase.rpc('validate_member_session', {
-      p_session_token: sessionToken,
-    })
-
-    if (error) {
-      console.error('[GHRS VALIDATE SESSION] RPC error:', error.message)
-      return NextResponse.json(
-        { success: false, error: 'Invalid session' },
-        { status: 401 }
-      )
-    }
-
-    if (!data || data.length === 0) {
-      return NextResponse.json(
-        { success: false, error: 'Invalid or expired session' },
-        { status: 401 }
-      )
-    }
-
-    const memberData = data[0]
 
     return NextResponse.json({
       success: true,
+      via: result.via,
       member: {
-        member_id: memberData.member_id,
-        name: memberData.member_name,
-        role: memberData.member_role,
-        family_id: memberData.family_id,
+        member_id: result.member.member_id,
+        name: result.member.member_name,
+        role: result.member.member_role,
+        family_id: result.member.family_id,
       },
     })
   } catch (err) {

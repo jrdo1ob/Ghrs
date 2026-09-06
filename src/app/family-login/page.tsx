@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect, Suspense } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 
@@ -17,28 +16,16 @@ function FamilyLoginContent() {
     return ''
   })
   const [pin, setPin] = useState('')
-  const [memberName, setMemberName] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [isDirectLink, setIsDirectLink] = useState(false)
   const router = useRouter()
-  const supabase = createClient()
 
   useEffect(() => {
     const code = searchParams.get('code')
     if (code) {
       setIsDirectLink(true)
       setLoginCode(code)
-
-      const getMemberName = async () => {
-        const { data } = await supabase
-          .from('members')
-          .select('name')
-          .eq('login_code', code.toUpperCase())
-          .single()
-        if (data) setMemberName(data.name)
-      }
-      getMemberName()
     }
   }, [searchParams])
 
@@ -117,7 +104,7 @@ function FamilyLoginContent() {
             <span className="text-2xl font-bold" style={{ color: 'var(--ghrs-green-700)' }}>غرس</span>
           </Link>
           <h1 className="text-2xl font-bold mt-6" style={{ color: 'var(--ghrs-text-primary)' }}>
-            {isDirectLink ? `مرحباً ${memberName} 🌱` : 'دخول أفراد العائلة'}
+            {isDirectLink ? 'مرحباً بك 🌱' : 'دخول أفراد العائلة'}
           </h1>
           <p className="mt-2" style={{ color: 'var(--ghrs-text-secondary)' }}>
             {isDirectLink ? 'أدخل رمز PIN للدخول' : 'أدخل كودك الشخصي ورمز PIN'}

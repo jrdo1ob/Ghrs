@@ -1,7 +1,5 @@
 'use client'
 
-import { createClient } from '@/lib/supabase/client'
-
 export interface AuthUser {
   memberId: string
   familyId: string
@@ -12,41 +10,12 @@ export interface AuthUser {
 }
 
 export async function getCurrentUser(): Promise<AuthUser | null> {
-  const supabase = createClient()
-
-  // Method 1: Check Supabase auth (owner login)
-  const { data: { user } } = await supabase.auth.getUser()
-  if (user) {
-    const { data: identity } = await supabase
-      .from('auth_identities')
-      .select('member_id')
-      .eq('auth_user_id', user.id)
-      .single()
-
-    if (identity) {
-      const { data: member } = await supabase
-        .from('members')
-        .select('id, family_id, role, name, login_code')
-        .eq('id', identity.member_id)
-        .single()
-
-      if (member) {
-        return {
-          memberId: member.id,
-          familyId: member.family_id,
-          role: member.role as 'owner' | 'parent' | 'child',
-          name: member.name,
-          loginCode: member.login_code,
-          via: 'supabase'
-        }
-      }
-    }
-    return null
-  }
-
-  // Method 2: Validate session via server-side API
-  // The API route reads the HttpOnly cookie directly from the request
-  // JavaScript never sees the session token
+  // Server-side session validation covering BOTH session types:
+  //  1. GHRS internal member session (HttpOnly cookie — code+PIN login)
+  //  2. Supabase Auth session (owner email/password or OAuth — cookie-synced)
+  // After Phase 3 (migration 038) the browser can no longer SELECT from
+  // family-private tables (members, ...), so the member identity must always
+  // be resolved server-side via /api/auth/validate-session.
   try {
     const response = await fetch('/api/auth/validate-session', {
       method: 'POST',
@@ -62,7 +31,7 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
           familyId: data.member.family_id,
           role: data.member.role as 'owner' | 'parent' | 'child',
           name: data.member.name,
-          via: 'session'
+          via: data.via === 'supabase' ? 'supabase' : 'session',
         }
       }
     }
