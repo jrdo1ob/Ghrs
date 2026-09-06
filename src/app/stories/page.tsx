@@ -56,19 +56,26 @@ export default function StoriesPage() {
     e.preventDefault()
     if (!authUser || !customForm.title.trim() || !customForm.content.trim()) return
 
-    const { data: storyId, error } = await supabase.rpc('create_story', {
-      p_family_id: authUser.familyId,
-      p_title: customForm.title,
-      p_content: customForm.content,
-      p_moral_value: customForm.moral_value,
-      p_reward_xp: customForm.reward_xp,
-      p_assigned_to: customForm.assigned_to || null,
+    const response = await fetch('/api/stories/create', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: customForm.title,
+        content: customForm.content,
+        moral_value: customForm.moral_value,
+        reward_xp: customForm.reward_xp,
+        assigned_to: customForm.assigned_to || null,
+      }),
     })
+    const result = await response.json()
 
-    if (error) { setToast({ type: 'error', message: error.message }); return }
+    if (!response.ok || !result.success) {
+      setToast({ type: 'error', message: result.error || 'حدث خطأ أثناء إنشاء القصة' })
+      return
+    }
 
     const newStory: Story = {
-      id: storyId, family_id: authUser.familyId, title: customForm.title,
+      id: result.story_id, family_id: authUser.familyId, title: customForm.title,
       content: customForm.content, moral_value: customForm.moral_value,
       reward_xp: customForm.reward_xp, assigned_to: customForm.assigned_to || null,
       is_preset: false, is_active: true, created_by: authUser.memberId,
@@ -82,15 +89,23 @@ export default function StoriesPage() {
 
   const handleAddPreset = async (preset: PresetStory) => {
     if (!authUser) return
-    const { data: storyId, error } = await supabase.rpc('add_preset_story', {
-      p_preset_id: preset.id,
-      p_family_id: authUser.familyId,
-      p_assigned_to: selectedChild || null,
+    const response = await fetch('/api/stories/add-preset', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        preset_id: preset.id,
+        assigned_to: selectedChild || null,
+      }),
     })
-    if (error) { setToast({ type: 'error', message: error.message }); return }
+    const result = await response.json()
+
+    if (!response.ok || !result.success) {
+      setToast({ type: 'error', message: result.error || 'حدث خطأ أثناء إضافة القصة' })
+      return
+    }
 
     const newStory: Story = {
-      id: storyId, family_id: authUser.familyId, title: preset.title,
+      id: result.story_id, family_id: authUser.familyId, title: preset.title,
       content: preset.content, moral_value: preset.moral_value,
       reward_xp: 5, assigned_to: selectedChild || null,
       is_preset: true, is_active: true, created_by: authUser.memberId,

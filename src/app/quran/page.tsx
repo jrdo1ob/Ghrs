@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { ParentBottomNav, ParentSidebar, PageHeader, EmptyState, Toast, Skeleton } from '@/components/layout'
 import { getCurrentUser } from '@/lib/auth/helper'
@@ -26,7 +25,6 @@ export default function QuranPage() {
   const [selectedAyah, setSelectedAyah] = useState<number>(1)
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
   const router = useRouter()
-  const supabase = createClient()
 
   useEffect(() => {
     const getProgress = async () => {
@@ -55,28 +53,21 @@ export default function QuranPage() {
   const handleAddProgress = async () => {
     if (!selectedSurah) return
 
-    const user = await getCurrentUser()
-    if (!user) return
+    // Recorded server-side for the authenticated member — member_id is derived
+    // from the validated session, never trusted from the browser.
+    const response = await fetch('/api/quran/update', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ surah: selectedSurah, ayah: selectedAyah }),
+    })
+    const result = await response.json()
 
-    const { error } = await supabase
-      .from('quran_progress')
-      .insert({
-        member_id: user.memberId,
-        surah: selectedSurah,
-        ayah: selectedAyah,
-        completed_at: new Date().toISOString(),
-      })
-
-    if (error) {
-      setToast({ type: 'error', message: 'حدث خطأ أثناء إضافة التقدم' })
+    if (!response.ok || !result.success) {
+      setToast({ type: 'error', message: result.error || 'حدث خطأ أثناء إضافة التقدم' })
       return
     }
 
-    setProgress([...progress, {
-      surah: selectedSurah,
-      ayah: selectedAyah,
-      completed_at: new Date().toISOString(),
-    }])
+    setProgress([...progress, result.record])
     setSelectedSurah(null)
     setSelectedAyah(1)
     setToast({ type: 'success', message: 'تم إضافة التقدم بنجاح!' })

@@ -76,15 +76,19 @@ export default function RewardBankPage() {
     if (!addConfirm || !authUser) return
     setAddingId(addConfirm.id)
 
-    const { data: giftId, error } = await supabase.rpc('add_preset_reward', {
-      p_preset_id: addConfirm.id,
-      p_family_id: authUser.familyId,
-      p_custom_xp: editForm.xp || addConfirm.default_xp,
-      p_custom_price: editForm.price || addConfirm.default_price,
+    const response = await fetch('/api/rewards/add-preset', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        preset_id: addConfirm.id,
+        custom_xp: editForm.xp || addConfirm.default_xp,
+        custom_price: editForm.price || addConfirm.default_price,
+      }),
     })
+    const result = await response.json()
 
-    if (error) {
-      setToast({ type: 'error', message: error.message })
+    if (!response.ok || !result.success) {
+      setToast({ type: 'error', message: result.error || 'حدث خطأ أثناء إضافة المكافأة' })
       setAddingId(null)
       setAddConfirm(null)
       return

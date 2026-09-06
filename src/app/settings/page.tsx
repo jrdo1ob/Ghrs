@@ -61,17 +61,21 @@ export default function SettingsPage() {
       return
     }
 
-    const { error } = await supabase
-      .from('families')
-      .update({ name: newName })
-      .eq('id', family.id)
+    // Updated server-side for the session family — family identity is derived
+    // from the validated session, never trusted from the browser.
+    const response = await fetch('/api/settings/update-family', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: newName }),
+    })
+    const result = await response.json()
 
-    if (error) {
-      setError(error.message)
+    if (!response.ok || !result.success) {
+      setError(result.error || 'حدث خطأ أثناء تعديل اسم العائلة')
       return
     }
 
-    setFamily({ ...family, name: newName })
+    setFamily(result.family)
     setEditing(false)
     setToast({ type: 'success', message: 'تم تعديل اسم العائلة!' })
   }
@@ -83,17 +87,21 @@ export default function SettingsPage() {
       return
     }
 
-    const { error } = await supabase
-      .from('members')
-      .update({ name: newMemberName })
-      .eq('id', member.id)
+    // Updated server-side for the session member — member identity is derived
+    // from the validated session, never trusted from the browser.
+    const response = await fetch('/api/settings/update-member', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: newMemberName }),
+    })
+    const result = await response.json()
 
-    if (error) {
-      setError(error.message)
+    if (!response.ok || !result.success) {
+      setError(result.error || 'حدث خطأ أثناء تعديل الاسم')
       return
     }
 
-    setMember({ ...member, name: newMemberName })
+    setMember(result.member)
     setEditingMemberName(false)
     setToast({ type: 'success', message: 'تم تعديل اسمك!' })
   }
@@ -102,18 +110,21 @@ export default function SettingsPage() {
     if (!family || currencySaving) return
     setCurrencySaving(true)
 
-    const { error } = await supabase
-      .from('families')
-      .update({ currency: newCurrency })
-      .eq('id', family.id)
+    // Updated server-side for the session family
+    const response = await fetch('/api/settings/update-family', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ currency: newCurrency }),
+    })
+    const result = await response.json()
 
-    if (error) {
-      setToast({ type: 'error', message: 'حدث خطأ أثناء تعديل العملة' })
+    if (!response.ok || !result.success) {
+      setToast({ type: 'error', message: result.error || 'حدث خطأ أثناء تعديل العملة' })
       setCurrencySaving(false)
       return
     }
 
-    setFamily({ ...family, currency: newCurrency })
+    setFamily(result.family)
     setCurrencySaving(false)
     setToast({ type: 'success', message: 'تم تعديل العملة!' })
   }
