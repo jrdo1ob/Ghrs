@@ -21,24 +21,43 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'معرّف المكافأة مطلوب' }, { status: 400 })
     }
 
-    // family_id MUST come from the validated session, never from the browser
+    // family_id and created_by MUST come from the validated session, never from the browser
     const supabase = createServiceRoleClient()
-    const { data: giftId, error } = await supabase.rpc('add_preset_reward', {
-      p_preset_id: preset_id,
-      p_family_id: member.family_id,
-      p_custom_xp: typeof custom_xp === 'number' ? custom_xp : null,
-      p_custom_price: typeof custom_price === 'number' ? custom_price : null,
-    })
 
-    if (error || !giftId) {
-      console.error('[GHRS ADD PRESET REWARD] RPC error:', error?.message)
+    // Load the global preset; it is shared reference data, safe to read.
+    const { data: preset, error: presetError } = await supabase
+      .from('reward_presets')
+      .select('id, title, description, default_xp, default_price')
+      .eq('id', preset_id)
+      .single()
+
+    if (presetError || !preset) {
+      return NextResponse.json({ success: false, error: 'نموذج المكافأة غير موجود' }, { status: 404 })
+    }
+
+    const { data: gift, error } = await supabase
+      .from('gifts')
+      .insert({
+        family_id: member.family_id,
+        title: preset.title,
+        description: preset.description || null,
+        cost_xp: typeof custom_xp === 'number' ? custom_xp : preset.default_xp,
+        cost_money: typeof custom_price === 'number' ? custom_price : preset.default_price,
+        is_active: true,
+        created_by: member.member_id,
+      })
+      .select()
+      .single()
+
+    if (error || !gift) {
+      console.error('[GHRS ADD PRESET REWARD] Insert error:', error?.message)
       return NextResponse.json(
-        { success: false, error: 'تعذر إضافة المكافأة، حاول مرة أخرى' },
+        { success: false, error: 'تعذر إضافة المكافأة من بنك الهدايا، حاول مرة أخرى' },
         { status: 500 }
       )
     }
 
-    return NextResponse.json({ success: true, message: 'تمت إضافة المكافأة لمتجر العائلة بنجاح', gift_id: giftId })
+    return NextResponse.json({ success: true, message: 'تمت إضافة المكافأة لمتجر العائلة بنجاح', gift, gift_id: gift.id })
   } catch (err) {
     console.error('[GHRS ADD PRESET REWARD] Unexpected error:', err)
     return NextResponse.json({ success: false, error: 'حدث خطأ غير متوقع' }, { status: 500 })

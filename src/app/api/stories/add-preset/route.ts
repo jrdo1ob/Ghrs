@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'معرّف القصة مطلوب' }, { status: 400 })
     }
 
-    // family_id MUST come from the validated session, never from the browser
+    // family_id and created_by MUST come from the validated session, never from the browser
     const supabase = createServiceRoleClient()
 
     // Verify the assigned child/member belongs to this family before assigning
@@ -32,21 +32,66 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const { data: storyId, error } = await supabase.rpc('add_preset_story', {
-      p_preset_id: preset_id,
-      p_family_id: member.family_id,
-      p_assigned_to: assigned_to || null,
-    })
+    // Load the global preset; it is shared reference data, safe to read.
+    const { data: preset, error: presetError } = await supabase
+      .from('preset_stories')
+      .select('id, title, content, moral_value')
+      .eq('id', preset_id)
+      .single()
 
-    if (error || !storyId) {
-      console.error('[GHRS ADD PRESET STORY] RPC error:', error?.message)
+    if (presetError || !preset) {
+      return NextResponse.json({ success: false, error: 'القصة غير موجودة في المكتبة' }, { status: 404 })
+    }
+
+    // Insert the preset story for the session family (5 XP default, matching RPC behavior)
+    const { data: story, error: storyError } = await supabase
+      .from('stories')
+      .insert({
+        family_id: member.family_id,
+        title: preset.title,
+        content: preset.content,
+        moral_value: preset.moral_value,
+        reward_xp: 5,
+        assigned_to: assigned_to || null,
+        is_preset: true,
+        is_active: true,
+        created_by: member.member_id,
+      })
+      .select()
+      .single()
+
+    if (storyError || !story) {
+      console.error('[GHRS ADD PRESET STORY] Insert story error:', storyError?.message)
       return NextResponse.json(
         { success: false, error: 'تعذر إضافة القصة، حاول مرة أخرى' },
         { status: 500 }
       )
     }
 
-    return NextResponse.json({ success: true, message: 'تمت إضافة القصة بنجاح', story_id: storyId })
+    // Create a reading task for the child, mirroring the original RPC behavior
+    const { error: taskError } = await supabase
+      .from('tasks')
+      .insert({
+        family_id: member.family_id,
+        title: 'اقرأ: ' + preset.title,
+        description: 'قصة تربوية - ' + preset.moral_value,
+        xp_reward: 5,
+        assigned_to: assigned_to ? [assigned_to] : null,
+        requires_approval: true,
+        is_active: true,
+        created_by: member.member_id,
+        story_content: preset.content,
+      })
+
+    if (taskError) {
+      console.error('[GHRS ADD PRESET STORY] Insert task error:', taskError.message)
+      return NextResponse.json(
+        { success: false, error: 'تعذر إضافة القصة، حاول مرة أخرى' },
+        { status: 500 }
+      )
+    }
+
+    return NextResponse.json({ success: true, message: 'تمت إضافة القصة بنجاح', story_id: story.id })
   } catch (err) {
     console.error('[GHRS ADD PRESET STORY] Unexpected error:', err)
     return NextResponse.json({ success: false, error: 'حدث خطأ غير متوقع' }, { status: 500 })

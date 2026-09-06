@@ -1,10 +1,10 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createServiceRoleClient } from '@/lib/supabase/service-role'
-import { validateSession, requireParentRole } from '@/lib/auth/server-session'
+import { validateRequestAuth, requireParentRole } from '@/lib/auth/server-session'
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await validateSession(request)
+    const session = await validateRequestAuth(request)
     if (!session.success || !session.member) {
       return NextResponse.json({ success: false, error: session.error }, { status: session.status })
     }
@@ -37,10 +37,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'المهمة لا تنتمي لعائلتك' }, { status: 403 })
     }
 
-    const { error: deleteError } = await supabase.rpc('delete_task', { p_task_id: task_id })
+    // Soft delete, replicating the RPC body (is_deleted = TRUE, deleted_at = NOW())
+    const { error: deleteError } = await supabase
+      .from('tasks')
+      .update({ is_deleted: true, deleted_at: new Date().toISOString() })
+      .eq('id', task_id)
 
     if (deleteError) {
-      console.error('[GHRS DELETE TASK] RPC error:', deleteError.message)
+      console.error('[GHRS DELETE TASK] Update error:', deleteError.message)
       return NextResponse.json({ success: false, error: 'تعذر حذف المهمة' }, { status: 500 })
     }
 

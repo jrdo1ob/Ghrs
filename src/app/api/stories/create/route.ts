@@ -32,24 +32,57 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const { data: storyId, error } = await supabase.rpc('create_story', {
-      p_family_id: member.family_id,
-      p_title: title,
-      p_content: content,
-      p_moral_value: moral_value || null,
-      p_reward_xp: typeof reward_xp === 'number' && reward_xp > 0 ? reward_xp : 5,
-      p_assigned_to: assigned_to || null,
-    })
+    const xp = typeof reward_xp === 'number' && reward_xp > 0 ? reward_xp : 5
 
-    if (error || !storyId) {
-      console.error('[GHRS CREATE STORY] RPC error:', error?.message)
+    // Insert the story for the session family
+    const { data: story, error: storyError } = await supabase
+      .from('stories')
+      .insert({
+        family_id: member.family_id,
+        title,
+        content,
+        moral_value: moral_value || null,
+        reward_xp: xp,
+        assigned_to: assigned_to || null,
+        is_preset: false,
+        is_active: true,
+        created_by: member.member_id,
+      })
+      .select()
+      .single()
+
+    if (storyError || !story) {
+      console.error('[GHRS CREATE STORY] Insert story error:', storyError?.message)
       return NextResponse.json(
         { success: false, error: 'تعذر إنشاء القصة، حاول مرة أخرى' },
         { status: 500 }
       )
     }
 
-    return NextResponse.json({ success: true, message: 'تم إنشاء القصة بنجاح', story_id: storyId })
+    // Create a reading task for the child, mirroring the original RPC behavior
+    const { error: taskError } = await supabase
+      .from('tasks')
+      .insert({
+        family_id: member.family_id,
+        title: 'اقرأ: ' + title,
+        description: 'قصة تربوية - ' + (moral_value || ''),
+        xp_reward: xp,
+        assigned_to: assigned_to ? [assigned_to] : null,
+        requires_approval: true,
+        is_active: true,
+        created_by: member.member_id,
+        story_content: content,
+      })
+
+    if (taskError) {
+      console.error('[GHRS CREATE STORY] Insert task error:', taskError.message)
+      return NextResponse.json(
+        { success: false, error: 'تعذر إنشاء القصة، حاول مرة أخرى' },
+        { status: 500 }
+      )
+    }
+
+    return NextResponse.json({ success: true, message: 'تم إنشاء القصة بنجاح', story_id: story.id })
   } catch (err) {
     console.error('[GHRS CREATE STORY] Unexpected error:', err)
     return NextResponse.json({ success: false, error: 'حدث خطأ غير متوقع' }, { status: 500 })
