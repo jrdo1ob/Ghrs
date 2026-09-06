@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ParentBottomNav, ParentSidebar, PageHeader, Toast } from '@/components/layout'
 import { useTheme } from '@/lib/theme/provider'
-import { getCurrentUser, clearAuth, AuthUser } from '@/lib/auth/helper'
+import { clearAuth, AuthUser } from '@/lib/auth/helper'
 import { EditIcon } from '@/components/icons'
 
 export default function SettingsPage() {
@@ -26,12 +26,6 @@ export default function SettingsPage() {
 
   useEffect(() => {
     const getData = async () => {
-      const user = await getCurrentUser()
-      if (!user) {
-        router.push('/owner-login')
-        return
-      }
-
       // Member + family profile data is resolved server-side
       const response = await fetch('/api/settings/data', {
         method: 'POST',
@@ -39,7 +33,10 @@ export default function SettingsPage() {
         body: JSON.stringify({}),
       })
       const result = await response.json()
-      if (!response.ok || !result.success) return
+      if (!response.ok || !result.success) {
+        router.push('/owner-login')
+        return
+      }
 
       if (!result.member) {
         router.push('/family-setup')

@@ -5,7 +5,6 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ParentBottomNav, ParentSidebar, PageHeader, EmptyState, Skeleton } from '@/components/layout'
-import { getCurrentUser } from '@/lib/auth/helper'
 
 export default function AchievementsPage() {
   const [achievements, setAchievements] = useState<any[]>([])
@@ -16,12 +15,6 @@ export default function AchievementsPage() {
 
   useEffect(() => {
     const getData = async () => {
-      const user = await getCurrentUser()
-      if (!user) {
-        router.push('/owner-login')
-        return
-      }
-
       // Global reference data — still safe to read directly
       const { data: achievementsData } = await supabase
         .from('achievement_definitions')
@@ -36,7 +29,7 @@ export default function AchievementsPage() {
         body: JSON.stringify({}),
       })
       const result = await response.json()
-      if (!response.ok || !result.success) return
+      if (!response.ok || !result.success) { router.push('/owner-login'); return }
 
       setMemberAchievements(result.member_achievements)
       setLoading(false)

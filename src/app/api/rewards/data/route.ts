@@ -16,15 +16,25 @@ export async function POST(request: NextRequest) {
 
     const supabase = createServiceRoleClient()
 
-    const { data: giftsData } = await supabase
-      .from('gifts')
-      .select('*')
-      .eq('family_id', session.member.family_id)
-      .order('created_at', { ascending: false })
+    const [giftsResult, currencyResult] = await Promise.all([
+      supabase
+        .from('gifts')
+        .select('*')
+        .eq('family_id', session.member.family_id)
+        .order('created_at', { ascending: false }),
+      supabase.from('families').select('currency').eq('id', session.member.family_id).single(),
+    ])
 
     return NextResponse.json({
       success: true,
-      gifts: giftsData || [],
+      member: {
+        member_id: session.member.member_id,
+        member_name: session.member.member_name,
+        member_role: session.member.member_role,
+        family_id: session.member.family_id,
+      },
+      currency: currencyResult.data?.currency || 'KWD',
+      gifts: giftsResult.data || [],
     })
   } catch (err) {
     console.error('[GHRS REWARDS DATA] Unexpected error:', err)

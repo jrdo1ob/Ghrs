@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { ParentBottomNav, ParentSidebar, PageHeader, EmptyState, Toast, Skeleton } from '@/components/layout'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import { AuthUser } from '@/lib/auth/helper'
-import { useFamilyCurrency } from '@/hooks/useFamilyCurrency'
+import { CURRENCIES } from '@/lib/currency'
 import { Task } from '@/lib/types'
 import { CopyIcon, BookIcon, ChildIcon, StarIcon, CoinIcon, PauseIcon, PlayIcon, EditIcon, DeleteIcon, ClockIcon, FamilyIcon, CheckIcon, RejectIcon, QuranIcon, SparkleIcon, TasksIcon, PlusIcon } from '@/components/icons'
 import IconPicker, { getIconByName } from '@/components/IconPicker'
@@ -68,7 +68,10 @@ export default function TasksPage() {
   const [quranPreview, setQuranPreview] = useState('')
   const [showIconPicker, setShowIconPicker] = useState(false)
   const router = useRouter()
-  const { format: fmtMoney, symbol: currencySymbol } = useFamilyCurrency()
+  const [currency, setCurrency] = useState('KWD')
+  const symbol = CURRENCIES[currency]?.symbol || 'د.ك'
+  const fmtMoney = (amount: number) => `${amount} ${symbol}`
+  const currencySymbol = symbol
 
   useEffect(() => {
     const init = async () => {
@@ -91,6 +94,7 @@ export default function TasksPage() {
           via: 'session',
         })
       }
+      if (result.currency) setCurrency(result.currency)
 
       setChildren(result.children)
       setTasks(result.tasks)

@@ -5,8 +5,8 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ParentBottomNav, ParentSidebar, PageHeader, EmptyState, Toast, Skeleton } from '@/components/layout'
 import ConfirmDialog from '@/components/ConfirmDialog'
-import { getCurrentUser, AuthUser } from '@/lib/auth/helper'
-import { useFamilyCurrency } from '@/hooks/useFamilyCurrency'
+import { AuthUser } from '@/lib/auth/helper'
+import { CURRENCIES } from '@/lib/currency'
 import { StarIcon, CoinIcon, GiftsIcon, EditIcon, DeleteIcon, CheckIcon, RejectIcon, CopyIcon, PlusIcon } from '@/components/icons'
 import IconPicker, { getIconByName } from '@/components/IconPicker'
 
@@ -22,15 +22,14 @@ export default function RewardsPage() {
   const [deleteConfirm, setDeleteConfirm] = useState<any | null>(null)
   const [showIconPicker, setShowIconPicker] = useState(false)
   const router = useRouter()
-  const { format: fmtMoney, symbol: currencySymbol } = useFamilyCurrency()
+  const [currency, setCurrency] = useState('KWD')
+  const symbol = CURRENCIES[currency]?.symbol || 'د.ك'
+  const fmtMoney = (amount: number) => `${amount} ${symbol}`
+  const currencySymbol = symbol
 
   useEffect(() => {
     const getGifts = async () => {
-      const user = await getCurrentUser()
-      if (!user) { router.push('/owner-login'); return }
-      setAuthUser(user)
-
-      // Gifts are family data — resolved server-side
+      // Gifts + validated member identity + family currency, one request
       const response = await fetch('/api/rewards/data', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -38,6 +37,17 @@ export default function RewardsPage() {
       })
       const result = await response.json()
       if (!response.ok || !result.success) { router.push('/owner-login'); return }
+
+      if (result.member) {
+        setAuthUser({
+          memberId: result.member.member_id,
+          name: result.member.member_name,
+          role: result.member.member_role,
+          familyId: result.member.family_id,
+          via: 'session',
+        })
+      }
+      if (result.currency) setCurrency(result.currency)
 
       setGifts(result.gifts)
       setLoading(false)

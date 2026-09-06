@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { ParentBottomNav, ParentSidebar, PageHeader, EmptyState, Toast, Skeleton } from '@/components/layout'
-import { getCurrentUser } from '@/lib/auth/helper'
 
 const SURAHS = [
   { number: 1, name: 'الفاتحة', ayahs: 7 },
@@ -28,12 +27,6 @@ export default function QuranPage() {
 
   useEffect(() => {
     const getProgress = async () => {
-      const user = await getCurrentUser()
-      if (!user) {
-        router.push('/owner-login')
-        return
-      }
-
       // Progress is resolved server-side, scoped to the authenticated member
       const response = await fetch('/api/quran/data', {
         method: 'POST',
@@ -41,7 +34,7 @@ export default function QuranPage() {
         body: JSON.stringify({}),
       })
       const result = await response.json()
-      if (!response.ok || !result.success) return
+      if (!response.ok || !result.success) { router.push('/owner-login'); return }
 
       setProgress(result.progress)
       setLoading(false)

@@ -18,6 +18,12 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
+      member: {
+        member_id: session.member.member_id,
+        member_name: session.member.member_name,
+        member_role: session.member.member_role,
+        family_id: session.member.family_id,
+      },
       member_achievements: memberAchievementsData || [],
     })
   } catch (err) {
