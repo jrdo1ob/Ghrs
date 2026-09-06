@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ParentBottomNav, ParentSidebar, PageHeader, EmptyState, Toast, Skeleton } from '@/components/layout'
 import ConfirmDialog from '@/components/ConfirmDialog'
-import { getCurrentUser, AuthUser } from '@/lib/auth/helper'
+import { AuthUser } from '@/lib/auth/helper'
 import { useFamilyCurrency } from '@/hooks/useFamilyCurrency'
 import { Task } from '@/lib/types'
 import { CopyIcon, BookIcon, ChildIcon, StarIcon, CoinIcon, PauseIcon, PlayIcon, EditIcon, DeleteIcon, ClockIcon, FamilyIcon, CheckIcon, RejectIcon, QuranIcon, SparkleIcon, TasksIcon, PlusIcon } from '@/components/icons'
@@ -72,12 +72,8 @@ export default function TasksPage() {
 
   useEffect(() => {
     const init = async () => {
-      const user = await getCurrentUser()
-      if (!user || user.role === 'child') { router.push('/family-login'); return }
-      setAuthUser(user)
-
-      // All family data (children + tasks + pending completions) is resolved
-      // server-side via the authenticated data API
+      // Single authenticated request: identity + all family task data
+      // resolved server-side via the authenticated data API
       const response = await fetch('/api/tasks/data', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -85,6 +81,16 @@ export default function TasksPage() {
       })
       const result = await response.json()
       if (!response.ok || !result.success) { router.push('/family-login'); return }
+
+      if (result.member) {
+        setAuthUser({
+          memberId: result.member.member_id,
+          name: result.member.member_name,
+          role: result.member.member_role,
+          familyId: result.member.family_id,
+          via: 'session',
+        })
+      }
 
       setChildren(result.children)
       setTasks(result.tasks)

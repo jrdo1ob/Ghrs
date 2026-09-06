@@ -17,19 +17,23 @@ export async function POST(request: NextRequest) {
     const supabase = createServiceRoleClient()
     const familyId = session.member.family_id
 
-    const { data: childrenData } = await supabase
-      .from('members')
-      .select('id, name')
-      .eq('family_id', familyId)
-      .eq('role', 'child')
-      .eq('is_deleted', false)
+    const [childrenResult, tasksResult] = await Promise.all([
+      supabase
+        .from('members')
+        .select('id, name')
+        .eq('family_id', familyId)
+        .eq('role', 'child')
+        .eq('is_deleted', false),
+      supabase
+        .from('tasks')
+        .select('*')
+        .eq('family_id', familyId)
+        .eq('is_deleted', false)
+        .order('created_at', { ascending: false }),
+    ])
 
-    const { data: tasksData } = await supabase
-      .from('tasks')
-      .select('*')
-      .eq('family_id', familyId)
-      .eq('is_deleted', false)
-      .order('created_at', { ascending: false })
+    const childrenData = childrenResult.data
+    const tasksData = tasksResult.data
 
     // Batch fetch all pending completions in one query
     let completionsByTaskId = new Map<string, any[]>()
@@ -55,6 +59,12 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
+      member: {
+        member_id: session.member.member_id,
+        member_name: session.member.member_name,
+        member_role: session.member.member_role,
+        family_id: session.member.family_id,
+      },
       children: childrenData || [],
       tasks: tasksWithCompletions,
     })
