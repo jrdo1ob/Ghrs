@@ -1,6 +1,6 @@
 const { Client } = require('pg');
 
-const connectionString = 'postgresql://postgres.xcbedqffmknlzjfpuwdr:uH8%2B-88pqZeUn6n@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres';
+const connectionString = process.env.SUPABASE_DB_URL;
 
 async function testPresetRPC() {
   const client = new Client({ connectionString });

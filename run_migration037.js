@@ -2,7 +2,11 @@ const { Client } = require('pg');
 const fs = require('fs');
 const path = require('path');
 
-const connectionString = 'postgresql://postgres.xcbedqffmknlzjfpuwdr:uH8%2B-88pqZeUn6n@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres';
+const connectionString = process.env.SUPABASE_DB_URL;
+if (!connectionString) {
+  console.error('Error: SUPABASE_DB_URL environment variable is required.');
+  process.exit(1);
+}
 
 async function runMigration() {
   const client = new Client({ connectionString });

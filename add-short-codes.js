@@ -9,7 +9,7 @@ function generateShortCode(name) {
 
 async function main() {
   const client = new Client({
-    connectionString: 'postgresql://postgres:uH8+-88pqZeUn6n@db.xcbedqffmknlzjfpuwdr.supabase.co:5432/postgres',
+    connectionString: process.env.SUPABASE_DB_URL,
     ssl: { rejectUnauthorized: false }
   })
 
