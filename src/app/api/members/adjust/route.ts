@@ -44,6 +44,7 @@ export async function POST(request: NextRequest) {
       p_currency_type: currency_type,
       p_amount: amount,
       p_reason: reason,
+      p_caller_member_id: member.member_id,
     })
 
     const result = Array.isArray(data) ? data[0] : data
