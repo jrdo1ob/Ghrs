@@ -138,11 +138,15 @@ export default function ChildrenPage() {
       setProcessingId(null); setManualModal(null); return
     }
 
+    const appliedAmount = manualForm.currencyType === 'xp'
+      ? Math.abs(data.xp_applied ?? 0)
+      : Math.abs(data.money_applied ?? 0)
+
     setToast({
       type: 'success',
       message: manualModal.type === 'reward'
-        ? `تم منح ${manualModal.child.name} مكافأة ${manualForm.amount} ${manualForm.currencyType === 'xp' ? 'نقطة' : 'مالي'} بنجاح!`
-        : `تم خصم ${manualForm.amount} ${manualForm.currencyType === 'xp' ? 'نقطة' : 'مالي'} من ${manualModal.child.name}`
+        ? `تم منح ${manualModal.child.name} مكافأة ${appliedAmount} ${manualForm.currencyType === 'xp' ? 'نقطة' : 'مالي'} بنجاح!`
+        : `تم خصم ${appliedAmount} ${manualForm.currencyType === 'xp' ? 'نقطة' : 'مالي'} من ${manualModal.child.name}`
     })
     setProcessingId(null); setManualModal(null)
     setManualForm({ reason: '', currencyType: 'xp', amount: 10 })
