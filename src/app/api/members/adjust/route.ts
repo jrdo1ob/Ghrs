@@ -46,12 +46,14 @@ export async function POST(request: NextRequest) {
       p_reason: reason,
     })
 
-    if (error || !data || !data.success) {
-      const message = (data && data.message) || error?.message || 'حدث خطأ'
+    const result = Array.isArray(data) ? data[0] : data
+
+    if (error || !result || !result.success) {
+      const message = (result && result.message) || error?.message || 'حدث خطأ'
       return NextResponse.json({ success: false, error: message }, { status: 500 })
     }
 
-    return NextResponse.json({ success: true, ...data })
+    return NextResponse.json({ success: true, ...result })
   } catch (err) {
     console.error('[GHRS ADJUST] Unexpected error:', err)
     return NextResponse.json({ success: false, error: 'حدث خطأ غير متوقع' }, { status: 500 })
