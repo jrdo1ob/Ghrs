@@ -150,3 +150,39 @@ export async function verifyRecordBelongsToFamily(
 
   return { ok: true }
 }
+
+/**
+ * Validates that EVERY member_id in the given array belongs to the session
+ * family. Mirrors verifyRecordBelongsToFamily, but for batch assignments
+ * (e.g. tasks.assigned_to is UUID[]).
+ */
+export async function verifyMembersBelongToFamily(
+  supabase: ReturnType<typeof createServiceRoleClient>,
+  memberIds: string[],
+  familyId: string
+): Promise<{ ok: boolean; error?: string; status?: number }> {
+  if (memberIds.length === 0) {
+    return { ok: true }
+  }
+
+  const { data, error } = await supabase
+    .from('members')
+    .select('family_id')
+    .in('id', memberIds)
+
+  if (error) {
+    return { ok: false, error: 'تعذر التحقق من الأعضاء', status: 500 }
+  }
+
+  if (!data || data.length !== memberIds.length) {
+    return { ok: false, error: 'أحد الأعضاء المعينين غير موجود', status: 404 }
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const crossFamily = (data as any[]).some(row => row.family_id !== familyId)
+  if (crossFamily) {
+    return { ok: false, error: 'لا يمكن الإسناد لعضو خارج العائلة', status: 403 }
+  }
+
+  return { ok: true }
+}

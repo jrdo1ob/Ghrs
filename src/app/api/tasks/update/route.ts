@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createServiceRoleClient } from '@/lib/supabase/service-role'
+import { verifyMembersBelongToFamily } from '@/lib/auth/server-session'
 
 export async function POST(request: NextRequest) {
   try {
@@ -68,6 +69,18 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    let assignedTo = taskData.assigned_to || null
+
+    if (assignedTo && Array.isArray(assignedTo) && assignedTo.length > 0) {
+      const ownership = await verifyMembersBelongToFamily(supabase, assignedTo, member.family_id)
+      if (!ownership.ok) {
+        return NextResponse.json(
+          { success: false, error: ownership.error },
+          { status: ownership.status }
+        )
+      }
+    }
+
     // 6. Update the task
     const { error: updateError } = await supabase
       .from('tasks')
@@ -78,7 +91,7 @@ export async function POST(request: NextRequest) {
         money_reward: taskData.money_reward || null,
         frequency: taskData.frequency,
         priority: taskData.priority,
-        assigned_to: taskData.assigned_to || null,
+        assigned_to: assignedTo,
         schedule_days: taskData.schedule_days || null,
         requires_approval: taskData.requires_approval,
         task_type: taskData.task_type || 'standard',

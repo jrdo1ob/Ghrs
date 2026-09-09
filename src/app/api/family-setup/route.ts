@@ -2,15 +2,6 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createServiceRoleClient } from '@/lib/supabase/service-role'
 
-function generateFamilyCode() {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
-  let code = ''
-  for (let i = 0; i < 6; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length))
-  }
-  return code
-}
-
 export async function POST(request: NextRequest) {
   try {
     // 1. Validate the Supabase Auth session server-side (Owner is signed in via Supabase Auth)
@@ -30,59 +21,33 @@ export async function POST(request: NextRequest) {
 
     const admin = createServiceRoleClient()
 
-    // 3. Check the owner has not already set up a family
-    const { data: existingIdentity, error: existingError } = await admin
-      .from('auth_identities')
-      .select('member_id')
-      .eq('auth_user_id', user.id)
-      .maybeSingle()
+    // 3. Perform atomic family setup via the SECURITY DEFINER RPC.
+    //    The RPC creates the family, owner member, and auth identity in a
+    //    single transaction, so concurrent setup for the same auth user
+    //    cannot leave an orphan family/member behind.
+    const { data, error } = await admin.rpc('setup_family', {
+      p_auth_user_id: user.id,
+      p_family_name: family_name,
+      p_owner_name: owner_name,
+    })
 
-    if (existingError) {
+    if (error) {
+      console.error('[GHRS FAMILY SETUP] RPC error:', error.message)
       return NextResponse.json({ success: false, error: 'حدث خطأ' }, { status: 500 })
     }
 
-    let identity = existingIdentity
+    const result = Array.isArray(data) ? data[0] : data
 
-    if (!identity) {
-      // 4. Create family (code generated server-side)
-      const familyCode = generateFamilyCode()
-      const { data: family, error: familyError } = await admin
-        .from('families')
-        .insert({ name: family_name, code: familyCode, created_by: user.id })
-        .select()
-        .single()
-
-      if (familyError || !family) {
-        console.error('[GHRS FAMILY SETUP] Family error:', familyError?.message)
-        return NextResponse.json({ success: false, error: 'تعذر إنشاء العائلة' }, { status: 500 })
-      }
-
-      // 5. Create owner member
-      const { data: member, error: memberError } = await admin
-        .from('members')
-        .insert({ family_id: family.id, name: owner_name, role: 'owner' })
-        .select()
-        .single()
-
-      if (memberError || !member) {
-        console.error('[GHRS FAMILY SETUP] Member error:', memberError?.message)
-        return NextResponse.json({ success: false, error: 'تعذر إنشاء العضو' }, { status: 500 })
-      }
-
-      // 6. Link auth identity to the member
-      const { error: linkError } = await admin
-        .from('auth_identities')
-        .insert({ member_id: member.id, auth_user_id: user.id, provider: 'email' })
-
-      if (linkError) {
-        console.error('[GHRS FAMILY SETUP] Link error:', linkError.message)
-        return NextResponse.json({ success: false, error: 'تعذر ربط الحساب' }, { status: 500 })
-      }
-
-      return NextResponse.json({ success: true, message: 'تم إنشاء العائلة بنجاح' })
+    if (!result || result.success !== true) {
+      console.error('[GHRS FAMILY SETUP] Unexpected RPC result:', result)
+      return NextResponse.json({ success: false, error: 'حدث خطأ' }, { status: 500 })
     }
 
-    return NextResponse.json({ success: true, message: 'العائلة موجودة بالفعل' })
+    if (result.already_exists) {
+      return NextResponse.json({ success: true, message: 'العائلة موجودة بالفعل' })
+    }
+
+    return NextResponse.json({ success: true, message: 'تم إنشاء العائلة بنجاح' })
   } catch (err) {
     console.error('[GHRS FAMILY SETUP] Unexpected error:', err)
     return NextResponse.json({ success: false, error: 'حدث خطأ غير متوقع' }, { status: 500 })
