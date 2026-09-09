@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
         xp: allXp.reduce((sum, t) => sum + t.amount, 0),
         money_balance: (moneyResult.data || []).reduce((sum, t) => sum + (t.type === 'earned' ? t.amount : -t.amount), 0),
         completed_today: (completionsResult.data || []).filter(c => c.approved).map(c => c.task_id),
-        pending_today: (completionsResult.data || []).filter(c => !c.approved).map(c => c.task_id),
+        pending_today: (completionsResult.data || []).filter(c => c.approved === null).map(c => c.task_id),
         recent_manual: recentManual ? {
           type: recentManual.amount > 0 ? 'success' : 'error',
           message: recentManual.amount > 0
