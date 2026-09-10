@@ -22,64 +22,20 @@ export async function POST(request: NextRequest) {
 
     const supabase = createServiceRoleClient()
 
-    // Verify gift belongs to the member's family
-    const { data: gift } = await supabase
-      .from('gifts')
-      .select('family_id, is_active, title, cost_xp, cost_money')
-      .eq('id', gift_id)
-      .single()
-
-    if (!gift) {
-      return NextResponse.json({ success: false, error: 'الهدية غير موجودة' }, { status: 404 })
-    }
-
-    if (gift.family_id !== member.family_id) {
-      return NextResponse.json({ success: false, error: 'الهدية لا تنتمي لعائلتك' }, { status: 403 })
-    }
-
-    if (!gift.is_active) {
-      return NextResponse.json({ success: false, error: 'الهدية غير متوفرة' }, { status: 403 })
-    }
-
-    if (gift.cost_xp == null) {
-      return NextResponse.json({ success: false, error: 'تكوين الهدية غير صالح' }, { status: 400 })
-    }
-
-    // Verify child belongs to the same family
-    const { data: memberData } = await supabase
-      .from('members')
-      .select('family_id')
-      .eq('id', member.member_id)
-      .single()
-
-    if (!memberData || memberData.family_id !== member.family_id) {
-      return NextResponse.json({ success: false, error: 'العضو غير موجود' }, { status: 404 })
-    }
-
-    // Check XP balance
-    const { data: xpData } = await supabase
-      .from('xp_transactions')
-      .select('amount')
-      .eq('member_id', member.member_id)
-
-    const currentXp = (xpData || []).reduce((sum, t) => sum + t.amount, 0)
-
-    if (currentXp < gift.cost_xp) {
-      return NextResponse.json({ success: false, error: 'النقاط غير كافية' }, { status: 403 })
-    }
-
-    // Deduct XP and create redemption record via RPC (uses passed member_id)
-    const { data: redeemResult, error: redeemError } = await supabase.rpc('redeem_gift', {
+    // Call request_gift_redemption RPC (creates PENDING request, does NOT deduct XP)
+    const { data, error } = await supabase.rpc('request_gift_redemption', {
       p_gift_id: gift_id,
       p_member_id: member.member_id,
     })
 
-    if (redeemError || !redeemResult || !redeemResult.success) {
-      const message = (redeemResult && redeemResult.message) || redeemError?.message || 'حدث خطأ'
+    const result = Array.isArray(data) ? data[0] : data
+
+    if (error || !result || !result.success) {
+      const message = (result && result.message) || error?.message || 'حدث خطأ'
       return NextResponse.json({ success: false, error: message }, { status: 500 })
     }
 
-    return NextResponse.json({ success: true, message: 'تم طلب الهدية! انتظر موافقة الوالد' })
+    return NextResponse.json({ success: true, message: result.message })
   } catch (err) {
     console.error('[GHRS REDEEM GIFT] Unexpected error:', err)
     return NextResponse.json({ success: false, error: 'حدث خطأ غير متوقع' }, { status: 500 })
