@@ -567,7 +567,7 @@ export default function TasksPage() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div><label className="block text-sm font-semibold mb-1" style={{ color: 'var(--ghrs-text-secondary)' }}>مكافأة XP</label><input type="number" value={formData.xp_reward} onChange={e => setFormData({ ...formData, xp_reward: parseInt(e.target.value) || 0 })} min="1" className="ghrs-input w-full" /></div>
-                  <div><label className="block text-sm font-semibold mb-1" style={{ color: 'var(--ghrs-text-secondary)' }}>مكافأة مالية ({currencySymbol})</label><input type="number" value={formData.money_reward} onChange={e => setFormData({ ...formData, money_reward: parseInt(e.target.value) || 0 })} min="0" className="ghrs-input w-full" /></div>
+                  <div><label className="block text-sm font-semibold mb-1" style={{ color: 'var(--ghrs-text-secondary)' }}>مكافأة مالية ({currencySymbol})</label><input type="number" step="0.001" value={formData.money_reward} onChange={e => setFormData({ ...formData, money_reward: parseFloat(e.target.value) || 0 })} min="0" className="ghrs-input w-full" /></div>
                 </div>
 
                 {/* Priority */}
@@ -763,7 +763,7 @@ export default function TasksPage() {
                           </div>
                           <div>
                             <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--ghrs-text-secondary)' }}>المكافأة المالية</label>
-                            <input type="number" min="0" value={formData.money_reward} onChange={e => setFormData({ ...formData, money_reward: parseInt(e.target.value) || 0 })} className="ghrs-input w-full" />
+                            <input type="number" step="0.001" min="0" value={formData.money_reward} onChange={e => setFormData({ ...formData, money_reward: parseFloat(e.target.value) || 0 })} className="ghrs-input w-full" />
                           </div>
                         </div>
                         {/* Frequency */}

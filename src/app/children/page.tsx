@@ -218,7 +218,7 @@ export default function ChildrenPage() {
               {/* Amount */}
               <div>
                 <label className="block text-sm font-semibold mb-1" style={{ color: 'var(--ghrs-text-secondary)' }}>القيمة</label>
-                <input type="number" min="1" value={manualForm.amount} onChange={e => setManualForm({ ...manualForm, amount: parseInt(e.target.value) || 0 })} className="ghrs-input w-full text-center text-xl font-bold" />
+                <input type="number" step="0.001" min="0.001" value={manualForm.amount} onChange={e => setManualForm({ ...manualForm, amount: parseFloat(e.target.value) || 0 })} className="ghrs-input w-full text-center text-xl font-bold" />
               </div>
             </div>
 

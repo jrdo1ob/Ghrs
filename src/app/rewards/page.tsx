@@ -196,7 +196,7 @@ export default function RewardsPage() {
                   </div>
                   <div>
                     <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--ghrs-text-secondary)' }}>التكلفة المالية ({currencySymbol})</label>
-                    <input type="number" value={formData.cost_money} onChange={e => setFormData({ ...formData, cost_money: parseInt(e.target.value) || 0 })} min="0" className="ghrs-input w-full" />
+                    <input type="number" step="0.001" value={formData.cost_money} onChange={e => setFormData({ ...formData, cost_money: parseFloat(e.target.value) || 0 })} min="0" className="ghrs-input w-full" />
                   </div>
                 </div>
                 <div className="flex gap-2">

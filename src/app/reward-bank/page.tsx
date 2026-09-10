@@ -261,7 +261,7 @@ export default function RewardBankPage() {
                     </div>
                     <div>
                       <label className="block text-sm font-semibold mb-1" style={{ color: 'var(--ghrs-text-secondary)' }}>السعر ({currencySymbol})</label>
-                      <input type="number" value={editForm.price} onChange={e => setEditForm({ ...editForm, price: parseInt(e.target.value) || 0 })} min="0" className="ghrs-input w-full" />
+                      <input type="number" step="0.001" value={editForm.price} onChange={e => setEditForm({ ...editForm, price: parseFloat(e.target.value) || 0 })} min="0" className="ghrs-input w-full" />
                     </div>
                   </div>
                 </div>
