@@ -26,15 +26,55 @@ export async function POST(request: NextRequest) {
     const activeTasks = tasksResult.data || []
     const taskIds = activeTasks.map((t: { id: string }) => t.id)
 
-    let pendingApprovals = 0
+    // Count pending task completions
+    let pendingTaskApprovals = 0
     if (taskIds.length > 0) {
       const { data: pendingData } = await supabase
         .from('task_completions')
-        .select('id')
+        .select('id, task_id')
         .is('approved', null)
         .in('task_id', taskIds)
-      pendingApprovals = pendingData?.length || 0
+      pendingTaskApprovals = pendingData?.length || 0
     }
+
+    // Count pending gift redemptions
+    const { data: pendingGifts } = await supabase
+      .from('gift_redemptions')
+      .select('id, gift_id')
+      .eq('status', 'pending')
+
+    // Filter gift redemptions to this family
+    const giftIds = (pendingGifts || []).map((g: any) => g.gift_id)
+    let pendingGiftApprovals = 0
+    if (giftIds.length > 0) {
+      const { data: familyGifts } = await supabase
+        .from('gifts')
+        .select('id')
+        .eq('family_id', familyId)
+        .in('id', giftIds)
+      pendingGiftApprovals = familyGifts?.length || 0
+    }
+
+    // Count pending withdrawal requests
+    const { data: pendingWithdrawals } = await supabase
+      .from('withdrawal_requests')
+      .select('id, member_id')
+      .eq('status', 'pending')
+
+    // Filter withdrawals to this family
+    const withdrawalMemberIds = (pendingWithdrawals || []).map((w: any) => w.member_id)
+    let pendingWithdrawalCount = 0
+    if (withdrawalMemberIds.length > 0) {
+      const { data: familyMembers } = await supabase
+        .from('members')
+        .select('id')
+        .eq('family_id', familyId)
+        .in('id', withdrawalMemberIds)
+      pendingWithdrawalCount = familyMembers?.length || 0
+    }
+
+    // Total pending approvals
+    const pendingApprovals = pendingTaskApprovals + pendingGiftApprovals + pendingWithdrawalCount
 
     return NextResponse.json({
       success: true,

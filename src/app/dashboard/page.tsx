@@ -122,7 +122,7 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            <Link href="/tasks?status=pending" className="ghrs-card p-4 ghrs-card-interactive">
+            <Link href="/approvals" className="ghrs-card p-4 ghrs-card-interactive">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: pendingApprovals > 0 ? 'var(--ghrs-amber-100)' : 'var(--ghrs-blue-50)' }}>
                   <ClockIcon size={24} color={pendingApprovals > 0 ? 'var(--ghrs-amber-600)' : 'var(--ghrs-blue-600)'} />
