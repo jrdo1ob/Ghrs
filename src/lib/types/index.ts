@@ -129,6 +129,7 @@ export interface GiftRedemption {
   id: string
   gift_id: string
   member_id: string
+  xp_spent: number
   redeemed_at: string
 }
 
