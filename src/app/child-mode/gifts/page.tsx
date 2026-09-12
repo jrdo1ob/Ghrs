@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { ChildBottomNav, EmptyState, Toast } from '@/components/layout'
 import { useFamilyCurrency } from '@/hooks/useFamilyCurrency'
@@ -92,6 +92,16 @@ export default function ChildGiftsPage() {
     setShowGiftModal(true)
   }
 
+  const groupedRequests = useMemo(() => {
+    const groups: Record<string, typeof redemptionRequests> = {
+      pending: [], rejected: [], revoked: [], approved: [],
+    }
+    for (const req of redemptionRequests) {
+      if (groups[req.status]) groups[req.status].push(req)
+    }
+    return groups
+  }, [redemptionRequests])
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--ghrs-bg-primary)' }}>
@@ -135,13 +145,25 @@ export default function ChildGiftsPage() {
           </button>
         </div>
 
-        {/* XP Display */}
-        <div className="ghrs-card p-5 mb-6 text-center" style={{ background: 'linear-gradient(135deg, var(--ghrs-amber-50), var(--ghrs-green-50))', border: '2px solid var(--ghrs-amber-200)' }}>
-          <div className="w-14 h-14 rounded-full mx-auto mb-2 flex items-center justify-center" style={{ background: 'var(--ghrs-amber-100)' }}>
-            <StarIcon size={28} color="var(--ghrs-amber-600)" />
+        {/* Balance Display */}
+        <div className="ghrs-card p-5 mb-6" style={{ background: 'linear-gradient(135deg, var(--ghrs-amber-50), var(--ghrs-green-50))', border: '2px solid var(--ghrs-amber-200)' }}>
+          <div className="flex items-center justify-center gap-8">
+            <div className="text-center">
+              <div className="w-12 h-12 rounded-full mx-auto mb-1 flex items-center justify-center" style={{ background: 'var(--ghrs-amber-100)' }}>
+                <StarIcon size={24} color="var(--ghrs-amber-600)" />
+              </div>
+              <p className="text-2xl font-bold" style={{ color: 'var(--ghrs-amber-600)' }}>{xp}</p>
+              <p className="text-xs" style={{ color: 'var(--ghrs-text-secondary)' }}>XP</p>
+            </div>
+            <div className="w-px h-12" style={{ background: 'var(--ghrs-border-default)' }} />
+            <div className="text-center">
+              <div className="w-12 h-12 rounded-full mx-auto mb-1 flex items-center justify-center" style={{ background: 'var(--ghrs-green-100)' }}>
+                <CoinIcon size={24} color="var(--ghrs-green-600)" />
+              </div>
+              <p className="text-2xl font-bold" style={{ color: 'var(--ghrs-green-600)' }}>{fmtMoney(moneyBalance)}</p>
+              <p className="text-xs" style={{ color: 'var(--ghrs-text-secondary)' }}>د.ب</p>
+            </div>
           </div>
-          <p className="text-3xl font-bold" style={{ color: 'var(--ghrs-amber-600)' }}>{xp}</p>
-          <p className="text-sm" style={{ color: 'var(--ghrs-text-secondary)' }}>نقاط الخبرة المتاحة</p>
         </div>
 
         <h1 className="text-2xl font-bold mb-6" style={{ color: 'var(--ghrs-text-primary)' }}>الهدايا</h1>
@@ -198,50 +220,62 @@ export default function ChildGiftsPage() {
         {redemptionRequests.length > 0 && (
           <>
             <h2 className="text-xl font-bold mt-10 mb-4" style={{ color: 'var(--ghrs-text-primary)' }}>طلبات الهدايا</h2>
-            <div className="space-y-2">
-              {redemptionRequests.map((req: any) => {
-                const getStatusInfo = (s: string) => {
-                  switch (s) {
-                    case 'approved': return { text: 'تم الموافقة', color: 'var(--ghrs-green-600)', bg: 'var(--ghrs-green-50)' }
-                    case 'rejected': return { text: 'تم الرفض', color: 'var(--ghrs-red-600)', bg: 'var(--ghrs-red-50)' }
-                    case 'revoked': return { text: 'تم سحب الموافقة', color: 'var(--ghrs-purple-600)', bg: 'var(--ghrs-purple-50)' }
-                    case 'pending': return { text: 'بانتظار', color: 'var(--ghrs-amber-700)', bg: 'var(--ghrs-amber-50)' }
-                    default: return { text: s, color: 'var(--ghrs-text-secondary)', bg: 'var(--ghrs-bg-tertiary)' }
-                  }
+            {([
+              { key: 'pending', label: 'بانتظار الموافقة' },
+              { key: 'rejected', label: 'تم الرفض' },
+              { key: 'revoked', label: 'تم سحب الموافقة' },
+              { key: 'approved', label: 'تمت الموافقة' },
+            ] as const).map(({ key, label }) => {
+              const items = groupedRequests[key]
+              if (items.length === 0) return null
+              const getStatusColor = (s: string) => {
+                switch (s) {
+                  case 'approved': return { color: 'var(--ghrs-green-600)', bg: 'var(--ghrs-green-50)' }
+                  case 'rejected': return { color: 'var(--ghrs-red-600)', bg: 'var(--ghrs-red-50)' }
+                  case 'revoked': return { color: 'var(--ghrs-purple-600)', bg: 'var(--ghrs-purple-50)' }
+                  case 'pending': return { color: 'var(--ghrs-amber-700)', bg: 'var(--ghrs-amber-50)' }
+                  default: return { color: 'var(--ghrs-text-secondary)', bg: 'var(--ghrs-bg-tertiary)' }
                 }
-                const si = getStatusInfo(req.status)
-                return (
-                  <div key={req.id} className="ghrs-card p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <GiftsIcon size={20} color="var(--ghrs-purple-600)" />
-                        <div>
-                          <p className="text-sm font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>{req.gift_name}</p>
-                          <div className="flex items-center gap-2 mt-0.5">
-                            <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ background: si.bg, color: si.color }}>
-                              {req.status === 'pending' && <ClockIcon size={10} className="inline" />} {si.text}
-                            </span>
-                            {req.requested_xp != null && (
-                              <span className="text-xs" style={{ color: 'var(--ghrs-text-tertiary)' }}>
-                                <StarIcon size={10} className="inline" /> {req.requested_xp} XP
-                              </span>
-                            )}
-                            {req.money_spent != null && req.money_spent > 0 && (
-                              <span className="text-xs" style={{ color: 'var(--ghrs-text-tertiary)' }}>
-                                <CoinIcon size={10} className="inline" /> {fmtMoney(req.money_spent)}
-                              </span>
-                            )}
+              }
+              const sc = getStatusColor(key)
+              return (
+                <div key={key} className="mb-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-sm font-bold" style={{ color: sc.color }}>{label}</span>
+                    <span className="text-xs px-2 py-0.5 rounded-full font-bold" style={{ background: sc.bg, color: sc.color }}>{items.length}</span>
+                  </div>
+                  <div className="space-y-2">
+                    {items.map((req: any) => (
+                      <div key={req.id} className="ghrs-card p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <GiftsIcon size={20} color="var(--ghrs-purple-600)" />
+                            <div>
+                              <p className="text-sm font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>{req.gift_name}</p>
+                              <div className="flex items-center gap-2 mt-0.5">
+                                {req.requested_xp != null && (
+                                  <span className="text-xs" style={{ color: 'var(--ghrs-text-tertiary)' }}>
+                                    <StarIcon size={10} className="inline" /> {req.requested_xp} XP
+                                  </span>
+                                )}
+                                {req.money_spent != null && req.money_spent > 0 && (
+                                  <span className="text-xs" style={{ color: 'var(--ghrs-text-tertiary)' }}>
+                                    <CoinIcon size={10} className="inline" /> {fmtMoney(req.money_spent)}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
                           </div>
+                          <span className="text-xs" style={{ color: 'var(--ghrs-text-tertiary)' }}>
+                            {new Date(req.date).toLocaleDateString('ar')}
+                          </span>
                         </div>
                       </div>
-                      <span className="text-xs" style={{ color: 'var(--ghrs-text-tertiary)' }}>
-                        {new Date(req.date).toLocaleDateString('ar')}
-                      </span>
-                    </div>
+                    ))}
                   </div>
-                )
-              })}
-            </div>
+                </div>
+              )
+            })}
           </>
         )}
       </div>
