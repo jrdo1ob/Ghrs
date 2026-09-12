@@ -36,7 +36,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: message }, { status: 500 })
     }
 
-    return NextResponse.json({ success: true, message: result.message })
+    return NextResponse.json({
+      success: true,
+      message: result.message,
+      xp_applied: result.xp_applied || 0,
+      money_applied: result.money_applied || 0,
+    })
   } catch (err) {
     console.error('[GHRS APPROVE GIFT] Unexpected error:', err)
     return NextResponse.json({ success: false, error: 'حدث خطأ غير متوقع' }, { status: 500 })

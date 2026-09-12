@@ -13,11 +13,13 @@ interface ActivityEvent {
   child_name: string
   task_title: string
   xp_amount: number
+  money_amount: number
   performed_by: string | null
   timestamp: string
   description: string | null
   completion_id: string | null
   approved: boolean | null
+  is_gift: boolean
 }
 
 export default function ActivityLogPage() {
@@ -144,11 +146,20 @@ export default function ActivityLogPage() {
     setProcessingId(completionId)
 
     try {
-      // Call secure server-side API
-      const response = await fetch('/api/tasks/revoke', {
+      // Find the event to determine if it's a gift or task
+      const event = revokeConfirm
+      const isGift = event?.is_gift || false
+
+      // Route to correct API: gift revoke vs task revoke
+      const url = isGift ? '/api/gifts/revoke' : '/api/tasks/revoke'
+      const body = isGift
+        ? { redemption_id: completionId, reason: revokeReason || null }
+        : { completion_id: completionId, reason: revokeReason || null }
+
+      const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ completion_id: completionId, reason: revokeReason || null }),
+        body: JSON.stringify(body),
       })
 
       const result = await response.json()
@@ -191,7 +202,16 @@ export default function ActivityLogPage() {
     }
   }
 
-  const getEventVerb = (type: string) => {
+  const getEventVerb = (type: string, isGift: boolean = false) => {
+    if (isGift) {
+      switch (type) {
+        case 'completed': return 'طلبت'
+        case 'approved': return 'تم اعتماد طلب'
+        case 'rejected': return 'تم رفض طلب'
+        case 'revoked': return 'تم سحب اعتماد'
+        default: return 'طلبت'
+      }
+    }
     switch (type) {
       case 'completed': return 'أنجز'
       case 'approved': return 'تم اعتماد إنجاز'
@@ -220,7 +240,11 @@ export default function ActivityLogPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.5)' }} onClick={() => setRevokeConfirm(null)}>
           <div className="ghrs-card p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
             <h2 className="text-lg font-bold mb-2" style={{ color: 'var(--ghrs-red-600)' }}>سحب الاعتماد</h2>
-            <p className="text-sm mb-4" style={{ color: 'var(--ghrs-text-secondary)' }}>هل أنت متأكد من سحب اعتماد هذه المهمة؟ سيتم خصم النقاط.</p>
+            <p className="text-sm mb-4" style={{ color: 'var(--ghrs-text-secondary)' }}>
+              {revokeConfirm?.is_gift
+                ? 'هل أنت متأكد من سحب اعتماد هذا الطلب؟ سيتم رد النقاط والرصيد.'
+                : 'هل أنت متأكد من سحب اعتماد هذه المهمة؟ سيتم خصم النقاط.'}
+            </p>
             <div className="mb-4">
               <label className="block text-sm font-semibold mb-1" style={{ color: 'var(--ghrs-text-secondary)' }}>السبب (اختياري)</label>
               <input type="text" value={revokeReason} onChange={e => setRevokeReason(e.target.value)} className="ghrs-input w-full" placeholder="مثال: تم الاعتماد بالخطأ" />
@@ -297,7 +321,7 @@ export default function ActivityLogPage() {
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>{event.child_name}</span>
-                      <span className="text-sm" style={{ color: 'var(--ghrs-text-secondary)' }}>{getEventVerb(event.type)}</span>
+                      <span className="text-sm" style={{ color: 'var(--ghrs-text-secondary)' }}>{getEventVerb(event.type, event.is_gift)}</span>
                       <span className="font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>{event.task_title}</span>
                     </div>
                     <div className="flex items-center gap-2 mb-1">
@@ -312,6 +336,21 @@ export default function ActivityLogPage() {
                         {getEventIcon(event.type)} {getEventLabel(event.type)}
                       </span>
                     </div>
+                    {/* XP/Money amounts for gift events */}
+                    {event.is_gift && (event.xp_amount > 0 || event.money_amount > 0) && (
+                      <div className="flex items-center gap-3 mb-1">
+                        {event.xp_amount > 0 && (
+                          <span className="text-xs font-bold" style={{ color: 'var(--ghrs-amber-600)' }}>
+                            <StarIcon size={12} className="inline" /> {event.xp_amount} XP
+                          </span>
+                        )}
+                        {event.money_amount > 0 && (
+                          <span className="text-xs font-bold" style={{ color: 'var(--ghrs-green-600)' }}>
+                            <CoinIcon size={12} className="inline" /> {fmtMoney(event.money_amount)}
+                          </span>
+                        )}
+                      </div>
+                    )}
                     {event.performed_by && (
                       <p className="text-xs" style={{ color: 'var(--ghrs-text-tertiary)' }}>
                         بواسطة: {event.performed_by}

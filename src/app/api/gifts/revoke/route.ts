@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createServiceRoleClient } from '@/lib/supabase/service-role'
-import { validateSession } from '@/lib/auth/server-session'
+import { validateSession, requireParentRole } from '@/lib/auth/server-session'
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,21 +11,22 @@ export async function POST(request: NextRequest) {
 
     const member = session.member
 
-    if (member.member_role !== 'child') {
-      return NextResponse.json({ success: false, error: 'هذه العملية مخصصة للأطفال فقط' }, { status: 403 })
+    const roleCheck = requireParentRole(member)
+    if (!roleCheck.ok) {
+      return NextResponse.json({ success: false, error: roleCheck.error }, { status: roleCheck.status })
     }
 
-    const { gift_id } = await request.json()
-    if (!gift_id) {
-      return NextResponse.json({ success: false, error: 'معرف الهدية مطلوب' }, { status: 400 })
+    const { redemption_id, reason } = await request.json()
+    if (!redemption_id) {
+      return NextResponse.json({ success: false, error: 'معرف طلب الهدية مطلوب' }, { status: 400 })
     }
 
     const supabase = createServiceRoleClient()
 
-    // Call request_gift_redemption RPC (creates PENDING request, does NOT deduct XP)
-    const { data, error } = await supabase.rpc('request_gift_redemption', {
-      p_gift_id: gift_id,
-      p_member_id: member.member_id,
+    // Call revoke_gift_redemption RPC
+    const { data, error } = await supabase.rpc('revoke_gift_redemption', {
+      p_redemption_id: redemption_id,
+      p_reason: reason || null,
       p_caller_member_id: member.member_id,
     })
 
@@ -36,9 +37,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: message }, { status: 500 })
     }
 
-    return NextResponse.json({ success: true, message: result.message })
+    return NextResponse.json({
+      success: true,
+      message: result.message,
+      xp_restored: result.xp_restored || 0,
+      money_restored: result.money_restored || 0,
+    })
   } catch (err) {
-    console.error('[GHRS REDEEM GIFT] Unexpected error:', err)
+    console.error('[GHRS REVOKE GIFT] Unexpected error:', err)
     return NextResponse.json({ success: false, error: 'حدث خطأ غير متوقع' }, { status: 500 })
   }
 }

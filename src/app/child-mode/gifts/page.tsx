@@ -150,14 +150,19 @@ export default function ChildGiftsPage() {
           <div className="space-y-3">
             {gifts.map(gift => {
               const canAfford = xp >= gift.cost_xp
+              const status = gift.redemption_status
+              const isPending = status === 'pending'
+              const isApproved = status === 'approved'
+              const isRejected = status === 'rejected'
+              const isRevoked = status === 'revoked'
               return (
                 <div key={gift.id} onClick={() => openGiftModal(gift)}
                   className="ghrs-card p-5 cursor-pointer active:scale-[0.98] transition-all"
                   style={{ opacity: canAfford ? 1 : 0.6, border: canAfford ? '2px solid var(--ghrs-amber-300)' : '1px solid var(--ghrs-border-default)' }}>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3 flex-1">
-                      <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: 'var(--ghrs-purple-50)' }}>
-                        <GiftsIcon size={24} color="var(--ghrs-purple-600)" />
+                      <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: isApproved ? 'var(--ghrs-green-50)' : (isRejected || isRevoked) ? 'var(--ghrs-red-50)' : 'var(--ghrs-purple-50)' }}>
+                        <GiftsIcon size={24} color={isApproved ? 'var(--ghrs-green-600)' : (isRejected || isRevoked) ? 'var(--ghrs-red-600)' : 'var(--ghrs-purple-600)'} />
                       </div>
                       <div className="flex-1">
                         <h3 className="font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>{gift.title}</h3>
@@ -174,8 +179,11 @@ export default function ChildGiftsPage() {
                         </div>
                       </div>
                     </div>
-                    <div className="text-xs font-bold px-3 py-2 rounded-xl" style={{ background: canAfford ? 'var(--ghrs-amber-50)' : 'var(--ghrs-bg-tertiary)', color: canAfford ? 'var(--ghrs-amber-700)' : 'var(--ghrs-text-tertiary)' }}>
-                      {canAfford ? 'اضغط للتفاصيل' : <LockIcon size={14} />}
+                    <div className="text-xs font-bold px-3 py-2 rounded-xl" style={{
+                      background: isApproved ? 'var(--ghrs-green-50)' : (isRejected || isRevoked) ? 'var(--ghrs-red-50)' : isPending ? 'var(--ghrs-amber-50)' : canAfford ? 'var(--ghrs-amber-50)' : 'var(--ghrs-bg-tertiary)',
+                      color: isApproved ? 'var(--ghrs-green-700)' : (isRejected || isRevoked) ? 'var(--ghrs-red-600)' : isPending ? 'var(--ghrs-amber-700)' : canAfford ? 'var(--ghrs-amber-700)' : 'var(--ghrs-text-tertiary)'
+                    }}>
+                      {isApproved ? 'تم الموافقة' : isRevoked ? 'تم الرفض بعد الموافقة' : isRejected ? 'تم الرفض' : isPending ? <><ClockIcon size={12} className="inline" /> بانتظار</> : canAfford ? 'اضغط للتفاصيل' : <LockIcon size={14} />}
                     </div>
                   </div>
                 </div>

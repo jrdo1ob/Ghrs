@@ -98,17 +98,40 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // 'gifts' — active gifts + this child's balances
+    // 'gifts' — active gifts + this child's balances + redemption status
     if (section === 'gifts') {
-      const [giftsResult, xpResult, moneyResult] = await Promise.all([
+      const [giftsResult, xpResult, moneyResult, redemptionsResult] = await Promise.all([
         supabase.from('gifts').select('*').eq('family_id', familyId).eq('is_active', true),
         supabase.from('xp_transactions').select('amount').eq('member_id', memberId),
         supabase.from('money_transactions').select('amount, type').eq('member_id', memberId).eq('status', 'approved'),
+        supabase.from('gift_redemptions').select('gift_id, status, requested_xp_cost, xp_spent, redeemed_at').eq('member_id', memberId),
       ])
+
+      // Build redemption status map for this child
+      const redemptionMap = new Map()
+      for (const r of (redemptionsResult.data || [])) {
+        // Keep only the most recent redemption per gift
+        const existing = redemptionMap.get(r.gift_id)
+        if (!existing || new Date(r.redeemed_at) > new Date(existing.redeemed_at)) {
+          redemptionMap.set(r.gift_id, r)
+        }
+      }
+
+      // Enrich gifts with redemption status
+      const enrichedGifts = (giftsResult.data || []).map((g: any) => {
+        const redemption = redemptionMap.get(g.id)
+        return {
+          ...g,
+          redemption_status: redemption?.status || null,
+          redemption_requested_xp: redemption?.requested_xp_cost || null,
+          redemption_xp_spent: redemption?.xp_spent || null,
+          redemption_date: redemption?.redeemed_at || null,
+        }
+      })
 
       return NextResponse.json({
         success: true,
-        gifts: giftsResult.data || [],
+        gifts: enrichedGifts,
         xp: (xpResult.data || []).reduce((sum, t) => sum + t.amount, 0),
         money_balance: (moneyResult.data || []).reduce((sum, t) => sum + (t.type === 'earned' ? t.amount : -t.amount), 0),
       })

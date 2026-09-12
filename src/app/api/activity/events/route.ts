@@ -8,11 +8,13 @@ interface ActivityEvent {
   child_name: string
   task_title: string
   xp_amount: number
+  money_amount: number
   performed_by: string | null
   timestamp: string
   description: string | null
   completion_id: string | null
   approved: boolean | null
+  is_gift: boolean
 }
 
 export async function POST(request: NextRequest) {
@@ -143,11 +145,77 @@ export async function POST(request: NextRequest) {
         child_name: member,
         task_title: taskTitleById.get(c.task_id) || '',
         xp_amount: 0,
+        money_amount: 0,
         performed_by: performer || null,
         timestamp: latestHistory?.created_at || c.completed_at,
         description: null,
         completion_id: c.id,
         approved: c.approved,
+        is_gift: false,
+      })
+    }
+
+    // Step 4: Get gift activity events
+    const { data: giftActivities } = await supabase
+      .from('gift_activity')
+      .select('id, gift_redemption_id, action, performed_by, xp_amount, money_amount, reason, created_at')
+      .order('created_at', { ascending: false })
+      .limit(100)
+
+    // Get gift redemption details for gift activities
+    const giftRedemptionIds = (giftActivities || []).map(g => g.gift_redemption_id)
+    const { data: giftRedemptions } = giftRedemptionIds.length > 0
+      ? await supabase.from('gift_redemptions').select('id, gift_id, member_id').in('id', giftRedemptionIds)
+      : { data: [] }
+
+    const giftRedemptionMap = new Map((giftRedemptions || []).map(r => [r.id, r]))
+
+    const giftIds = [...new Set((giftRedemptions || []).map(r => r.gift_id))]
+    const { data: gifts } = giftIds.length > 0
+      ? await supabase.from('gifts').select('id, title').in('id', giftIds)
+      : { data: [] }
+    const giftTitleById = new Map((gifts || []).map(g => [g.id, g.title]))
+
+    const giftMemberIds = [...new Set((giftRedemptions || []).map(r => r.member_id))]
+    const { data: giftMembers } = giftMemberIds.length > 0
+      ? await supabase.from('members').select('id, name').in('id', giftMemberIds)
+      : { data: [] }
+    const giftMemberNameById = new Map((giftMembers || []).map(m => [m.id, m.name]))
+
+    const giftPerformerIds = [...new Set(
+      (giftActivities || []).map(g => g.performed_by).filter((id): id is string => id !== null)
+    )]
+    const { data: giftPerformers } = giftPerformerIds.length > 0
+      ? await supabase.from('members').select('id, name').in('id', giftPerformerIds)
+      : { data: [] }
+    const giftPerformerNameById = new Map((giftPerformers || []).map(p => [p.id, p.name]))
+
+    // Assemble gift events
+    for (const ga of giftActivities || []) {
+      const redemption = giftRedemptionMap.get(ga.gift_redemption_id)
+      if (!redemption) continue
+
+      const childName = giftMemberNameById.get(redemption.member_id) || 'طفل'
+      const giftTitle = giftTitleById.get(redemption.gift_id) || 'هدية'
+      const performer = ga.performed_by ? giftPerformerNameById.get(ga.performed_by) : null
+
+      // Apply filters
+      if (child_filter !== 'all' && redemption.member_id !== child_filter) continue
+      if (type_filter !== 'all' && type_filter !== ga.action) continue
+
+      events.push({
+        id: `gift-${ga.id}`,
+        type: ga.action as ActivityEvent['type'],
+        child_name: childName,
+        task_title: giftTitle,
+        xp_amount: ga.xp_amount || 0,
+        money_amount: ga.money_amount || 0,
+        performed_by: performer || null,
+        timestamp: ga.created_at,
+        description: ga.reason || null,
+        completion_id: ga.gift_redemption_id,
+        approved: ga.action === 'approved' ? true : ga.action === 'rejected' ? false : null,
+        is_gift: true,
       })
     }
 
