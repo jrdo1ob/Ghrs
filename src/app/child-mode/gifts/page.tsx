@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { ChildBottomNav, EmptyState, Toast } from '@/components/layout'
 import { useFamilyCurrency } from '@/hooks/useFamilyCurrency'
 import RewardDetailsModal from '@/components/RewardDetailsModal'
+import RequestDetailsModal from '@/components/RequestDetailsModal'
 import { GiftsIcon, StarIcon, CoinIcon, ClockIcon, LockIcon } from '@/components/icons'
 import { getCurrentUser } from '@/lib/auth/helper'
 
@@ -18,6 +19,8 @@ export default function ChildGiftsPage() {
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
   const [selectedGift, setSelectedGift] = useState<any>(null)
   const [showGiftModal, setShowGiftModal] = useState(false)
+  const [selectedRequest, setSelectedRequest] = useState<any>(null)
+  const [showRequestModal, setShowRequestModal] = useState(false)
   const [childId, setChildId] = useState<string | null>(null)
   const router = useRouter()
   const { format: fmtMoney } = useFamilyCurrency()
@@ -92,6 +95,11 @@ export default function ChildGiftsPage() {
     setShowGiftModal(true)
   }
 
+  const openRequestModal = (req: any) => {
+    setSelectedRequest(req)
+    setShowRequestModal(true)
+  }
+
   const groupedRequests = useMemo(() => {
     const groups: Record<string, typeof redemptionRequests> = {
       pending: [], rejected: [], revoked: [], approved: [],
@@ -125,6 +133,13 @@ export default function ChildGiftsPage() {
         childXp={xp}
         childMoney={moneyBalance}
         redeeming={redeeming}
+        formatMoney={fmtMoney}
+      />
+
+      <RequestDetailsModal
+        show={showRequestModal}
+        request={selectedRequest}
+        onClose={() => { setShowRequestModal(false); setSelectedRequest(null) }}
         formatMoney={fmtMoney}
       />
 
@@ -246,29 +261,24 @@ export default function ChildGiftsPage() {
                   </div>
                   <div className="space-y-2">
                     {items.map((req: any) => (
-                      <div key={req.id} className="ghrs-card p-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <GiftsIcon size={20} color="var(--ghrs-purple-600)" />
-                            <div>
-                              <p className="text-sm font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>{req.gift_name}</p>
-                              <div className="flex items-center gap-2 mt-0.5">
-                                {req.requested_xp != null && (
-                                  <span className="text-xs" style={{ color: 'var(--ghrs-text-tertiary)' }}>
-                                    <StarIcon size={10} className="inline" /> {req.requested_xp} XP
-                                  </span>
-                                )}
-                                {req.money_spent != null && req.money_spent > 0 && (
-                                  <span className="text-xs" style={{ color: 'var(--ghrs-text-tertiary)' }}>
-                                    <CoinIcon size={10} className="inline" /> {fmtMoney(req.money_spent)}
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                          <span className="text-xs" style={{ color: 'var(--ghrs-text-tertiary)' }}>
-                            {new Date(req.date).toLocaleDateString('ar')}
-                          </span>
+                      <div key={req.id} onClick={() => openRequestModal(req)}
+                        className="ghrs-card p-3 cursor-pointer active:scale-[0.98] transition-all flex items-center justify-between"
+                        style={{ border: '1px solid var(--ghrs-border-default)' }}>
+                        <div className="flex items-center gap-2">
+                          <GiftsIcon size={16} color="var(--ghrs-purple-600)" />
+                          <span className="text-sm font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>{req.gift_name}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {req.requested_xp != null && (
+                            <span className="text-xs font-bold" style={{ color: 'var(--ghrs-amber-600)' }}>
+                              <StarIcon size={10} className="inline" /> {req.requested_xp}
+                            </span>
+                          )}
+                          {req.money_spent != null && req.money_spent > 0 && (
+                            <span className="text-xs font-bold" style={{ color: 'var(--ghrs-green-600)' }}>
+                              <CoinIcon size={10} className="inline" /> {fmtMoney(req.money_spent)}
+                            </span>
+                          )}
                         </div>
                       </div>
                     ))}
