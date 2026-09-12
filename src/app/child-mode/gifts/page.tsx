@@ -10,6 +10,7 @@ import { getCurrentUser } from '@/lib/auth/helper'
 
 export default function ChildGiftsPage() {
   const [gifts, setGifts] = useState<any[]>([])
+  const [redemptionRequests, setRedemptionRequests] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [xp, setXp] = useState(0)
   const [moneyBalance, setMoneyBalance] = useState(0)
@@ -39,6 +40,7 @@ export default function ChildGiftsPage() {
       if (!response.ok || !result.success) { router.push('/family-login'); return }
 
       setGifts(result.gifts)
+      setRedemptionRequests(result.redemption_requests || [])
       setXp(result.xp)
       setMoneyBalance(result.money_balance)
 
@@ -155,7 +157,6 @@ export default function ChildGiftsPage() {
               const isApproved = status === 'approved'
               const isRejected = status === 'rejected'
               const isRevoked = status === 'revoked'
-              const historyCount = gift.redemption_history?.length || 0
               return (
                 <div key={gift.id} onClick={() => openGiftModal(gift)}
                   className="ghrs-card p-5 cursor-pointer active:scale-[0.98] transition-all"
@@ -178,11 +179,6 @@ export default function ChildGiftsPage() {
                             </span>
                           )}
                         </div>
-                        {historyCount > 1 && (
-                          <p className="text-xs mt-1" style={{ color: 'var(--ghrs-text-tertiary)' }}>
-                            {historyCount} طلبات سابقة
-                          </p>
-                        )}
                       </div>
                     </div>
                     <div className="text-xs font-bold px-3 py-2 rounded-xl" style={{
@@ -196,6 +192,57 @@ export default function ChildGiftsPage() {
               )
             })}
           </div>
+        )}
+
+        {/* طلبات الهدايا */}
+        {redemptionRequests.length > 0 && (
+          <>
+            <h2 className="text-xl font-bold mt-10 mb-4" style={{ color: 'var(--ghrs-text-primary)' }}>طلبات الهدايا</h2>
+            <div className="space-y-2">
+              {redemptionRequests.map((req: any) => {
+                const getStatusInfo = (s: string) => {
+                  switch (s) {
+                    case 'approved': return { text: 'تم الموافقة', color: 'var(--ghrs-green-600)', bg: 'var(--ghrs-green-50)' }
+                    case 'rejected': return { text: 'تم الرفض', color: 'var(--ghrs-red-600)', bg: 'var(--ghrs-red-50)' }
+                    case 'revoked': return { text: 'تم سحب الموافقة', color: 'var(--ghrs-purple-600)', bg: 'var(--ghrs-purple-50)' }
+                    case 'pending': return { text: 'بانتظار', color: 'var(--ghrs-amber-700)', bg: 'var(--ghrs-amber-50)' }
+                    default: return { text: s, color: 'var(--ghrs-text-secondary)', bg: 'var(--ghrs-bg-tertiary)' }
+                  }
+                }
+                const si = getStatusInfo(req.status)
+                return (
+                  <div key={req.id} className="ghrs-card p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <GiftsIcon size={20} color="var(--ghrs-purple-600)" />
+                        <div>
+                          <p className="text-sm font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>{req.gift_name}</p>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ background: si.bg, color: si.color }}>
+                              {req.status === 'pending' && <ClockIcon size={10} className="inline" />} {si.text}
+                            </span>
+                            {req.requested_xp != null && (
+                              <span className="text-xs" style={{ color: 'var(--ghrs-text-tertiary)' }}>
+                                <StarIcon size={10} className="inline" /> {req.requested_xp} XP
+                              </span>
+                            )}
+                            {req.money_spent != null && req.money_spent > 0 && (
+                              <span className="text-xs" style={{ color: 'var(--ghrs-text-tertiary)' }}>
+                                <CoinIcon size={10} className="inline" /> {fmtMoney(req.money_spent)}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <span className="text-xs" style={{ color: 'var(--ghrs-text-tertiary)' }}>
+                        {new Date(req.date).toLocaleDateString('ar')}
+                      </span>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </>
         )}
       </div>
 

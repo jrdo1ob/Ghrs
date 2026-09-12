@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
         supabase.from('gifts').select('*').eq('family_id', familyId).eq('is_active', true),
         supabase.from('xp_transactions').select('amount').eq('member_id', memberId),
         supabase.from('money_transactions').select('amount, type').eq('member_id', memberId).eq('status', 'approved'),
-        supabase.from('gift_redemptions').select('gift_id, status, requested_xp_cost, xp_spent, money_spent, redeemed_at').eq('member_id', memberId),
+        supabase.from('gift_redemptions').select('id, gift_id, status, requested_xp_cost, xp_spent, money_spent, redeemed_at').eq('member_id', memberId),
       ])
 
       // Build full redemption history per gift for this child
@@ -141,9 +141,25 @@ export async function POST(request: NextRequest) {
         }
       })
 
+      // Build flat list of all requests with gift titles
+      const giftTitleById = new Map((giftsResult.data || []).map((g: any) => [g.id, g.title]))
+      const redemptionRequests = allRedemptions
+        .map((r: any) => ({
+          id: r.id,
+          gift_id: r.gift_id,
+          gift_name: giftTitleById.get(r.gift_id) || 'هدية',
+          status: r.status,
+          requested_xp: r.requested_xp_cost,
+          xp_spent: r.xp_spent,
+          money_spent: r.money_spent,
+          date: r.redeemed_at,
+        }))
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+
       return NextResponse.json({
         success: true,
         gifts: enrichedGifts,
+        redemption_requests: redemptionRequests,
         xp: (xpResult.data || []).reduce((sum, t) => sum + t.amount, 0),
         money_balance: (moneyResult.data || []).reduce((sum, t) => sum + (t.type === 'earned' ? t.amount : -t.amount), 0),
       })
