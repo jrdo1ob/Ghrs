@@ -129,8 +129,24 @@ export interface GiftRedemption {
   id: string
   gift_id: string
   member_id: string
+  status: 'pending' | 'approved' | 'rejected' | 'revoked'
+  requested_xp_cost: number | null
   xp_spent: number
+  money_spent: number | null
   redeemed_at: string
+  approved_by: string | null
+  approved_at: string | null
+  rejected_by: string | null
+  rejected_at: string | null
+  rejection_reason: string | null
+}
+
+export interface GiftRedemptionHistoryEntry {
+  status: 'pending' | 'approved' | 'rejected' | 'revoked'
+  requested_xp: number | null
+  xp_spent: number
+  money_spent: number | null
+  date: string
 }
 
 export interface AchievementDefinition {

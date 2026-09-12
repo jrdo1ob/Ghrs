@@ -155,14 +155,15 @@ export default function ChildGiftsPage() {
               const isApproved = status === 'approved'
               const isRejected = status === 'rejected'
               const isRevoked = status === 'revoked'
+              const historyCount = gift.redemption_history?.length || 0
               return (
                 <div key={gift.id} onClick={() => openGiftModal(gift)}
                   className="ghrs-card p-5 cursor-pointer active:scale-[0.98] transition-all"
                   style={{ opacity: canAfford ? 1 : 0.6, border: canAfford ? '2px solid var(--ghrs-amber-300)' : '1px solid var(--ghrs-border-default)' }}>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3 flex-1">
-                      <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: isApproved ? 'var(--ghrs-green-50)' : (isRejected || isRevoked) ? 'var(--ghrs-red-50)' : 'var(--ghrs-purple-50)' }}>
-                        <GiftsIcon size={24} color={isApproved ? 'var(--ghrs-green-600)' : (isRejected || isRevoked) ? 'var(--ghrs-red-600)' : 'var(--ghrs-purple-600)'} />
+                      <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: isApproved ? 'var(--ghrs-green-50)' : isRevoked ? 'var(--ghrs-purple-50)' : isRejected ? 'var(--ghrs-red-50)' : 'var(--ghrs-purple-50)' }}>
+                        <GiftsIcon size={24} color={isApproved ? 'var(--ghrs-green-600)' : isRevoked ? 'var(--ghrs-purple-600)' : isRejected ? 'var(--ghrs-red-600)' : 'var(--ghrs-purple-600)'} />
                       </div>
                       <div className="flex-1">
                         <h3 className="font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>{gift.title}</h3>
@@ -177,13 +178,18 @@ export default function ChildGiftsPage() {
                             </span>
                           )}
                         </div>
+                        {historyCount > 1 && (
+                          <p className="text-xs mt-1" style={{ color: 'var(--ghrs-text-tertiary)' }}>
+                            {historyCount} طلبات سابقة
+                          </p>
+                        )}
                       </div>
                     </div>
                     <div className="text-xs font-bold px-3 py-2 rounded-xl" style={{
-                      background: isApproved ? 'var(--ghrs-green-50)' : (isRejected || isRevoked) ? 'var(--ghrs-red-50)' : isPending ? 'var(--ghrs-amber-50)' : canAfford ? 'var(--ghrs-amber-50)' : 'var(--ghrs-bg-tertiary)',
-                      color: isApproved ? 'var(--ghrs-green-700)' : (isRejected || isRevoked) ? 'var(--ghrs-red-600)' : isPending ? 'var(--ghrs-amber-700)' : canAfford ? 'var(--ghrs-amber-700)' : 'var(--ghrs-text-tertiary)'
+                      background: isApproved ? 'var(--ghrs-green-50)' : isRevoked ? 'var(--ghrs-purple-50)' : isRejected ? 'var(--ghrs-red-50)' : isPending ? 'var(--ghrs-amber-50)' : canAfford ? 'var(--ghrs-amber-50)' : 'var(--ghrs-bg-tertiary)',
+                      color: isApproved ? 'var(--ghrs-green-700)' : isRevoked ? 'var(--ghrs-purple-600)' : isRejected ? 'var(--ghrs-red-600)' : isPending ? 'var(--ghrs-amber-700)' : canAfford ? 'var(--ghrs-amber-700)' : 'var(--ghrs-text-tertiary)'
                     }}>
-                      {isApproved ? 'تم الموافقة' : isRevoked ? 'تم الرفض بعد الموافقة' : isRejected ? 'تم الرفض' : isPending ? <><ClockIcon size={12} className="inline" /> بانتظار</> : canAfford ? 'اضغط للتفاصيل' : <LockIcon size={14} />}
+                      {isApproved ? 'تم الموافقة' : isRevoked ? 'تم سحب الموافقة' : isRejected ? 'تم الرفض' : isPending ? <><ClockIcon size={12} className="inline" /> بانتظار</> : canAfford ? 'اضغط للتفاصيل' : <LockIcon size={14} />}
                     </div>
                   </div>
                 </div>

@@ -1,7 +1,7 @@
 'use client'
 
 import { motion, AnimatePresence } from 'framer-motion'
-import { GiftsIcon, StarIcon, CoinIcon, CheckIcon, LockIcon } from '@/components/icons'
+import { GiftsIcon, StarIcon, CoinIcon, CheckIcon, LockIcon, ClockIcon } from '@/components/icons'
 
 interface RewardDetailsModalProps {
   show: boolean
@@ -22,6 +22,19 @@ export default function RewardDetailsModal({
   const canAffordXp = childXp >= gift.cost_xp
   const canAffordMoney = gift.cost_money <= 0 || childMoney >= gift.cost_money
   const canAfford = canAffordXp && canAffordMoney
+
+  const history = gift.redemption_history || []
+  const hasHistory = history.length > 0
+
+  const getStatusInfo = (s: string) => {
+    switch (s) {
+      case 'approved': return { text: 'تم الموافقة', color: 'var(--ghrs-green-600)', bg: 'var(--ghrs-green-50)' }
+      case 'rejected': return { text: 'تم الرفض', color: 'var(--ghrs-red-600)', bg: 'var(--ghrs-red-50)' }
+      case 'revoked': return { text: 'تم سحب الموافقة', color: 'var(--ghrs-purple-600)', bg: 'var(--ghrs-purple-50)' }
+      case 'pending': return { text: 'بانتظار', color: 'var(--ghrs-amber-700)', bg: 'var(--ghrs-amber-50)' }
+      default: return { text: s, color: 'var(--ghrs-text-secondary)', bg: 'var(--ghrs-bg-tertiary)' }
+    }
+  }
 
   return (
     <AnimatePresence>
@@ -93,6 +106,39 @@ export default function RewardDetailsModal({
                   رصيدك الحالي: {childXp} XP{gift.cost_money > 0 && ` + ${formatMoney(childMoney)}`}
                 </p>
               </div>
+
+              {/* Request History */}
+              {hasHistory && (
+                <div className="mb-6">
+                  <h3 className="text-sm font-bold mb-3" style={{ color: 'var(--ghrs-text-secondary)' }}>سجل الطلبات:</h3>
+                  <div className="space-y-2">
+                    {history.map((entry: any, i: number) => {
+                      const si = getStatusInfo(entry.status)
+                      return (
+                        <div key={i} className="flex items-center justify-between p-3 rounded-xl" style={{ background: 'var(--ghrs-bg-tertiary)' }}>
+                          <div className="flex items-center gap-2">
+                            {entry.status === 'pending' && <ClockIcon size={14} color={si.color} />}
+                            <span className="text-xs font-bold" style={{ color: si.color }}>{si.text}</span>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className="text-xs" style={{ color: 'var(--ghrs-text-tertiary)' }}>
+                              {entry.requested_xp != null ? `${entry.requested_xp} XP` : ''}
+                            </span>
+                            {entry.money_spent != null && entry.money_spent > 0 && (
+                              <span className="text-xs" style={{ color: 'var(--ghrs-text-tertiary)' }}>
+                                {formatMoney(entry.money_spent)}
+                              </span>
+                            )}
+                            <span className="text-xs" style={{ color: 'var(--ghrs-text-tertiary)' }}>
+                              {new Date(entry.date).toLocaleDateString('ar')}
+                            </span>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
 
               {/* Redeem Button */}
               <button

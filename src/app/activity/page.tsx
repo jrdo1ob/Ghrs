@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { ParentBottomNav, ParentSidebar, PageHeader, EmptyState, Toast, Skeleton } from '@/components/layout'
 import { getCurrentUser, AuthUser } from '@/lib/auth/helper'
 import { useFamilyCurrency } from '@/hooks/useFamilyCurrency'
-import { StarIcon, CoinIcon, CheckIcon, RejectIcon, ClockIcon, ChildIcon, TasksIcon, EditIcon, CopyIcon, DeleteIcon } from '@/components/icons'
+import { StarIcon, CoinIcon, CheckIcon, RejectIcon, ClockIcon, ChildIcon, TasksIcon, GiftsIcon } from '@/components/icons'
 
 interface ActivityEvent {
   id: string
@@ -28,6 +28,8 @@ export default function ActivityLogPage() {
   const [loading, setLoading] = useState(true)
   const [filterChild, setFilterChild] = useState<string>('all')
   const [filterType, setFilterType] = useState<string>('all')
+  const [filterCategory, setFilterCategory] = useState<string>('all')
+  const [searchQuery, setSearchQuery] = useState('')
   const [children, setChildren] = useState<any[]>([])
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
   const [revokeConfirm, setRevokeConfirm] = useState<ActivityEvent | null>(null)
@@ -77,6 +79,29 @@ export default function ActivityLogPage() {
     setFilterType(type)
     await loadEvents(child, type)
   }
+
+  // Client-side filtered events (category + search)
+  const filteredEvents = useMemo(() => {
+    let result = events
+
+    // Category filter (gift vs task)
+    if (filterCategory === 'gift') {
+      result = result.filter(e => e.is_gift)
+    } else if (filterCategory === 'task') {
+      result = result.filter(e => !e.is_gift)
+    }
+
+    // Text search (child name + gift/task title)
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase()
+      result = result.filter(e =>
+        e.child_name.toLowerCase().includes(q) ||
+        e.task_title.toLowerCase().includes(q)
+      )
+    }
+
+    return result
+  }, [events, filterCategory, searchQuery])
 
   const handleApprove = async (completionId: string) => {
     if (!authUser) return
@@ -182,13 +207,13 @@ export default function ActivityLogPage() {
     }
   }
 
-  const getEventIcon = (type: string) => {
+  const getEventStatusIcon = (type: string) => {
     switch (type) {
-      case 'completed': return '🟡'
-      case 'approved': return '🟢'
-      case 'rejected': return '🔴'
-      case 'revoked': return '↩️'
-      default: return '⚪'
+      case 'completed': return <ClockIcon size={14} color="var(--ghrs-amber-600)" />
+      case 'approved': return <CheckIcon size={14} color="var(--ghrs-green-600)" />
+      case 'rejected': return <RejectIcon size={14} color="var(--ghrs-red-600)" />
+      case 'revoked': return <RejectIcon size={14} color="var(--ghrs-purple-600)" />
+      default: return <ClockIcon size={14} color="var(--ghrs-text-tertiary)" />
     }
   }
 
@@ -259,35 +284,67 @@ export default function ActivityLogPage() {
       <ParentSidebar />
       <div className="md:mr-[var(--ghrs-sidebar-width)] pb-24 md:pb-8">
         <div className="p-4 md:p-8 max-w-4xl mx-auto">
-          <PageHeader title="سجل النشاط" subtitle="إدارة اعتماد إنجازات المهام" backHref="/dashboard" />
+          <PageHeader title="سجل النشاط" subtitle="سجل إنجازات وطلبات الأطفال" backHref="/dashboard" />
+
+          {/* Search */}
+          <div className="mb-4">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              placeholder="بحث بالاسم أو العنوان..."
+              className="ghrs-input w-full"
+              style={{ fontSize: '14px' }}
+            />
+          </div>
 
           {/* Filters */}
           <div className="mb-6">
+            {/* Category Filter (Gift vs Task) */}
+            <div className="flex gap-2 mb-3 overflow-x-auto pb-2">
+              <button onClick={() => setFilterCategory('all')}
+                className="px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1"
+                style={{ background: filterCategory === 'all' ? 'var(--ghrs-green-100)' : 'var(--ghrs-bg-tertiary)', color: filterCategory === 'all' ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)' }}>
+                الكل
+              </button>
+              <button onClick={() => setFilterCategory('gift')}
+                className="px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1"
+                style={{ background: filterCategory === 'gift' ? 'var(--ghrs-purple-100)' : 'var(--ghrs-bg-tertiary)', color: filterCategory === 'gift' ? 'var(--ghrs-purple-700)' : 'var(--ghrs-text-secondary)' }}>
+                <GiftsIcon size={14} /> الهدايا
+              </button>
+              <button onClick={() => setFilterCategory('task')}
+                className="px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1"
+                style={{ background: filterCategory === 'task' ? 'var(--ghrs-amber-100)' : 'var(--ghrs-bg-tertiary)', color: filterCategory === 'task' ? 'var(--ghrs-amber-700)' : 'var(--ghrs-text-secondary)' }}>
+                <TasksIcon size={14} /> المهام
+              </button>
+            </div>
+
+            {/* Status Filter */}
             <div className="flex gap-2 mb-3 overflow-x-auto pb-2">
               <button onClick={() => handleFilterChange(filterChild, 'all')}
-                className="px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap"
+                className="px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1"
                 style={{ background: filterType === 'all' ? 'var(--ghrs-green-100)' : 'var(--ghrs-bg-tertiary)', color: filterType === 'all' ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)' }}>
                 الكل
               </button>
               <button onClick={() => handleFilterChange(filterChild, 'completed')}
-                className="px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap"
+                className="px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1"
                 style={{ background: filterType === 'completed' ? 'var(--ghrs-amber-100)' : 'var(--ghrs-bg-tertiary)', color: filterType === 'completed' ? 'var(--ghrs-amber-700)' : 'var(--ghrs-text-secondary)' }}>
-                🟡 إنجاز
+                <ClockIcon size={12} /> إنجاز
               </button>
               <button onClick={() => handleFilterChange(filterChild, 'approved')}
-                className="px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap"
+                className="px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1"
                 style={{ background: filterType === 'approved' ? 'var(--ghrs-green-100)' : 'var(--ghrs-bg-tertiary)', color: filterType === 'approved' ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)' }}>
-                🟢 اعتماد
+                <CheckIcon size={12} /> اعتماد
               </button>
               <button onClick={() => handleFilterChange(filterChild, 'rejected')}
-                className="px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap"
+                className="px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1"
                 style={{ background: filterType === 'rejected' ? 'var(--ghrs-red-100)' : 'var(--ghrs-bg-tertiary)', color: filterType === 'rejected' ? 'var(--ghrs-red-700)' : 'var(--ghrs-text-secondary)' }}>
-                🔴 رفض
+                <RejectIcon size={12} /> رفض
               </button>
               <button onClick={() => handleFilterChange(filterChild, 'revoked')}
-                className="px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap"
+                className="px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1"
                 style={{ background: filterType === 'revoked' ? 'var(--ghrs-purple-100)' : 'var(--ghrs-bg-tertiary)', color: filterType === 'revoked' ? 'var(--ghrs-purple-700)' : 'var(--ghrs-text-secondary)' }}>
-                ↩️ سحب
+                <RejectIcon size={12} /> سحب
               </button>
             </div>
 
@@ -312,11 +369,13 @@ export default function ActivityLogPage() {
 
           {/* Events List */}
           <div className="space-y-3">
-            {events.map(event => (
+            {filteredEvents.map(event => (
               <div key={event.id} className="ghrs-card p-4">
                 <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'var(--ghrs-green-50)' }}>
-                    <ChildIcon size={20} color="var(--ghrs-green-600)" />
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: event.is_gift ? 'var(--ghrs-purple-50)' : 'var(--ghrs-green-50)' }}>
+                    {event.is_gift
+                      ? <GiftsIcon size={20} color="var(--ghrs-purple-600)" />
+                      : <ChildIcon size={20} color="var(--ghrs-green-600)" />}
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
@@ -324,8 +383,17 @@ export default function ActivityLogPage() {
                       <span className="text-sm" style={{ color: 'var(--ghrs-text-secondary)' }}>{getEventVerb(event.type, event.is_gift)}</span>
                       <span className="font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>{event.task_title}</span>
                     </div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="px-2 py-0.5 rounded-full text-xs font-bold" style={{
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
+                      {/* Category badge */}
+                      <span className="px-2 py-0.5 rounded-full text-xs font-bold flex items-center gap-1" style={{
+                        background: event.is_gift ? 'var(--ghrs-purple-100)' : 'var(--ghrs-amber-100)',
+                        color: event.is_gift ? 'var(--ghrs-purple-700)' : 'var(--ghrs-amber-700)'
+                      }}>
+                        {event.is_gift ? <GiftsIcon size={12} /> : <TasksIcon size={12} />}
+                        {event.is_gift ? 'هدية' : 'مهمة'}
+                      </span>
+                      {/* Status badge */}
+                      <span className="px-2 py-0.5 rounded-full text-xs font-bold flex items-center gap-1" style={{
                         background: event.type === 'completed' ? 'var(--ghrs-amber-100)' :
                                    event.type === 'approved' ? 'var(--ghrs-green-100)' :
                                    event.type === 'rejected' ? 'var(--ghrs-red-100)' : 'var(--ghrs-purple-100)',
@@ -333,7 +401,7 @@ export default function ActivityLogPage() {
                                event.type === 'approved' ? 'var(--ghrs-green-700)' :
                                event.type === 'rejected' ? 'var(--ghrs-red-700)' : 'var(--ghrs-purple-700)'
                       }}>
-                        {getEventIcon(event.type)} {getEventLabel(event.type)}
+                        {getEventStatusIcon(event.type)} {getEventLabel(event.type)}
                       </span>
                     </div>
                     {/* XP/Money amounts for gift events */}
@@ -385,8 +453,8 @@ export default function ActivityLogPage() {
             ))}
           </div>
 
-          {events.length === 0 && (
-            <EmptyState icon={<ClockIcon size={48} />} title="لا يوجد نشاط" description="لم تُسجل أي عمليات بعد" />
+          {filteredEvents.length === 0 && (
+            <EmptyState icon={<ClockIcon size={48} />} title="لا يوجد نشاط" description={searchQuery || filterCategory !== 'all' ? 'لا توجد نتائج مطابقة للبحث' : 'لم تُسجل أي عمليات بعد'} />
           )}
         </div>
       </div>

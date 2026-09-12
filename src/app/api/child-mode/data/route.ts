@@ -104,28 +104,40 @@ export async function POST(request: NextRequest) {
         supabase.from('gifts').select('*').eq('family_id', familyId).eq('is_active', true),
         supabase.from('xp_transactions').select('amount').eq('member_id', memberId),
         supabase.from('money_transactions').select('amount, type').eq('member_id', memberId).eq('status', 'approved'),
-        supabase.from('gift_redemptions').select('gift_id, status, requested_xp_cost, xp_spent, redeemed_at').eq('member_id', memberId),
+        supabase.from('gift_redemptions').select('gift_id, status, requested_xp_cost, xp_spent, money_spent, redeemed_at').eq('member_id', memberId),
       ])
 
-      // Build redemption status map for this child
-      const redemptionMap = new Map()
-      for (const r of (redemptionsResult.data || [])) {
-        // Keep only the most recent redemption per gift
-        const existing = redemptionMap.get(r.gift_id)
-        if (!existing || new Date(r.redeemed_at) > new Date(existing.redeemed_at)) {
-          redemptionMap.set(r.gift_id, r)
-        }
+      // Build full redemption history per gift for this child
+      const allRedemptions = (redemptionsResult.data || [])
+      const redemptionsByGift = new Map<string, typeof allRedemptions>()
+      for (const r of allRedemptions) {
+        const list = redemptionsByGift.get(r.gift_id) || []
+        list.push(r)
+        redemptionsByGift.set(r.gift_id, list)
       }
 
-      // Enrich gifts with redemption status
+      // Sort each gift's history by date descending (newest first)
+      for (const list of redemptionsByGift.values()) {
+        list.sort((a, b) => new Date(b.redeemed_at).getTime() - new Date(a.redeemed_at).getTime())
+      }
+
+      // Enrich gifts with latest status + full history
       const enrichedGifts = (giftsResult.data || []).map((g: any) => {
-        const redemption = redemptionMap.get(g.id)
+        const history = redemptionsByGift.get(g.id) || []
+        const latest = history[0] || null
         return {
           ...g,
-          redemption_status: redemption?.status || null,
-          redemption_requested_xp: redemption?.requested_xp_cost || null,
-          redemption_xp_spent: redemption?.xp_spent || null,
-          redemption_date: redemption?.redeemed_at || null,
+          redemption_status: latest?.status || null,
+          redemption_requested_xp: latest?.requested_xp_cost || null,
+          redemption_xp_spent: latest?.xp_spent || null,
+          redemption_date: latest?.redeemed_at || null,
+          redemption_history: history.map((r: any) => ({
+            status: r.status,
+            requested_xp: r.requested_xp_cost,
+            xp_spent: r.xp_spent,
+            money_spent: r.money_spent,
+            date: r.redeemed_at,
+          })),
         }
       })
 
