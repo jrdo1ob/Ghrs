@@ -663,11 +663,100 @@ body {
   animation: ghrs-confetti 1s ease-out forwards;
 }
 
+/* ===== Safe Area ===== */
+:root {
+  --ghrs-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --ghrs-nav-total: calc(var(--ghrs-nav-height) + var(--ghrs-safe-bottom));
+}
+
 /* ===== Responsive ===== */
 @media (max-width: 768px) {
   :root {
     --ghrs-nav-height: 4.5rem;
   }
+}
+
+/* ===== Child Mode Soft Palette ===== */
+.child-mode {
+  --ghrs-bg-primary: #fefcf7;
+  --ghrs-bg-secondary: #f6f2ea;
+  --ghrs-bg-tertiary: #ece7db;
+  --ghrs-bg-card: #ffffff;
+  --ghrs-bg-card-hover: #faf7f0;
+  --ghrs-text-primary: #2a3a2c;
+  --ghrs-text-secondary: #5c6d5e;
+  --ghrs-text-tertiary: #8d9c8f;
+  --ghrs-border-default: #e3ded2;
+  --ghrs-border-strong: #cdc5b5;
+  --ghrs-shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
+  --ghrs-shadow-md: 0 4px 12px rgba(0,0,0,0.06);
+  --ghrs-shadow-lg: 0 8px 24px rgba(0,0,0,0.08);
+  --ghrs-shadow-xl: 0 16px 40px rgba(0,0,0,0.10);
+}
+
+[data-theme="dark"] .child-mode {
+  --ghrs-bg-primary: #0f1514;
+  --ghrs-bg-secondary: #172120;
+  --ghrs-bg-tertiary: #212f2a;
+  --ghrs-bg-card: #172120;
+  --ghrs-bg-card-hover: #212f2a;
+  --ghrs-text-primary: #e6ede7;
+  --ghrs-text-secondary: #a7b8a9;
+  --ghrs-text-tertiary: #667a68;
+  --ghrs-border-default: #283830;
+  --ghrs-border-strong: #384a3e;
+  --ghrs-shadow-sm: 0 1px 3px rgba(0,0,0,0.2);
+  --ghrs-shadow-md: 0 4px 12px rgba(0,0,0,0.3);
+  --ghrs-shadow-lg: 0 8px 24px rgba(0,0,0,0.35);
+  --ghrs-shadow-xl: 0 16px 40px rgba(0,0,0,0.4);
+}
+
+/* ===== Child Mode Task Card ===== */
+.ghrs-child-task-card {
+  background: var(--ghrs-bg-card);
+  border: 1.5px solid var(--ghrs-border-default);
+  border-radius: 1.25rem;
+  box-shadow: var(--ghrs-shadow-sm);
+  padding: 1rem 1.125rem;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.ghrs-child-task-card:active {
+  transform: scale(0.985);
+}
+
+.ghrs-child-task-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 4px;
+  border-radius: 0 1.25rem 1.25rem 0;
+}
+
+.ghrs-child-task-card[data-priority="high"]::before {
+  background: var(--ghrs-red-400);
+}
+
+.ghrs-child-task-card[data-priority="medium"]::before {
+  background: var(--ghrs-amber-400);
+}
+
+.ghrs-child-task-card[data-priority="low"]::before {
+  background: var(--ghrs-green-400);
+}
+
+/* ===== Child Mode Section Card ===== */
+.ghrs-child-card {
+  background: var(--ghrs-bg-card);
+  border: 1.5px solid var(--ghrs-border-default);
+  border-radius: 1.5rem;
+  box-shadow: var(--ghrs-shadow-sm);
+  padding: 1.25rem;
+  transition: box-shadow 0.2s ease;
 }
 
 /* ===== Accessibility ===== */

@@ -144,8 +144,17 @@ export function ChildBottomNav() {
   ]
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50" style={{ background: 'var(--ghrs-bg-card)', borderTop: '1px solid var(--ghrs-border-default)', boxShadow: '0 -4px 12px rgba(0,0,0,0.05)' }} aria-label="التنقل السفلي للطفل">
-      <div className="flex items-center justify-around h-[var(--ghrs-nav-height)] px-2">
+    <nav
+      className="fixed bottom-0 left-0 right-0 z-50"
+      style={{
+        background: 'var(--ghrs-bg-card)',
+        borderTop: '1px solid var(--ghrs-border-default)',
+        boxShadow: '0 -2px 12px rgba(0,0,0,0.06)',
+        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+      }}
+      aria-label="التنقل السفلي للطفل"
+    >
+      <div className="flex items-center justify-around h-16 px-1">
         {tabs.map((tab) => {
           const isActive = tab.href === '/child-mode'
             ? pathname === '/child-mode'
@@ -154,14 +163,14 @@ export function ChildBottomNav() {
             <Link
               key={tab.href}
               href={tab.href}
-              className={`flex flex-col items-center justify-center gap-0.5 px-3 py-2 rounded-xl transition-all ${
-                isActive
-                  ? 'text-ghrs-green-700 bg-ghrs-green-50'
-                  : 'text-ghrs-text-secondary hover:text-ghrs-green-600'
-              }`}
+              className="flex flex-col items-center justify-center gap-0.5 min-w-0 flex-1 py-1.5 rounded-xl transition-all"
+              style={{
+                color: isActive ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-tertiary)',
+                background: isActive ? 'var(--ghrs-green-50)' : 'transparent',
+              }}
             >
-              <span className="text-xl">{tab.icon}</span>
-              <span className="text-xs font-semibold">{tab.label}</span>
+              <span className="text-xl leading-none">{tab.icon}</span>
+              <span className="text-[10px] font-bold leading-tight mt-0.5">{tab.label}</span>
             </Link>
           )
         })}

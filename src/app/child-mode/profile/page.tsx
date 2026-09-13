@@ -7,7 +7,7 @@ import { LEVELS, getLevel, Level } from '@/lib/gamification'
 import ThemeToggle from '@/components/child/ThemeToggle'
 import ChildLoading from '@/components/child/ChildLoading'
 import AchievementBadge from '@/components/child/AchievementBadge'
-import { StarIcon, FireIcon, CheckIcon, TasksIcon, TrophyIcon, ShieldIcon } from '@/components/icons'
+import { StarIcon, FireIcon, CheckIcon, TasksIcon, TrophyIcon } from '@/components/icons'
 import { getCurrentUser } from '@/lib/auth/helper'
 
 export default function ChildProfilePage() {
@@ -66,57 +66,120 @@ export default function ChildProfilePage() {
     <div className="min-h-screen" style={{ background: 'var(--ghrs-bg-primary)' }}>
       {toast && <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />}
 
-      <div className="p-4 md:p-8 max-w-2xl mx-auto pb-32">
-        <div className="flex justify-end mb-4">
+      <div
+        className="p-4 md:p-8 max-w-2xl mx-auto"
+        style={{ paddingBottom: 'var(--ghrs-nav-total)' }}
+      >
+        <div className="flex justify-end mb-3">
           <ThemeToggle />
         </div>
 
         {/* Profile Header */}
-        <div className="ghrs-card p-6 mb-6 text-center">
-          <div className="text-6xl mb-3">{level.emoji}</div>
-          <h1 className="text-2xl font-bold mb-1" style={{ color: 'var(--ghrs-text-primary)' }}>{member?.name}</h1>
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mt-2" style={{ background: 'var(--ghrs-green-50)', border: '1px solid var(--ghrs-green-200)' }}>
-            <span className="text-lg">{level.emoji}</span>
-            <span className="font-bold text-sm" style={{ color: 'var(--ghrs-green-700)' }}>المستوى {level.level}: {level.name}</span>
+        <div
+          className="rounded-3xl p-6 mb-5 text-center"
+          style={{
+            background: 'linear-gradient(170deg, var(--ghrs-green-50) 0%, var(--ghrs-bg-card) 70%)',
+            border: '1.5px solid var(--ghrs-green-200)',
+            boxShadow: 'var(--ghrs-shadow-md)',
+          }}
+        >
+          <div className="text-5xl mb-3">{level.emoji}</div>
+          <h1 className="text-xl font-extrabold mb-1" style={{ color: 'var(--ghrs-text-primary)' }}>
+            {member?.name}
+          </h1>
+          <div
+            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mt-1"
+            style={{
+              background: 'var(--ghrs-green-100)',
+              border: '1.5px solid var(--ghrs-green-200)',
+            }}
+          >
+            <span className="text-base">{level.emoji}</span>
+            <span className="font-bold text-xs" style={{ color: 'var(--ghrs-green-700)' }}>
+              المستوى {level.level}: {level.name}
+            </span>
           </div>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 gap-4 mb-6">
-          <div className="ghrs-card p-5 text-center">
-            <div className="w-12 h-12 rounded-full mx-auto mb-2 flex items-center justify-center" style={{ background: 'var(--ghrs-amber-50)' }}>
-              <StarIcon size={24} color="var(--ghrs-amber-600)" />
+        {/* Stats Grid */}
+        <div className="grid grid-cols-2 gap-3 mb-5">
+          <div
+            className="rounded-2xl p-4 text-center"
+            style={{
+              background: 'var(--ghrs-bg-card)',
+              border: '1.5px solid var(--ghrs-border-default)',
+              boxShadow: 'var(--ghrs-shadow-sm)',
+            }}
+          >
+            <div
+              className="w-10 h-10 rounded-xl mx-auto mb-2 flex items-center justify-center"
+              style={{ background: 'var(--ghrs-amber-50)', border: '1px solid var(--ghrs-amber-200)' }}
+            >
+              <StarIcon size={18} color="var(--ghrs-amber-600)" />
             </div>
-            <p className="text-2xl font-bold" style={{ color: 'var(--ghrs-amber-600)' }}>{xp}</p>
-            <p className="text-xs" style={{ color: 'var(--ghrs-text-secondary)' }}>XP</p>
+            <p className="text-xl font-extrabold" style={{ color: 'var(--ghrs-amber-600)' }}>{xp}</p>
+            <p className="text-[10px] font-semibold" style={{ color: 'var(--ghrs-text-tertiary)' }}>XP</p>
           </div>
-          <div className="ghrs-card p-5 text-center">
-            <div className="w-12 h-12 rounded-full mx-auto mb-2 flex items-center justify-center" style={{ background: 'var(--ghrs-red-50)' }}>
-              <FireIcon size={24} color="var(--ghrs-red-500)" />
+
+          <div
+            className="rounded-2xl p-4 text-center"
+            style={{
+              background: 'var(--ghrs-bg-card)',
+              border: '1.5px solid var(--ghrs-border-default)',
+              boxShadow: 'var(--ghrs-shadow-sm)',
+            }}
+          >
+            <div
+              className="w-10 h-10 rounded-xl mx-auto mb-2 flex items-center justify-center"
+              style={{ background: 'var(--ghrs-red-50)', border: '1px solid var(--ghrs-red-200)' }}
+            >
+              <FireIcon size={18} color="var(--ghrs-red-500)" />
             </div>
-            <p className="text-2xl font-bold" style={{ color: 'var(--ghrs-red-500)' }}>{streak}</p>
-            <p className="text-xs" style={{ color: 'var(--ghrs-text-secondary)' }}>أيام متتالية</p>
+            <p className="text-xl font-extrabold" style={{ color: 'var(--ghrs-red-500)' }}>{streak}</p>
+            <p className="text-[10px] font-semibold" style={{ color: 'var(--ghrs-text-tertiary)' }}>أيام متتالية</p>
           </div>
-          <div className="ghrs-card p-5 text-center">
-            <div className="w-12 h-12 rounded-full mx-auto mb-2 flex items-center justify-center" style={{ background: 'var(--ghrs-green-50)' }}>
-              <CheckIcon size={24} color="var(--ghrs-green-600)" />
+
+          <div
+            className="rounded-2xl p-4 text-center"
+            style={{
+              background: 'var(--ghrs-bg-card)',
+              border: '1.5px solid var(--ghrs-border-default)',
+              boxShadow: 'var(--ghrs-shadow-sm)',
+            }}
+          >
+            <div
+              className="w-10 h-10 rounded-xl mx-auto mb-2 flex items-center justify-center"
+              style={{ background: 'var(--ghrs-green-50)', border: '1px solid var(--ghrs-green-200)' }}
+            >
+              <CheckIcon size={18} color="var(--ghrs-green-600)" />
             </div>
-            <p className="text-2xl font-bold" style={{ color: 'var(--ghrs-green-600)' }}>{completedTasks}</p>
-            <p className="text-xs" style={{ color: 'var(--ghrs-text-secondary)' }}>مهام مكتملة</p>
+            <p className="text-xl font-extrabold" style={{ color: 'var(--ghrs-green-600)' }}>{completedTasks}</p>
+            <p className="text-[10px] font-semibold" style={{ color: 'var(--ghrs-text-tertiary)' }}>مهام مكتملة</p>
           </div>
-          <div className="ghrs-card p-5 text-center">
-            <div className="w-12 h-12 rounded-full mx-auto mb-2 flex items-center justify-center" style={{ background: 'var(--ghrs-blue-50)' }}>
-              <TasksIcon size={24} color="var(--ghrs-blue-600)" />
+
+          <div
+            className="rounded-2xl p-4 text-center"
+            style={{
+              background: 'var(--ghrs-bg-card)',
+              border: '1.5px solid var(--ghrs-border-default)',
+              boxShadow: 'var(--ghrs-shadow-sm)',
+            }}
+          >
+            <div
+              className="w-10 h-10 rounded-xl mx-auto mb-2 flex items-center justify-center"
+              style={{ background: 'var(--ghrs-blue-50)', border: '1px solid var(--ghrs-blue-200)' }}
+            >
+              <TasksIcon size={18} color="var(--ghrs-blue-600)" />
             </div>
-            <p className="text-2xl font-bold" style={{ color: 'var(--ghrs-blue-600)' }}>{totalTasks}</p>
-            <p className="text-xs" style={{ color: 'var(--ghrs-text-secondary)' }}>مهام نشطة</p>
+            <p className="text-xl font-extrabold" style={{ color: 'var(--ghrs-blue-600)' }}>{totalTasks}</p>
+            <p className="text-[10px] font-semibold" style={{ color: 'var(--ghrs-text-tertiary)' }}>مهام نشطة</p>
           </div>
         </div>
 
         {/* Achievements */}
-        <div className="mb-6">
-          <h3 className="text-lg font-bold mb-3 flex items-center gap-2" style={{ color: 'var(--ghrs-text-primary)' }}>
-            <TrophyIcon size={20} color="var(--ghrs-amber-600)" /> إنجازاتي
+        <div className="mb-5">
+          <h3 className="text-sm font-bold mb-3 flex items-center gap-2" style={{ color: 'var(--ghrs-text-primary)' }}>
+            <TrophyIcon size={16} color="var(--ghrs-amber-600)" /> إنجازاتي
           </h3>
           <div className="space-y-2">
             <AchievementBadge
@@ -142,7 +205,7 @@ export default function ChildProfilePage() {
             />
             <AchievementBadge
               title="المستوى العالي"
-              description="وصل إلى المستوى 4"
+              description="وصّل إلى المستوى 4"
               icon="🌳"
               unlocked={level.level >= 4}
               progress={{ current: level.level, max: 4 }}
@@ -167,8 +230,12 @@ export default function ChildProfilePage() {
         {/* Logout */}
         <button
           onClick={handleLogout}
-          className="w-full py-3 px-6 rounded-xl text-sm font-semibold transition-colors"
-          style={{ background: 'var(--ghrs-bg-tertiary)', color: 'var(--ghrs-text-tertiary)' }}
+          className="w-full py-3 px-6 rounded-xl text-xs font-semibold transition-all active:scale-[0.98]"
+          style={{
+            background: 'var(--ghrs-bg-secondary)',
+            color: 'var(--ghrs-text-tertiary)',
+            border: '1.5px solid var(--ghrs-border-default)',
+          }}
         >
           خروج من الحساب
         </button>

@@ -10,13 +10,13 @@ import TaskCompletionFeedback from '@/components/child/TaskCompletionFeedback'
 import ThemeToggle from '@/components/child/ThemeToggle'
 import ChildLoading from '@/components/child/ChildLoading'
 import { useSound } from '@/components/child/SoundManager'
-import { ClockIcon, StarIcon, CoinIcon, CheckIcon, QuranIcon, SparkleIcon, BookIcon } from '@/components/icons'
+import { ClockIcon, StarIcon, CoinIcon, CheckIcon, QuranIcon, SparkleIcon, BookIcon, TasksIcon } from '@/components/icons'
 import { getCurrentUser } from '@/lib/auth/helper'
 
-const PRIORITY_MAP: Record<string, { color: string; label: string }> = {
-  high: { color: 'var(--ghrs-red-500)', label: 'عالية' },
-  medium: { color: 'var(--ghrs-amber-500)', label: 'متوسطة' },
-  low: { color: 'var(--ghrs-green-500)', label: 'منخفضة' },
+const PRIORITY_MAP: Record<string, { color: string; label: string; bg: string; border: string }> = {
+  high: { color: 'var(--ghrs-red-500)', label: 'عالية', bg: 'var(--ghrs-red-50)', border: 'var(--ghrs-red-200)' },
+  medium: { color: 'var(--ghrs-amber-500)', label: 'متوسطة', bg: 'var(--ghrs-amber-50)', border: 'var(--ghrs-amber-200)' },
+  low: { color: 'var(--ghrs-green-500)', label: 'منخفضة', bg: 'var(--ghrs-green-50)', border: 'var(--ghrs-green-200)' },
 }
 
 export default function ChildTasksPage() {
@@ -119,8 +119,11 @@ export default function ChildTasksPage() {
   const isPendingToday = (taskId: string) => pendingToday.includes(taskId)
 
   if (loading) {
-    return <ChildLoading text="جاري تحميل المهام..." icon={<QuranIcon size={48} color="var(--ghrs-green-500)" />} />
+    return <ChildLoading text="جاري تحميل المهام..." icon={<TasksIcon size={48} color="var(--ghrs-green-500)" />} />
   }
+
+  const completedCount = completedToday.length
+  const pendingCount = pendingToday.length
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--ghrs-bg-primary)' }}>
@@ -148,88 +151,175 @@ export default function ChildTasksPage() {
         formatMoney={fmtMoney}
       />
 
-      <div className="p-4 md:p-8 max-w-2xl mx-auto pb-32">
-        <div className="flex justify-end mb-4">
+      <div
+        className="p-4 md:p-8 max-w-2xl mx-auto"
+        style={{ paddingBottom: 'var(--ghrs-nav-total)' }}
+      >
+        <div className="flex justify-end mb-3">
           <ThemeToggle />
         </div>
 
-        <h1 className="text-2xl font-extrabold mb-1" style={{ color: 'var(--ghrs-text-primary)' }}>مهامي</h1>
-        {childName && <p className="text-sm mb-6" style={{ color: 'var(--ghrs-text-secondary)' }}>مرحباً {childName}! أكمل مهامك اليومية</p>}
+        {/* Header */}
+        <div className="mb-5">
+          <h1 className="text-xl font-extrabold" style={{ color: 'var(--ghrs-text-primary)' }}>مهامي</h1>
+          {childName && (
+            <p className="text-xs mt-0.5" style={{ color: 'var(--ghrs-text-secondary)' }}>
+              مرحباً {childName}! أكمل مهامك اليومية
+            </p>
+          )}
+        </div>
 
         {tasks.length === 0 ? (
-          <div className="text-center py-16">
-            <BookIcon size={48} />
-            <p className="text-lg font-bold mt-4" style={{ color: 'var(--ghrs-text-primary)' }}>ما في مهام</p>
-            <p className="text-sm mt-1" style={{ color: 'var(--ghrs-text-secondary)' }}>استرح وتمتّع بيومك!</p>
+          <div
+            className="text-center py-16 rounded-3xl"
+            style={{
+              background: 'var(--ghrs-bg-card)',
+              border: '1.5px solid var(--ghrs-border-default)',
+            }}
+          >
+            <div className="text-4xl mb-3 ghrs-animate-float">🌿</div>
+            <p className="text-base font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>ما في مهام</p>
+            <p className="text-xs mt-1" style={{ color: 'var(--ghrs-text-tertiary)' }}>استرح وتمتّع بيومك!</p>
           </div>
         ) : (
-          <div className="space-y-3">
-            {tasks.map(task => {
-              const completed = isCompletedToday(task.id)
-              const pending = isPendingToday(task.id)
-              const priority = PRIORITY_MAP[task.priority || 'medium'] || PRIORITY_MAP.medium
-              const isQuran = task.task_type === 'quran'
-              const isDua = task.task_type === 'dua'
+          <>
+            {/* Progress summary */}
+            <div
+              className="mb-5 rounded-2xl p-4"
+              style={{
+                background: 'var(--ghrs-bg-card)',
+                border: '1.5px solid var(--ghrs-border-default)',
+                boxShadow: 'var(--ghrs-shadow-sm)',
+              }}
+            >
+              <div className="flex items-center gap-4 mb-3">
+                <div className="flex items-center gap-1.5">
+                  <CheckIcon size={14} color="var(--ghrs-green-600)" />
+                  <span className="text-sm font-bold" style={{ color: 'var(--ghrs-green-600)' }}>{completedCount} مكتملة</span>
+                </div>
+                <div className="w-px h-3" style={{ background: 'var(--ghrs-border-default)' }} />
+                <div className="flex items-center gap-1.5">
+                  <ClockIcon size={14} color="var(--ghrs-amber-600)" />
+                  <span className="text-sm font-bold" style={{ color: 'var(--ghrs-amber-600)' }}>{pendingCount} بانتظار</span>
+                </div>
+                <div className="flex-1" />
+                <span className="text-xs font-semibold" style={{ color: 'var(--ghrs-text-tertiary)' }}>
+                  {tasks.length} المجموع
+                </span>
+              </div>
+              <div className="ghrs-progress-bar" style={{ height: '6px' }}>
+                <div
+                  className="ghrs-progress-fill"
+                  style={{ width: `${tasks.length > 0 ? Math.round((completedCount / tasks.length) * 100) : 0}%` }}
+                />
+              </div>
+            </div>
 
-              return (
-                <div key={task.id} onClick={() => openTaskModal(task)}
-                  className="rounded-2xl p-4 transition-all cursor-pointer active:scale-[0.98]"
-                  style={{
-                    background: 'var(--ghrs-bg-card)',
-                    border: `1.5px solid var(--ghrs-border-default)`,
-                    borderRight: `4px solid ${priority.color}`,
-                    opacity: completed ? 0.7 : 1,
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
-                  }}>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3 flex-1">
-                      <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: isQuran ? 'var(--ghrs-green-50)' : isDua ? 'var(--ghrs-amber-50)' : 'var(--ghrs-bg-tertiary)' }}>
-                        {isQuran ? <QuranIcon size={20} color="var(--ghrs-green-600)" /> : isDua ? <SparkleIcon size={20} color="var(--ghrs-amber-600)" /> : <BookIcon size={20} color="var(--ghrs-text-secondary)" />}
+            {/* Task cards */}
+            <div className="space-y-3">
+              {tasks.map(task => {
+                const completed = isCompletedToday(task.id)
+                const pending = isPendingToday(task.id)
+                const priority = PRIORITY_MAP[task.priority || 'medium'] || PRIORITY_MAP.medium
+                const isQuran = task.task_type === 'quran'
+                const isDua = task.task_type === 'dua'
+
+                return (
+                  <div
+                    key={task.id}
+                    onClick={() => openTaskModal(task)}
+                    className="ghrs-child-task-card cursor-pointer active:scale-[0.98]"
+                    data-priority={task.priority || 'medium'}
+                    style={{ opacity: completed ? 0.65 : 1 }}
+                  >
+                    <div className="flex items-start gap-3">
+                      {/* Category icon */}
+                      <div
+                        className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
+                        style={{
+                          background: isQuran ? 'var(--ghrs-green-50)' : isDua ? 'var(--ghrs-amber-50)' : 'var(--ghrs-bg-secondary)',
+                          border: `1px solid ${isQuran ? 'var(--ghrs-green-200)' : isDua ? 'var(--ghrs-amber-200)' : 'var(--ghrs-border-default)'}`,
+                        }}
+                      >
+                        {isQuran ? <QuranIcon size={18} color="var(--ghrs-green-600)" /> : isDua ? <SparkleIcon size={18} color="var(--ghrs-amber-600)" /> : <BookIcon size={18} color="var(--ghrs-text-tertiary)" />}
                       </div>
+
+                      {/* Content */}
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-sm font-bold truncate" style={{
-                          color: completed ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-primary)',
-                          textDecoration: completed ? 'line-through' : 'none'
-                        }}>{task.title}</h3>
-                        <div className="flex items-center gap-2 mt-0.5">
-                          <span className="text-[10px] font-semibold" style={{ color: 'var(--ghrs-amber-600)' }}>
-                            <StarIcon size={10} className="inline" /> {task.xp_reward} XP
+                        <h3
+                          className="text-sm font-bold leading-snug"
+                          style={{
+                            color: completed ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-primary)',
+                            textDecoration: completed ? 'line-through' : 'none',
+                          }}
+                        >
+                          {task.title}
+                        </h3>
+
+                        {/* Rewards row */}
+                        <div className="flex items-center gap-2.5 mt-1.5 flex-wrap">
+                          <span
+                            className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md"
+                            style={{ background: 'var(--ghrs-amber-50)', color: 'var(--ghrs-amber-700)', border: '1px solid var(--ghrs-amber-200)' }}
+                          >
+                            <StarIcon size={10} color="var(--ghrs-amber-600)" /> {task.xp_reward} XP
                           </span>
                           {task.money_reward > 0 && (
-                            <span className="text-[10px] font-semibold" style={{ color: 'var(--ghrs-green-600)' }}>
-                              <CoinIcon size={10} className="inline" /> {fmtMoney(task.money_reward)}
+                            <span
+                              className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md"
+                              style={{ background: 'var(--ghrs-green-50)', color: 'var(--ghrs-green-700)', border: '1px solid var(--ghrs-green-200)' }}
+                            >
+                              <CoinIcon size={10} color="var(--ghrs-green-600)" /> {fmtMoney(task.money_reward)}
                             </span>
                           )}
                           {isQuran && task.quran_action_type && (
-                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{
-                              background: 'var(--ghrs-green-50)', color: 'var(--ghrs-green-700)'
-                            }}>
+                            <span
+                              className="text-[10px] font-bold px-2 py-0.5 rounded-md"
+                              style={{ background: 'var(--ghrs-green-100)', color: 'var(--ghrs-green-700)' }}
+                            >
                               {task.quran_action_type === 'memorize' ? 'حفظ' : 'قراءة'}
                             </span>
                           )}
+                          <span
+                            className="text-[9px] font-semibold px-1.5 py-0.5 rounded"
+                            style={{ background: priority.bg, color: priority.color, border: `1px solid ${priority.border}` }}
+                          >
+                            {priority.label}
+                          </span>
                         </div>
                       </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {completed ? (
-                        <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'var(--ghrs-green-500)' }}>
-                          <CheckIcon size={18} color="white" />
-                        </div>
-                      ) : pending ? (
-                        <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'var(--ghrs-amber-500)' }}>
-                          <ClockIcon size={18} color="white" />
-                        </div>
-                      ) : (
-                        <div className="text-xs font-bold px-3 py-2 rounded-xl" style={{ background: 'var(--ghrs-green-50)', color: 'var(--ghrs-green-700)' }}>
-                          اضغط للتفاصيل
-                        </div>
-                      )}
+
+                      {/* Status */}
+                      <div className="flex-shrink-0 mt-0.5">
+                        {completed ? (
+                          <div
+                            className="w-9 h-9 rounded-xl flex items-center justify-center"
+                            style={{ background: 'var(--ghrs-green-500)' }}
+                          >
+                            <CheckIcon size={16} color="white" />
+                          </div>
+                        ) : pending ? (
+                          <div
+                            className="w-9 h-9 rounded-xl flex items-center justify-center"
+                            style={{ background: 'var(--ghrs-amber-500)' }}
+                          >
+                            <ClockIcon size={16} color="white" />
+                          </div>
+                        ) : (
+                          <div
+                            className="px-3 py-2 rounded-xl text-[10px] font-bold"
+                            style={{ background: 'var(--ghrs-green-50)', color: 'var(--ghrs-green-700)', border: '1px solid var(--ghrs-green-200)' }}
+                          >
+                            اضغط للتفاصيل
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              )
-            })}
-          </div>
+                )
+              })}
+            </div>
+          </>
         )}
       </div>
 

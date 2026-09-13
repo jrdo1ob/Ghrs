@@ -34,13 +34,11 @@ export default function ChildGiftsPage() {
 
   useEffect(() => {
     const getData = async () => {
-      // Get authenticated user from secure session
       const authUser = await getCurrentUser()
       if (!authUser || authUser.role !== 'child') { router.push('/family-login'); return }
       const childId = authUser.memberId
       setChildId(childId)
 
-      // Gifts + balances are resolved server-side, scoped to this child
       const response = await fetch('/api/child-mode/data', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -60,7 +58,6 @@ export default function ChildGiftsPage() {
   }, [])
 
   const handleRedeem = async (giftId: string) => {
-    // Get authenticated user from secure session
     const authUser = await getCurrentUser()
     if (!authUser || authUser.role !== 'child' || redeeming) return
 
@@ -83,7 +80,6 @@ export default function ChildGiftsPage() {
       return
     }
 
-    // Refresh balances server-side after a successful redemption
     const refreshResponse = await fetch('/api/child-mode/data', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -116,10 +112,10 @@ export default function ChildGiftsPage() {
   }
 
   const statusConfig: Record<string, { label: string; color: string; bg: string; iconBg: string; icon: React.ReactNode }> = {
-    pending: { label: 'قيد الانتظار', color: 'var(--ghrs-amber-700)', bg: 'var(--ghrs-amber-50)', iconBg: 'var(--ghrs-amber-100)', icon: <ClockIcon size={24} color="var(--ghrs-amber-600)" /> },
-    rejected: { label: 'تم الرفض', color: 'var(--ghrs-red-600)', bg: 'var(--ghrs-red-50)', iconBg: 'var(--ghrs-red-100)', icon: <RejectIcon size={24} color="var(--ghrs-red-500)" /> },
-    approved: { label: 'تمت الموافقة', color: 'var(--ghrs-green-600)', bg: 'var(--ghrs-green-50)', iconBg: 'var(--ghrs-green-100)', icon: <CheckIcon size={24} color="var(--ghrs-green-500)" /> },
-    revoked: { label: 'تم سحب الموافقة', color: 'var(--ghrs-purple-600)', bg: 'var(--ghrs-purple-50)', iconBg: 'var(--ghrs-purple-100)', icon: <ClockIcon size={24} color="var(--ghrs-purple-500)" /> },
+    pending: { label: 'قيد الانتظار', color: 'var(--ghrs-amber-700)', bg: 'var(--ghrs-amber-50)', iconBg: 'var(--ghrs-amber-100)', icon: <ClockIcon size={22} color="var(--ghrs-amber-600)" /> },
+    rejected: { label: 'تم الرفض', color: 'var(--ghrs-red-600)', bg: 'var(--ghrs-red-50)', iconBg: 'var(--ghrs-red-100)', icon: <RejectIcon size={22} color="var(--ghrs-red-500)" /> },
+    approved: { label: 'تمت الموافقة', color: 'var(--ghrs-green-600)', bg: 'var(--ghrs-green-50)', iconBg: 'var(--ghrs-green-100)', icon: <CheckIcon size={22} color="var(--ghrs-green-500)" /> },
+    revoked: { label: 'تم سحب الموافقة', color: 'var(--ghrs-purple-600)', bg: 'var(--ghrs-purple-50)', iconBg: 'var(--ghrs-purple-100)', icon: <ClockIcon size={22} color="var(--ghrs-purple-500)" /> },
   }
 
   const groupedRequests = useMemo(() => {
@@ -158,38 +154,66 @@ export default function ChildGiftsPage() {
         formatMoney={fmtMoney}
       />
 
-      <div className="p-4 md:p-8 max-w-2xl mx-auto pb-32">
-        <div className="flex justify-end mb-4">
+      <div
+        className="p-4 md:p-8 max-w-2xl mx-auto"
+        style={{ paddingBottom: 'var(--ghrs-nav-total)' }}
+      >
+        <div className="flex justify-end mb-3">
           <ThemeToggle />
         </div>
 
-        {/* Balance Display */}
-        <div className="mb-6 rounded-3xl p-5" style={{ background: 'var(--ghrs-bg-card)', border: '1.5px solid var(--ghrs-border-default)', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-          <div className="flex items-center justify-center gap-8">
+        {/* Balance */}
+        <div
+          className="mb-5 rounded-3xl p-5"
+          style={{
+            background: 'var(--ghrs-bg-card)',
+            border: '1.5px solid var(--ghrs-border-default)',
+            boxShadow: 'var(--ghrs-shadow-sm)',
+          }}
+        >
+          <div className="flex items-center justify-center gap-6">
             <div className="text-center">
-              <div className="w-12 h-12 rounded-2xl mx-auto mb-1 flex items-center justify-center" style={{ background: 'var(--ghrs-amber-50)', border: '1.5px solid var(--ghrs-amber-200)' }}>
-                <StarIcon size={22} color="var(--ghrs-amber-600)" />
+              <div
+                className="w-11 h-11 rounded-xl mx-auto mb-1.5 flex items-center justify-center"
+                style={{ background: 'var(--ghrs-amber-50)', border: '1px solid var(--ghrs-amber-200)' }}
+              >
+                <StarIcon size={20} color="var(--ghrs-amber-600)" />
               </div>
-              <p className="text-2xl font-extrabold" style={{ color: 'var(--ghrs-amber-600)' }}>{xp}</p>
-              <p className="text-[10px]" style={{ color: 'var(--ghrs-text-tertiary)' }}>XP</p>
+              <p className="text-xl font-extrabold" style={{ color: 'var(--ghrs-amber-600)' }}>{xp}</p>
+              <p className="text-[10px] font-semibold" style={{ color: 'var(--ghrs-text-tertiary)' }}>XP</p>
             </div>
-            <div className="w-px h-12" style={{ background: 'var(--ghrs-border-default)' }} />
+            <div className="w-px h-10" style={{ background: 'var(--ghrs-border-default)' }} />
             <div className="text-center">
-              <div className="w-12 h-12 rounded-2xl mx-auto mb-1 flex items-center justify-center" style={{ background: 'var(--ghrs-green-50)', border: '1.5px solid var(--ghrs-green-200)' }}>
-                <CoinIcon size={22} color="var(--ghrs-green-600)" />
+              <div
+                className="w-11 h-11 rounded-xl mx-auto mb-1.5 flex items-center justify-center"
+                style={{ background: 'var(--ghrs-green-50)', border: '1px solid var(--ghrs-green-200)' }}
+              >
+                <CoinIcon size={20} color="var(--ghrs-green-600)" />
               </div>
-              <p className="text-2xl font-extrabold" style={{ color: 'var(--ghrs-green-600)' }}>{fmtMoney(moneyBalance)}</p>
-              <p className="text-[10px]" style={{ color: 'var(--ghrs-text-tertiary)' }}>د.ب</p>
+              <p className="text-xl font-extrabold" style={{ color: 'var(--ghrs-green-600)' }}>{fmtMoney(moneyBalance)}</p>
+              <p className="text-[10px] font-semibold" style={{ color: 'var(--ghrs-text-tertiary)' }}>د.ب</p>
             </div>
           </div>
         </div>
 
-        <h1 className="text-2xl font-extrabold mb-6" style={{ color: 'var(--ghrs-text-primary)' }}>هداياي</h1>
+        {/* Title */}
+        <h1 className="text-xl font-extrabold mb-5" style={{ color: 'var(--ghrs-text-primary)' }}>هداياي</h1>
 
+        {/* Gift cards */}
         {gifts.length === 0 ? (
-          <EmptyState icon={<GiftsIcon size={48} />} title="ما في هدايا حالياً" description="الوالد لم يضف هدايا بعد. انتظر!" />
+          <div
+            className="text-center py-14 rounded-3xl"
+            style={{
+              background: 'var(--ghrs-bg-card)',
+              border: '1.5px solid var(--ghrs-border-default)',
+            }}
+          >
+            <div className="text-4xl mb-3 ghrs-animate-float">🎁</div>
+            <p className="text-base font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>ما في هدايا حالياً</p>
+            <p className="text-xs mt-1" style={{ color: 'var(--ghrs-text-tertiary)' }}>الوالد لم يضف هدايا بعد. انتظر!</p>
+          </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-3 mb-8">
             {gifts.map(gift => {
               const canAfford = xp >= gift.cost_xp
               const status = gift.redemption_status
@@ -198,34 +222,65 @@ export default function ChildGiftsPage() {
               const isRejected = status === 'rejected'
               const isRevoked = status === 'revoked'
               return (
-                <div key={gift.id} onClick={() => openGiftModal(gift)}
-                  className="ghrs-card p-5 cursor-pointer active:scale-[0.98] transition-all"
-                  style={{ opacity: canAfford ? 1 : 0.6, border: canAfford ? '2px solid var(--ghrs-amber-300)' : '1px solid var(--ghrs-border-default)' }}>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3 flex-1">
-                      <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: isApproved ? 'var(--ghrs-green-50)' : isRevoked ? 'var(--ghrs-purple-50)' : isRejected ? 'var(--ghrs-red-50)' : 'var(--ghrs-purple-50)' }}>
-                        <GiftsIcon size={24} color={isApproved ? 'var(--ghrs-green-600)' : isRevoked ? 'var(--ghrs-purple-600)' : isRejected ? 'var(--ghrs-red-600)' : 'var(--ghrs-purple-600)'} />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>{gift.title}</h3>
-                        {gift.description && <p className="text-xs mt-1" style={{ color: 'var(--ghrs-text-tertiary)' }}>{gift.description}</p>}
-                        <div className="flex items-center gap-3 mt-1">
-                          <span className="text-xs font-bold" style={{ color: 'var(--ghrs-amber-600)' }}>
-                            <StarIcon size={14} className="inline" /> {gift.cost_xp} XP
+                <div
+                  key={gift.id}
+                  onClick={() => openGiftModal(gift)}
+                  className="ghrs-child-task-card cursor-pointer active:scale-[0.98]"
+                  style={{
+                    opacity: canAfford ? 1 : 0.6,
+                    borderColor: canAfford ? 'var(--ghrs-amber-300)' : undefined,
+                  }}
+                >
+                  <div className="flex items-center gap-3">
+                    {/* Icon */}
+                    <div
+                      className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
+                      style={{
+                        background: isApproved ? 'var(--ghrs-green-50)' : isRejected ? 'var(--ghrs-red-50)' : isRevoked ? 'var(--ghrs-purple-50)' : 'var(--ghrs-purple-50)',
+                        border: `1px solid ${isApproved ? 'var(--ghrs-green-200)' : isRejected ? 'var(--ghrs-red-200)' : 'var(--ghrs-purple-200)'}`,
+                      }}
+                    >
+                      <GiftsIcon size={20} color={isApproved ? 'var(--ghrs-green-600)' : isRejected ? 'var(--ghrs-red-600)' : 'var(--ghrs-purple-600)'} />
+                    </div>
+
+                    {/* Content */}
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-sm font-bold truncate" style={{ color: 'var(--ghrs-text-primary)' }}>
+                        {gift.title}
+                      </h3>
+                      {gift.description && (
+                        <p className="text-[10px] mt-0.5 truncate" style={{ color: 'var(--ghrs-text-tertiary)' }}>
+                          {gift.description}
+                        </p>
+                      )}
+                      <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                        <span
+                          className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md"
+                          style={{ background: 'var(--ghrs-amber-50)', color: 'var(--ghrs-amber-700)', border: '1px solid var(--ghrs-amber-200)' }}
+                        >
+                          <StarIcon size={10} color="var(--ghrs-amber-600)" /> {gift.cost_xp} XP
+                        </span>
+                        {gift.cost_money > 0 && (
+                          <span
+                            className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md"
+                            style={{ background: 'var(--ghrs-green-50)', color: 'var(--ghrs-green-700)', border: '1px solid var(--ghrs-green-200)' }}
+                          >
+                            <CoinIcon size={10} color="var(--ghrs-green-600)" /> {fmtMoney(gift.cost_money)}
                           </span>
-                          {gift.cost_money > 0 && (
-                            <span className="text-xs font-bold" style={{ color: 'var(--ghrs-green-600)' }}>
-                              <CoinIcon size={14} className="inline" /> {fmtMoney(gift.cost_money)}
-                            </span>
-                          )}
-                        </div>
+                        )}
                       </div>
                     </div>
-                    <div className="text-xs font-bold px-3 py-2 rounded-xl" style={{
-                      background: isApproved ? 'var(--ghrs-green-50)' : isRevoked ? 'var(--ghrs-purple-50)' : isRejected ? 'var(--ghrs-red-50)' : isPending ? 'var(--ghrs-amber-50)' : canAfford ? 'var(--ghrs-amber-50)' : 'var(--ghrs-bg-tertiary)',
-                      color: isApproved ? 'var(--ghrs-green-700)' : isRevoked ? 'var(--ghrs-purple-600)' : isRejected ? 'var(--ghrs-red-600)' : isPending ? 'var(--ghrs-amber-700)' : canAfford ? 'var(--ghrs-amber-700)' : 'var(--ghrs-text-tertiary)'
-                    }}>
-                      {isApproved ? 'تم الموافقة' : isRevoked ? 'تم سحب الموافقة' : isRejected ? 'تم الرفض' : isPending ? <><ClockIcon size={12} className="inline" /> بانتظار</> : canAfford ? 'اضغط للتفاصيل' : <LockIcon size={14} />}
+
+                    {/* Status badge */}
+                    <div
+                      className="text-[10px] font-bold px-2.5 py-1.5 rounded-lg flex-shrink-0"
+                      style={{
+                        background: isApproved ? 'var(--ghrs-green-50)' : isRevoked ? 'var(--ghrs-purple-50)' : isRejected ? 'var(--ghrs-red-50)' : isPending ? 'var(--ghrs-amber-50)' : canAfford ? 'var(--ghrs-amber-50)' : 'var(--ghrs-bg-secondary)',
+                        color: isApproved ? 'var(--ghrs-green-700)' : isRevoked ? 'var(--ghrs-purple-600)' : isRejected ? 'var(--ghrs-red-600)' : isPending ? 'var(--ghrs-amber-700)' : canAfford ? 'var(--ghrs-amber-700)' : 'var(--ghrs-text-tertiary)',
+                        border: `1px solid ${isApproved ? 'var(--ghrs-green-200)' : isRejected ? 'var(--ghrs-red-200)' : isPending ? 'var(--ghrs-amber-200)' : 'var(--ghrs-border-default)'}`,
+                      }}
+                    >
+                      {isApproved ? 'تمت الموافقة' : isRevoked ? 'تم السحب' : isRejected ? 'تم الرفض' : isPending ? 'بانتظار' : canAfford ? 'اطلب' : <LockIcon size={12} />}
                     </div>
                   </div>
                 </div>
@@ -234,22 +289,32 @@ export default function ChildGiftsPage() {
           </div>
         )}
 
-        {/* طلبات الهدايا */}
-        <h2 className="text-xl font-bold mt-10 mb-4" style={{ color: 'var(--ghrs-text-primary)' }}>طلبات الهدايا</h2>
+        {/* Requests */}
+        <h2 className="text-base font-bold mb-4" style={{ color: 'var(--ghrs-text-primary)' }}>طلبات الهدايا</h2>
         <div className="grid grid-cols-2 gap-3">
           {(['pending', 'rejected', 'approved', 'revoked'] as const).map(key => {
             const sc = statusConfig[key]
             const count = groupedRequests[key].length
             return (
-              <div key={key} onClick={() => openStatusModal(key)}
-                className="cursor-pointer active:scale-[0.97] transition-all rounded-2xl p-4 flex flex-col items-center text-center gap-2"
-                style={{ background: 'var(--ghrs-bg-card)', border: '1.5px solid var(--ghrs-border-default)', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-                <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: sc.iconBg }}>
+              <div
+                key={key}
+                onClick={() => openStatusModal(key)}
+                className="cursor-pointer active:scale-[0.97] transition-all rounded-2xl p-4 flex flex-col items-center text-center gap-1.5"
+                style={{
+                  background: 'var(--ghrs-bg-card)',
+                  border: '1.5px solid var(--ghrs-border-default)',
+                  boxShadow: 'var(--ghrs-shadow-sm)',
+                }}
+              >
+                <div
+                  className="w-11 h-11 rounded-full flex items-center justify-center"
+                  style={{ background: sc.iconBg }}
+                >
                   {sc.icon}
                 </div>
-                <span className="text-xs font-bold" style={{ color: sc.color }}>{sc.label}</span>
-                <span className="text-lg font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>{count}</span>
-                <span className="text-[10px]" style={{ color: 'var(--ghrs-text-tertiary)' }}>{count === 1 ? 'طلب' : 'طلبات'}</span>
+                <span className="text-[10px] font-bold" style={{ color: sc.color }}>{sc.label}</span>
+                <span className="text-lg font-bold leading-tight" style={{ color: 'var(--ghrs-text-primary)' }}>{count}</span>
+                <span className="text-[9px]" style={{ color: 'var(--ghrs-text-tertiary)' }}>{count === 1 ? 'طلب' : 'طلبات'}</span>
               </div>
             )
           })}
@@ -263,7 +328,7 @@ export default function ChildGiftsPage() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="fixed inset-0 z-50 flex items-end md:items-center justify-center"
-              style={{ background: 'rgba(0,0,0,0.6)' }}
+              style={{ background: 'rgba(0,0,0,0.5)' }}
               onClick={() => { setShowStatusModal(false); setSelectedStatus(null) }}
             >
               <motion.div
@@ -276,42 +341,56 @@ export default function ChildGiftsPage() {
                 onClick={e => e.stopPropagation()}
               >
                 <div className="p-5 flex items-center justify-between" style={{ borderBottom: '1px solid var(--ghrs-border-default)' }}>
-                  <h3 className="text-base font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>
+                  <h3 className="text-sm font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>
                     طلبات {statusConfig[selectedStatus].label} ({groupedRequests[selectedStatus].length})
                   </h3>
-                  <button onClick={() => { setShowStatusModal(false); setSelectedStatus(null) }}
-                    className="p-2 rounded-lg" style={{ background: 'var(--ghrs-bg-tertiary)', color: 'var(--ghrs-text-secondary)' }}>✕</button>
+                  <button
+                    onClick={() => { setShowStatusModal(false); setSelectedStatus(null) }}
+                    className="p-2 rounded-lg"
+                    style={{ background: 'var(--ghrs-bg-tertiary)', color: 'var(--ghrs-text-secondary)' }}
+                  >
+                    ✕
+                  </button>
                 </div>
-                <div className="p-4 space-y-2.5">
+                <div className="p-4 space-y-2">
                   {groupedRequests[selectedStatus].map((req: any) => (
-                    <div key={req.id} onClick={() => { setShowStatusModal(false); setSelectedStatus(null); openRequestModal(req) }}
-                      className="cursor-pointer active:scale-[0.97] transition-all rounded-2xl p-4 flex items-center gap-3"
-                      style={{ background: 'var(--ghrs-bg-primary)', border: '1px solid var(--ghrs-border-default)' }}>
-                      <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'var(--ghrs-purple-50)' }}>
-                        <GiftsIcon size={20} color="var(--ghrs-purple-600)" />
+                    <div
+                      key={req.id}
+                      onClick={() => { setShowStatusModal(false); setSelectedStatus(null); openRequestModal(req) }}
+                      className="cursor-pointer active:scale-[0.97] transition-all rounded-xl p-3.5 flex items-center gap-3"
+                      style={{
+                        background: 'var(--ghrs-bg-secondary)',
+                        border: '1px solid var(--ghrs-border-default)',
+                      }}
+                    >
+                      <div
+                        className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
+                        style={{ background: 'var(--ghrs-purple-50)', border: '1px solid var(--ghrs-purple-200)' }}
+                      >
+                        <GiftsIcon size={16} color="var(--ghrs-purple-600)" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold truncate" style={{ color: 'var(--ghrs-text-primary)' }}>{req.gift_name}</p>
-                        <div className="flex items-center gap-2.5 mt-1">
+                        <p className="text-xs font-bold truncate" style={{ color: 'var(--ghrs-text-primary)' }}>{req.gift_name}</p>
+                        <div className="flex items-center gap-2 mt-0.5">
                           {req.requested_xp != null && (
-                            <span className="text-xs font-bold" style={{ color: 'var(--ghrs-amber-600)' }}>
-                              <StarIcon size={12} className="inline" /> {req.requested_xp} XP
+                            <span className="text-[10px] font-bold" style={{ color: 'var(--ghrs-amber-600)' }}>
+                              {req.requested_xp} XP
                             </span>
                           )}
                           {req.money_spent != null && req.money_spent > 0 && (
-                            <span className="text-xs font-bold" style={{ color: 'var(--ghrs-green-600)' }}>
-                              <CoinIcon size={12} className="inline" /> {fmtMoney(req.money_spent)}
+                            <span className="text-[10px] font-bold" style={{ color: 'var(--ghrs-green-600)' }}>
+                              {fmtMoney(req.money_spent)}
                             </span>
                           )}
                         </div>
                       </div>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ghrs-text-tertiary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0" style={{ transform: 'scaleX(-1)' }}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--ghrs-text-tertiary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0" style={{ transform: 'scaleX(-1)' }}>
                         <polyline points="9 18 15 12 9 6" />
                       </svg>
                     </div>
                   ))}
                   {groupedRequests[selectedStatus].length === 0 && (
-                    <p className="text-center text-sm py-6" style={{ color: 'var(--ghrs-text-tertiary)' }}>لا توجد طلبات</p>
+                    <p className="text-center text-xs py-6" style={{ color: 'var(--ghrs-text-tertiary)' }}>لا توجد طلبات</p>
                   )}
                 </div>
               </motion.div>

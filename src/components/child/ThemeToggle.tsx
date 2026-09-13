@@ -19,11 +19,16 @@ export default function ThemeToggle() {
   return (
     <button
       onClick={toggle}
-      className="p-3 rounded-xl transition-all active:scale-95"
-      style={{ background: 'var(--ghrs-bg-card)', border: '2px solid var(--ghrs-border-default)' }}
+      className="w-10 h-10 rounded-xl flex items-center justify-center transition-all active:scale-95"
+      style={{
+        background: 'var(--ghrs-bg-card)',
+        border: '1.5px solid var(--ghrs-border-default)',
+        boxShadow: 'var(--ghrs-shadow-sm)',
+        color: 'var(--ghrs-text-secondary)',
+      }}
       aria-label="تبديل المظهر"
     >
-      {isDark ? '☀️' : '🌙'}
+      <span className="text-base leading-none">{isDark ? '☀️' : '🌙'}</span>
     </button>
   )
 }
