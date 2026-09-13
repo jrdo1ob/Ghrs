@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { ChildBottomNav, Toast } from '@/components/layout'
+import { ChildBottomNav } from '@/components/layout'
 import { LEVELS, getLevel, getNextLevel, Level } from '@/lib/gamification'
 import ThemeToggle from '@/components/child/ThemeToggle'
 import ChildLoading from '@/components/child/ChildLoading'
@@ -17,7 +17,6 @@ export default function ChildProfilePage() {
   const [completedTasks, setCompletedTasks] = useState(0)
   const [streak, setStreak] = useState(0)
   const [loading, setLoading] = useState(true)
-  const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
   const router = useRouter()
 
   useEffect(() => {
@@ -117,8 +116,6 @@ export default function ChildProfilePage() {
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--ghrs-bg-primary)' }}>
-      {toast && <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />}
-
       <div
         className="p-4 md:p-8 max-w-2xl mx-auto"
         style={{ paddingBottom: 'var(--ghrs-nav-total)' }}

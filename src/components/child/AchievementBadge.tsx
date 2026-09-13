@@ -41,9 +41,9 @@ export default function AchievementBadge({ title, description, icon, unlocked, p
           <p className="text-[10px] mt-0.5" style={{ color: 'var(--ghrs-text-secondary)' }}>{description}</p>
           {progress && !unlocked && (
             <div className="mt-1.5">
-              <div className="ghrs-progress-bar" style={{ height: '4px' }}>
+              <div className="ghrs-garden-xp-bar" style={{ height: '4px' }}>
                 <div
-                  className="ghrs-progress-fill"
+                  className="ghrs-garden-xp-fill"
                   style={{ width: `${Math.min(100, (progress.current / progress.max) * 100)}%` }}
                 />
               </div>
