@@ -259,27 +259,32 @@ export default function ChildGiftsPage() {
                     <span className="text-sm font-bold" style={{ color: sc.color }}>{label}</span>
                     <span className="text-xs px-2 py-0.5 rounded-full font-bold" style={{ background: sc.bg, color: sc.color }}>{items.length}</span>
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-2.5">
                     {items.map((req: any) => (
                       <div key={req.id} onClick={() => openRequestModal(req)}
-                        className="ghrs-card p-3 cursor-pointer active:scale-[0.98] transition-all flex items-center justify-between"
-                        style={{ border: '1px solid var(--ghrs-border-default)' }}>
-                        <div className="flex items-center gap-2">
-                          <GiftsIcon size={16} color="var(--ghrs-purple-600)" />
-                          <span className="text-sm font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>{req.gift_name}</span>
+                        className="cursor-pointer active:scale-[0.97] transition-all rounded-2xl p-4 flex items-center gap-3"
+                        style={{ background: 'var(--ghrs-bg-card)', border: '1.5px solid var(--ghrs-border-default)', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+                        <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'var(--ghrs-purple-50)' }}>
+                          <GiftsIcon size={20} color="var(--ghrs-purple-600)" />
                         </div>
-                        <div className="flex items-center gap-2">
-                          {req.requested_xp != null && (
-                            <span className="text-xs font-bold" style={{ color: 'var(--ghrs-amber-600)' }}>
-                              <StarIcon size={10} className="inline" /> {req.requested_xp}
-                            </span>
-                          )}
-                          {req.money_spent != null && req.money_spent > 0 && (
-                            <span className="text-xs font-bold" style={{ color: 'var(--ghrs-green-600)' }}>
-                              <CoinIcon size={10} className="inline" /> {fmtMoney(req.money_spent)}
-                            </span>
-                          )}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-bold truncate" style={{ color: 'var(--ghrs-text-primary)' }}>{req.gift_name}</p>
+                          <div className="flex items-center gap-2.5 mt-1">
+                            {req.requested_xp != null && (
+                              <span className="text-xs font-bold" style={{ color: 'var(--ghrs-amber-600)' }}>
+                                <StarIcon size={12} className="inline" /> {req.requested_xp} XP
+                              </span>
+                            )}
+                            {req.money_spent != null && req.money_spent > 0 && (
+                              <span className="text-xs font-bold" style={{ color: 'var(--ghrs-green-600)' }}>
+                                <CoinIcon size={12} className="inline" /> {fmtMoney(req.money_spent)}
+                              </span>
+                            )}
+                          </div>
                         </div>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ghrs-text-tertiary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0" style={{ transform: 'scaleX(-1)' }}>
+                          <polyline points="9 18 15 12 9 6" />
+                        </svg>
                       </div>
                     ))}
                   </div>
