@@ -778,3 +778,209 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   scrollbar-width: thin;
   scrollbar-color: var(--ghrs-border-strong) transparent;
 }
+
+/* ===== Garden Scene ===== */
+@keyframes garden-sway {
+  0%, 100% { transform: rotate(-2deg); }
+  50% { transform: rotate(2deg); }
+}
+
+@keyframes garden-sway-slow {
+  0%, 100% { transform: rotate(-1deg) translateX(-2px); }
+  50% { transform: rotate(1deg) translateX(2px); }
+}
+
+@keyframes garden-glow {
+  0%, 100% { filter: drop-shadow(0 0 8px rgba(34, 197, 94, 0.2)); }
+  50% { filter: drop-shadow(0 0 16px rgba(34, 197, 94, 0.4)); }
+}
+
+@keyframes garden-rain {
+  0% { transform: translateY(-20px); opacity: 0; }
+  20% { opacity: 1; }
+  100% { transform: translateY(60px); opacity: 0; }
+}
+
+@keyframes garden-sun-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.1); opacity: 1; }
+}
+
+@keyframes garden-grow-in {
+  0% { transform: scale(0.8) translateY(10px); opacity: 0; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+@keyframes garden-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.ghrs-garden-sway {
+  animation: garden-sway 4s ease-in-out infinite;
+  transform-origin: bottom center;
+}
+
+.ghrs-garden-sway-slow {
+  animation: garden-sway-slow 6s ease-in-out infinite;
+  transform-origin: bottom center;
+}
+
+.ghrs-garden-glow {
+  animation: garden-glow 3s ease-in-out infinite;
+}
+
+.ghrs-garden-sun {
+  animation: garden-sun-pulse 4s ease-in-out infinite;
+}
+
+.ghrs-garden-grow-in {
+  animation: garden-grow-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.ghrs-garden-scene {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(
+    180deg,
+    #e8f5e9 0%,
+    #c8e6c9 30%,
+    #a5d6a7 50%,
+    #81c784 70%,
+    #66bb6a 100%
+  );
+}
+
+[data-theme="dark"] .ghrs-garden-scene {
+  background: linear-gradient(
+    180deg,
+    #0a1f0e 0%,
+    #0f2912 30%,
+    #133316 50%,
+    #17401c 70%,
+    #1a4a20 100%
+  );
+}
+
+.ghrs-garden-sky {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 40%;
+  background: linear-gradient(
+    180deg,
+    #87ceeb 0%,
+    #b8e6f0 60%,
+    #e8f5e9 100%
+  );
+  z-index: 0;
+}
+
+[data-theme="dark"] .ghrs-garden-sky {
+  background: linear-gradient(
+    180deg,
+    #0a1628 0%,
+    #0f2035 60%,
+    #0a1f0e 100%
+  );
+}
+
+.ghrs-garden-ground {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 35%;
+  z-index: 1;
+}
+
+.ghrs-garden-ground::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, transparent 5%, rgba(139,69,19,0.3) 50%, transparent 95%);
+}
+
+/* Water droplet animation */
+.ghrs-garden-drop {
+  position: absolute;
+  width: 6px;
+  height: 8px;
+  background: rgba(59, 130, 246, 0.6);
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  animation: garden-rain 1.5s ease-in infinite;
+}
+
+/* XP bar garden style */
+.ghrs-garden-xp-bar {
+  height: 10px;
+  border-radius: 9999px;
+  background: var(--ghrs-bg-tertiary);
+  overflow: hidden;
+  position: relative;
+}
+
+.ghrs-garden-xp-fill {
+  height: 100%;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, var(--ghrs-green-500), var(--ghrs-green-400), var(--ghrs-brand-gold));
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.ghrs-garden-xp-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
+  background-size: 200% 100%;
+  animation: garden-shimmer 2.5s ease-in-out infinite;
+}
+
+/* Cloud elements */
+.ghrs-garden-cloud {
+  position: absolute;
+  background: rgba(255,255,255,0.7);
+  border-radius: 50%;
+  z-index: 1;
+}
+
+[data-theme="dark"] .ghrs-garden-cloud {
+  background: rgba(255,255,255,0.1);
+}
+
+/* Grass blades */
+.ghrs-garden-grass {
+  position: absolute;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(to top, transparent, var(--ghrs-green-600));
+  border-radius: 2px 2px 0 0;
+  transform-origin: bottom center;
+  animation: garden-sway-slow 5s ease-in-out infinite;
+}
+
+/* Flower elements */
+.ghrs-garden-flower {
+  position: absolute;
+  font-size: 1.2rem;
+  z-index: 2;
+}
+
+/* Stage highlight card */
+.ghrs-stage-active {
+  background: var(--ghrs-green-50) !important;
+  border-color: var(--ghrs-green-400) !important;
+}
+
+[data-theme="dark"] .ghrs-stage-active {
+  background: rgba(34, 197, 94, 0.1) !important;
+  border-color: var(--ghrs-green-700) !important;
+}

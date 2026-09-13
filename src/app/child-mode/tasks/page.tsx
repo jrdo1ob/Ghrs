@@ -13,12 +13,6 @@ import { useSound } from '@/components/child/SoundManager'
 import { ClockIcon, StarIcon, CoinIcon, CheckIcon, QuranIcon, SparkleIcon, BookIcon, TasksIcon } from '@/components/icons'
 import { getCurrentUser } from '@/lib/auth/helper'
 
-const PRIORITY_MAP: Record<string, { color: string; label: string; bg: string; border: string }> = {
-  high: { color: 'var(--ghrs-red-500)', label: 'عالية', bg: 'var(--ghrs-red-50)', border: 'var(--ghrs-red-200)' },
-  medium: { color: 'var(--ghrs-amber-500)', label: 'متوسطة', bg: 'var(--ghrs-amber-50)', border: 'var(--ghrs-amber-200)' },
-  low: { color: 'var(--ghrs-green-500)', label: 'منخفضة', bg: 'var(--ghrs-green-50)', border: 'var(--ghrs-green-200)' },
-}
-
 export default function ChildTasksPage() {
   const [tasks, setTasks] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -124,6 +118,7 @@ export default function ChildTasksPage() {
 
   const completedCount = completedToday.length
   const pendingCount = pendingToday.length
+  const availableTasks = tasks.filter(t => !isCompletedToday(t.id) && !isPendingToday(t.id))
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--ghrs-bg-primary)' }}>
@@ -160,11 +155,15 @@ export default function ChildTasksPage() {
         </div>
 
         {/* Header */}
-        <div className="mb-5">
+        <div className="mb-4">
           <h1 className="text-xl font-extrabold" style={{ color: 'var(--ghrs-text-primary)' }}>مهامي</h1>
           {childName && (
-            <p className="text-xs mt-0.5" style={{ color: 'var(--ghrs-text-secondary)' }}>
-              مرحباً {childName}! أكمل مهامك اليومية
+            <p className="text-xs mt-0.5 font-semibold" style={{ color: 'var(--ghrs-text-secondary)' }}>
+              {availableTasks.length > 0
+                ? `${availableTasks.length} مهام تنتظرك اليوم!`
+                : completedCount > 0
+                  ? 'خلصت كل مهامك! أنت ممتاز 🌟'
+                  : 'ما في مهام اليوم استرح وتمتّع بيومك'}
             </p>
           )}
         </div>
@@ -183,7 +182,7 @@ export default function ChildTasksPage() {
           </div>
         ) : (
           <>
-            {/* Progress summary */}
+            {/* Task summary */}
             <div
               className="mb-5 rounded-2xl p-4"
               style={{
@@ -207,9 +206,9 @@ export default function ChildTasksPage() {
                   {tasks.length} المجموع
                 </span>
               </div>
-              <div className="ghrs-progress-bar" style={{ height: '6px' }}>
+              <div className="ghrs-garden-xp-bar" style={{ height: '6px' }}>
                 <div
-                  className="ghrs-progress-fill"
+                  className="ghrs-garden-xp-fill"
                   style={{ width: `${tasks.length > 0 ? Math.round((completedCount / tasks.length) * 100) : 0}%` }}
                 />
               </div>
@@ -220,100 +219,127 @@ export default function ChildTasksPage() {
               {tasks.map(task => {
                 const completed = isCompletedToday(task.id)
                 const pending = isPendingToday(task.id)
-                const priority = PRIORITY_MAP[task.priority || 'medium'] || PRIORITY_MAP.medium
                 const isQuran = task.task_type === 'quran'
                 const isDua = task.task_type === 'dua'
+                const isBusy = completingTask === task.id
 
                 return (
                   <div
                     key={task.id}
-                    onClick={() => openTaskModal(task)}
-                    className="ghrs-child-task-card cursor-pointer active:scale-[0.98]"
-                    data-priority={task.priority || 'medium'}
-                    style={{ opacity: completed ? 0.65 : 1 }}
+                    className="rounded-2xl overflow-hidden transition-all active:scale-[0.98]"
+                    style={{
+                      background: 'var(--ghrs-bg-card)',
+                      border: `1.5px solid ${completed ? 'var(--ghrs-green-200)' : pending ? 'var(--ghrs-amber-200)' : 'var(--ghrs-border-default)'}`,
+                      boxShadow: 'var(--ghrs-shadow-sm)',
+                      opacity: completed ? 0.65 : 1,
+                    }}
                   >
-                    <div className="flex items-start gap-3">
-                      {/* Category icon */}
-                      <div
-                        className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
-                        style={{
-                          background: isQuran ? 'var(--ghrs-green-50)' : isDua ? 'var(--ghrs-amber-50)' : 'var(--ghrs-bg-secondary)',
-                          border: `1px solid ${isQuran ? 'var(--ghrs-green-200)' : isDua ? 'var(--ghrs-amber-200)' : 'var(--ghrs-border-default)'}`,
-                        }}
-                      >
-                        {isQuran ? <QuranIcon size={18} color="var(--ghrs-green-600)" /> : isDua ? <SparkleIcon size={18} color="var(--ghrs-amber-600)" /> : <BookIcon size={18} color="var(--ghrs-text-tertiary)" />}
-                      </div>
-
-                      {/* Content */}
-                      <div className="flex-1 min-w-0">
-                        <h3
-                          className="text-sm font-bold leading-snug"
-                          style={{
-                            color: completed ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-primary)',
-                            textDecoration: completed ? 'line-through' : 'none',
-                          }}
-                        >
-                          {task.title}
-                        </h3>
-
-                        {/* Rewards row */}
-                        <div className="flex items-center gap-2.5 mt-1.5 flex-wrap">
-                          <span
-                            className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md"
-                            style={{ background: 'var(--ghrs-amber-50)', color: 'var(--ghrs-amber-700)', border: '1px solid var(--ghrs-amber-200)' }}
-                          >
-                            <StarIcon size={10} color="var(--ghrs-amber-600)" /> {task.xp_reward} XP
-                          </span>
-                          {task.money_reward > 0 && (
-                            <span
-                              className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md"
-                              style={{ background: 'var(--ghrs-green-50)', color: 'var(--ghrs-green-700)', border: '1px solid var(--ghrs-green-200)' }}
+                    <div className="p-4">
+                      {/* Top: Title + Status */}
+                      <div className="flex items-start justify-between gap-3 mb-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-0.5">
+                            {completed ? (
+                              <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'var(--ghrs-green-500)' }}>
+                                <CheckIcon size={12} color="white" />
+                              </div>
+                            ) : pending ? (
+                              <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'var(--ghrs-amber-500)' }}>
+                                <ClockIcon size={12} color="white" />
+                              </div>
+                            ) : isQuran ? (
+                              <QuranIcon size={16} color="var(--ghrs-green-600)" className="flex-shrink-0" />
+                            ) : isDua ? (
+                              <SparkleIcon size={16} color="var(--ghrs-amber-600)" className="flex-shrink-0" />
+                            ) : (
+                              <BookIcon size={16} color="var(--ghrs-text-tertiary)" className="flex-shrink-0" />
+                            )}
+                            <h3
+                              className="text-sm font-bold leading-snug truncate"
+                              style={{
+                                color: completed ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-primary)',
+                                textDecoration: completed ? 'line-through' : 'none',
+                              }}
                             >
-                              <CoinIcon size={10} color="var(--ghrs-green-600)" /> {fmtMoney(task.money_reward)}
-                            </span>
+                              {task.title}
+                            </h3>
+                          </div>
+                          {task.description && (
+                            <p className="text-[11px] leading-relaxed pr-7 line-clamp-2" style={{ color: 'var(--ghrs-text-secondary)' }}>
+                              {task.description}
+                            </p>
                           )}
-                          {isQuran && task.quran_action_type && (
-                            <span
-                              className="text-[10px] font-bold px-2 py-0.5 rounded-md"
-                              style={{ background: 'var(--ghrs-green-100)', color: 'var(--ghrs-green-700)' }}
-                            >
-                              {task.quran_action_type === 'memorize' ? 'حفظ' : 'قراءة'}
-                            </span>
-                          )}
-                          <span
-                            className="text-[9px] font-semibold px-1.5 py-0.5 rounded"
-                            style={{ background: priority.bg, color: priority.color, border: `1px solid ${priority.border}` }}
-                          >
-                            {priority.label}
-                          </span>
                         </div>
                       </div>
 
-                      {/* Status */}
-                      <div className="flex-shrink-0 mt-0.5">
-                        {completed ? (
-                          <div
-                            className="w-9 h-9 rounded-xl flex items-center justify-center"
-                            style={{ background: 'var(--ghrs-green-500)' }}
-                          >
-                            <CheckIcon size={16} color="white" />
-                          </div>
-                        ) : pending ? (
-                          <div
-                            className="w-9 h-9 rounded-xl flex items-center justify-center"
-                            style={{ background: 'var(--ghrs-amber-500)' }}
-                          >
-                            <ClockIcon size={16} color="white" />
-                          </div>
-                        ) : (
-                          <div
-                            className="px-3 py-2 rounded-xl text-[10px] font-bold"
+                      {/* Rewards row */}
+                      <div className="flex items-center gap-2 mb-3 flex-wrap">
+                        <span
+                          className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-xl"
+                          style={{ background: 'var(--ghrs-amber-50)', color: 'var(--ghrs-amber-700)', border: '1px solid var(--ghrs-amber-200)' }}
+                        >
+                          <StarIcon size={14} color="var(--ghrs-amber-600)" /> +{task.xp_reward} XP
+                        </span>
+                        {task.money_reward > 0 && (
+                          <span
+                            className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-xl"
                             style={{ background: 'var(--ghrs-green-50)', color: 'var(--ghrs-green-700)', border: '1px solid var(--ghrs-green-200)' }}
                           >
-                            اضغط للتفاصيل
-                          </div>
+                            <CoinIcon size={14} color="var(--ghrs-green-600)" /> +{fmtMoney(task.money_reward)} د.ب
+                          </span>
+                        )}
+                        {isQuran && task.quran_action_type && (
+                          <span
+                            className="text-[10px] font-bold px-2 py-1 rounded-lg"
+                            style={{ background: 'var(--ghrs-green-100)', color: 'var(--ghrs-green-700)' }}
+                          >
+                            {task.quran_action_type === 'memorize' ? 'حفظ' : 'قراءة'}
+                          </span>
                         )}
                       </div>
+
+                      {/* Action buttons */}
+                      {completed ? (
+                        <div
+                          className="w-full py-3 rounded-xl text-center text-sm font-bold"
+                          style={{ background: 'var(--ghrs-green-50)', color: 'var(--ghrs-green-600)' }}
+                        >
+                          تم الإنجاز ✓
+                        </div>
+                      ) : pending ? (
+                        <div
+                          className="w-full py-3 rounded-xl text-center text-sm font-bold"
+                          style={{ background: 'var(--ghrs-amber-50)', color: 'var(--ghrs-amber-600)' }}
+                        >
+                          بانتظار موافقة الوالد
+                        </div>
+                      ) : (
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleCompleteTask(task.id)}
+                            disabled={isBusy}
+                            className="flex-1 py-3 rounded-xl text-sm font-bold transition-all active:scale-[0.97]"
+                            style={{
+                              background: 'var(--ghrs-green-600)',
+                              color: 'white',
+                              opacity: isBusy ? 0.7 : 1,
+                            }}
+                          >
+                            {isBusy ? '...' : 'أنجز المهمة'}
+                          </button>
+                          <button
+                            onClick={() => openTaskModal(task)}
+                            className="px-4 py-3 rounded-xl text-sm font-bold transition-all active:scale-[0.97]"
+                            style={{
+                              background: 'var(--ghrs-bg-secondary)',
+                              color: 'var(--ghrs-text-secondary)',
+                              border: '1px solid var(--ghrs-border-default)',
+                            }}
+                          >
+                            التفاصيل
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )
