@@ -2,11 +2,15 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { ChildBottomNav, EmptyState, Toast } from '@/components/layout'
+import { ChildBottomNav, Toast } from '@/components/layout'
 import { useFamilyCurrency } from '@/hooks/useFamilyCurrency'
 import ParticleEffects from '@/components/ParticleEffects'
 import TaskDetailsModal from '@/components/TaskDetailsModal'
-import { ClockIcon, StarIcon, CoinIcon, CheckIcon, CopyIcon, QuranIcon, SparkleIcon, BookIcon } from '@/components/icons'
+import TaskCompletionFeedback from '@/components/child/TaskCompletionFeedback'
+import ThemeToggle from '@/components/child/ThemeToggle'
+import ChildLoading from '@/components/child/ChildLoading'
+import { useSound } from '@/components/child/SoundManager'
+import { ClockIcon, StarIcon, CoinIcon, CheckIcon, QuranIcon, SparkleIcon, BookIcon } from '@/components/icons'
 import { getCurrentUser } from '@/lib/auth/helper'
 
 const PRIORITY_MAP: Record<string, { color: string; label: string }> = {
@@ -27,18 +31,19 @@ export default function ChildTasksPage() {
   const [childName, setChildName] = useState('')
   const [selectedTask, setSelectedTask] = useState<any>(null)
   const [showTaskModal, setShowTaskModal] = useState(false)
+  const [showCompletionFeedback, setShowCompletionFeedback] = useState(false)
+  const [completionFeedback, setCompletionFeedback] = useState<{ taskName: string; xp: number; money: number; needsApproval: boolean } | null>(null)
   const router = useRouter()
   const { format: fmtMoney } = useFamilyCurrency()
+  const { play } = useSound()
 
   useEffect(() => {
     const getData = async () => {
-      // Get authenticated user from secure session
       const authUser = await getCurrentUser()
       if (!authUser || authUser.role !== 'child') { router.push('/family-login'); return }
       const storedId = authUser.memberId
       setChildId(storedId)
 
-      // Tasks + today's completions are resolved server-side, scoped to this child
       const response = await fetch('/api/child-mode/data', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -61,8 +66,6 @@ export default function ChildTasksPage() {
     setCompletingTask(taskId)
 
     try {
-      // Call secure server-side API route
-      // Browser does NOT send member_id - server obtains it from session
       const response = await fetch('/api/tasks/complete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -74,10 +77,10 @@ export default function ChildTasksPage() {
       if (!response.ok || !result.success) {
         setToast({ type: 'error', message: result.error || 'حدث خطأ أثناء إنجاز المهمة' })
         setCompletingTask(null)
+        play('error')
         return
       }
 
-      // Success
       const task = tasks.find(t => t.id === taskId)
       const needsApproval = task?.requires_approval !== false
 
@@ -87,12 +90,18 @@ export default function ChildTasksPage() {
       if (!needsApproval) {
         setShowConfetti(true)
         setTimeout(() => setShowConfetti(false), 2500)
+        play('complete')
+      } else {
+        play('click')
       }
 
-      setToast({
-        type: 'success',
-        message: needsApproval ? 'تم إنجاز المهمة! بانتظار موافقة الوالد' : 'تم إنجاز المهمة وحصلت على المكافآت!'
+      setCompletionFeedback({
+        taskName: task?.title || '',
+        xp: task?.xp_reward || 0,
+        money: task?.money_reward || 0,
+        needsApproval,
       })
+      setShowCompletionFeedback(true)
     } catch (err) {
       console.error('[GHRS] Complete task error:', err)
       setToast({ type: 'error', message: 'حدث خطأ أثناء إنجاز المهمة' })
@@ -110,21 +119,14 @@ export default function ChildTasksPage() {
   const isPendingToday = (taskId: string) => pendingToday.includes(taskId)
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--ghrs-bg-primary)' }}>
-        <div className="text-center">
-          <QuranIcon size={64} color="var(--ghrs-green-500)" className="mx-auto mb-4 ghrs-animate-float" />
-          <p style={{ color: 'var(--ghrs-text-secondary)' }}>جاري التحميل...</p>
-        </div>
-      </div>
-    )
+    return <ChildLoading text="جاري تحميل المهام..." icon={<QuranIcon size={48} color="var(--ghrs-green-500)" />} />
   }
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--ghrs-bg-primary)' }}>
       {toast && <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />}
       <ParticleEffects active={showConfetti} />
-      
+
       <TaskDetailsModal
         show={showTaskModal}
         task={selectedTask}
@@ -136,28 +138,30 @@ export default function ChildTasksPage() {
         formatMoney={fmtMoney}
       />
 
+      <TaskCompletionFeedback
+        show={showCompletionFeedback}
+        taskName={completionFeedback?.taskName || ''}
+        xpEarned={completionFeedback?.xp || 0}
+        moneyEarned={completionFeedback?.money || 0}
+        needsApproval={completionFeedback?.needsApproval ?? true}
+        onClose={() => { setShowCompletionFeedback(false); setCompletionFeedback(null) }}
+        formatMoney={fmtMoney}
+      />
+
       <div className="p-4 md:p-8 max-w-2xl mx-auto pb-32">
-        {/* Theme Toggle */}
         <div className="flex justify-end mb-4">
-          <button
-            onClick={() => {
-              const newTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'
-              document.documentElement.setAttribute('data-theme', newTheme)
-              localStorage.setItem('ghrs-theme', newTheme)
-            }}
-            className="p-3 rounded-xl transition-all"
-            style={{ background: 'var(--ghrs-bg-card)', border: '2px solid var(--ghrs-border-default)' }}
-            aria-label="تبديل المظهر"
-          >
-            {document.documentElement.getAttribute('data-theme') === 'dark' ? '☀️' : '🌙'}
-          </button>
+          <ThemeToggle />
         </div>
 
-        <h1 className="text-2xl font-bold mb-2" style={{ color: 'var(--ghrs-text-primary)' }}>مهامي</h1>
+        <h1 className="text-2xl font-extrabold mb-1" style={{ color: 'var(--ghrs-text-primary)' }}>مهامي</h1>
         {childName && <p className="text-sm mb-6" style={{ color: 'var(--ghrs-text-secondary)' }}>مرحباً {childName}! أكمل مهامك اليومية</p>}
 
         {tasks.length === 0 ? (
-          <EmptyState icon={<CopyIcon size={48} />} title="ما في مهام" description="استرح وتمتّع بيومك!" />
+          <div className="text-center py-16">
+            <BookIcon size={48} />
+            <p className="text-lg font-bold mt-4" style={{ color: 'var(--ghrs-text-primary)' }}>ما في مهام</p>
+            <p className="text-sm mt-1" style={{ color: 'var(--ghrs-text-secondary)' }}>استرح وتمتّع بيومك!</p>
+          </div>
         ) : (
           <div className="space-y-3">
             {tasks.map(task => {
@@ -166,37 +170,38 @@ export default function ChildTasksPage() {
               const priority = PRIORITY_MAP[task.priority || 'medium'] || PRIORITY_MAP.medium
               const isQuran = task.task_type === 'quran'
               const isDua = task.task_type === 'dua'
-              const hasContent = isQuran || isDua || task.story_content || task.custom_content_text
 
               return (
                 <div key={task.id} onClick={() => openTaskModal(task)}
-                  className="ghrs-card p-5 transition-all cursor-pointer active:scale-[0.98]"
+                  className="rounded-2xl p-4 transition-all cursor-pointer active:scale-[0.98]"
                   style={{
+                    background: 'var(--ghrs-bg-card)',
+                    border: `1.5px solid var(--ghrs-border-default)`,
                     borderRight: `4px solid ${priority.color}`,
                     opacity: completed ? 0.7 : 1,
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
                   }}>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3 flex-1">
-                      <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: isQuran ? 'var(--ghrs-green-50)' : isDua ? 'var(--ghrs-amber-50)' : 'var(--ghrs-bg-tertiary)' }}>
-                        {isQuran ? <QuranIcon size={24} color="var(--ghrs-green-600)" /> : isDua ? <SparkleIcon size={24} color="var(--ghrs-amber-600)" /> : <BookIcon size={24} color="var(--ghrs-text-secondary)" />}
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: isQuran ? 'var(--ghrs-green-50)' : isDua ? 'var(--ghrs-amber-50)' : 'var(--ghrs-bg-tertiary)' }}>
+                        {isQuran ? <QuranIcon size={20} color="var(--ghrs-green-600)" /> : isDua ? <SparkleIcon size={20} color="var(--ghrs-amber-600)" /> : <BookIcon size={20} color="var(--ghrs-text-secondary)" />}
                       </div>
-                      <div className="flex-1">
-                        <h3 className="font-bold" style={{
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-sm font-bold truncate" style={{
                           color: completed ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-primary)',
                           textDecoration: completed ? 'line-through' : 'none'
                         }}>{task.title}</h3>
-                        {task.description && <p className="text-xs mt-1 line-clamp-1" style={{ color: 'var(--ghrs-text-tertiary)' }}>{task.description}</p>}
-                        <div className="flex items-center gap-3 mt-1">
-                          <span className="text-xs font-semibold" style={{ color: 'var(--ghrs-amber-600)' }}>
-                            <StarIcon size={14} className="inline" /> {task.xp_reward} XP
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className="text-[10px] font-semibold" style={{ color: 'var(--ghrs-amber-600)' }}>
+                            <StarIcon size={10} className="inline" /> {task.xp_reward} XP
                           </span>
                           {task.money_reward > 0 && (
-                            <span className="text-xs font-semibold" style={{ color: 'var(--ghrs-green-600)' }}>
-                              <CoinIcon size={14} className="inline" /> {fmtMoney(task.money_reward)}
+                            <span className="text-[10px] font-semibold" style={{ color: 'var(--ghrs-green-600)' }}>
+                              <CoinIcon size={10} className="inline" /> {fmtMoney(task.money_reward)}
                             </span>
                           )}
                           {isQuran && task.quran_action_type && (
-                            <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{
                               background: 'var(--ghrs-green-50)', color: 'var(--ghrs-green-700)'
                             }}>
                               {task.quran_action_type === 'memorize' ? 'حفظ' : 'قراءة'}
@@ -207,12 +212,12 @@ export default function ChildTasksPage() {
                     </div>
                     <div className="flex items-center gap-2">
                       {completed ? (
-                        <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: 'var(--ghrs-green-500)' }}>
-                          <CheckIcon size={20} color="white" />
+                        <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'var(--ghrs-green-500)' }}>
+                          <CheckIcon size={18} color="white" />
                         </div>
                       ) : pending ? (
-                        <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: 'var(--ghrs-amber-500)' }}>
-                          <ClockIcon size={20} color="white" />
+                        <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'var(--ghrs-amber-500)' }}>
+                          <ClockIcon size={18} color="white" />
                         </div>
                       ) : (
                         <div className="text-xs font-bold px-3 py-2 rounded-xl" style={{ background: 'var(--ghrs-green-50)', color: 'var(--ghrs-green-700)' }}>

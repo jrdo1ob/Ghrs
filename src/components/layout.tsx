@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { useTheme, Theme } from '@/lib/theme/provider'
 import GHRSLogo from '@/components/GHRSLogo'
-import { TasksIcon, GiftsIcon, XPIcon, StreakIcon, GardenIcon, ChildIcon, BookIcon, CopyIcon, SettingsIcon, CheckIcon, RejectIcon, UserIcon, SparkleIcon, CoinIcon, ClockIcon } from '@/components/icons'
+import { TasksIcon, GiftsIcon, XPIcon, StreakIcon, GardenIcon, ChildIcon, BookIcon, CopyIcon, SettingsIcon, CheckIcon, RejectIcon, UserIcon, SparkleIcon, CoinIcon, ClockIcon, HomeIcon } from '@/components/icons'
 
 /* ===== Parent Bottom Navigation (Mobile) ===== */
 export function ParentBottomNav() {
@@ -136,7 +136,7 @@ export function ChildBottomNav() {
   const pathname = usePathname()
 
   const tabs = [
-    { href: '/child-mode', label: 'الرئيسية', icon: <GardenIcon size={22} /> },
+    { href: '/child-mode', label: 'الرئيسية', icon: <HomeIcon size={22} /> },
     { href: '/child-mode/tasks', label: 'مهامي', icon: <TasksIcon size={22} /> },
     { href: '/child-mode/garden', label: 'حديقتي', icon: <GardenIcon size={22} /> },
     { href: '/child-mode/gifts', label: 'هداياي', icon: <GiftsIcon size={22} /> },
@@ -147,7 +147,9 @@ export function ChildBottomNav() {
     <nav className="fixed bottom-0 left-0 right-0 z-50" style={{ background: 'var(--ghrs-bg-card)', borderTop: '1px solid var(--ghrs-border-default)', boxShadow: '0 -4px 12px rgba(0,0,0,0.05)' }} aria-label="التنقل السفلي للطفل">
       <div className="flex items-center justify-around h-[var(--ghrs-nav-height)] px-2">
         {tabs.map((tab) => {
-          const isActive = pathname === tab.href || (tab.href === '/child-mode' && pathname === '/child-mode')
+          const isActive = tab.href === '/child-mode'
+            ? pathname === '/child-mode'
+            : pathname.startsWith(tab.href)
           return (
             <Link
               key={tab.href}

@@ -7,6 +7,9 @@ import { ChildBottomNav, EmptyState, Toast } from '@/components/layout'
 import { useFamilyCurrency } from '@/hooks/useFamilyCurrency'
 import RewardDetailsModal from '@/components/RewardDetailsModal'
 import RequestDetailsModal from '@/components/RequestDetailsModal'
+import ThemeToggle from '@/components/child/ThemeToggle'
+import ChildLoading from '@/components/child/ChildLoading'
+import { useSound } from '@/components/child/SoundManager'
 import { GiftsIcon, StarIcon, CoinIcon, ClockIcon, LockIcon, CheckIcon, RejectIcon } from '@/components/icons'
 import { getCurrentUser } from '@/lib/auth/helper'
 
@@ -27,6 +30,7 @@ export default function ChildGiftsPage() {
   const [childId, setChildId] = useState<string | null>(null)
   const router = useRouter()
   const { format: fmtMoney } = useFamilyCurrency()
+  const { play } = useSound()
 
   useEffect(() => {
     const getData = async () => {
@@ -74,7 +78,9 @@ export default function ChildGiftsPage() {
 
     if (!response.ok || !data.success) {
       setToast({ type: 'error', message: data.error || 'حدث خطأ' })
-      setRedeeming(null); return
+      setRedeeming(null)
+      play('error')
+      return
     }
 
     // Refresh balances server-side after a successful redemption
@@ -90,6 +96,7 @@ export default function ChildGiftsPage() {
     }
 
     setRedeeming(null)
+    play('gift')
     setToast({ type: 'success', message: 'تم طلب الهدية! انتظر موافقة الوالد' })
   }
 
@@ -126,14 +133,7 @@ export default function ChildGiftsPage() {
   }, [redemptionRequests])
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--ghrs-bg-primary)' }}>
-        <div className="text-center">
-          <GiftsIcon size={64} color="var(--ghrs-purple-500)" className="mx-auto mb-4 ghrs-animate-float" />
-          <p style={{ color: 'var(--ghrs-text-secondary)' }}>جاري تحميل الهدايا...</p>
-        </div>
-      </div>
-    )
+    return <ChildLoading text="جاري تحميل الهدايا..." icon={<GiftsIcon size={48} color="var(--ghrs-purple-500)" />} />
   }
 
   return (
@@ -159,44 +159,32 @@ export default function ChildGiftsPage() {
       />
 
       <div className="p-4 md:p-8 max-w-2xl mx-auto pb-32">
-        {/* Theme Toggle */}
         <div className="flex justify-end mb-4">
-          <button
-            onClick={() => {
-              const newTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'
-              document.documentElement.setAttribute('data-theme', newTheme)
-              localStorage.setItem('ghrs-theme', newTheme)
-            }}
-            className="p-3 rounded-xl transition-all"
-            style={{ background: 'var(--ghrs-bg-card)', border: '2px solid var(--ghrs-border-default)' }}
-            aria-label="تبديل المظهر"
-          >
-            {document.documentElement.getAttribute('data-theme') === 'dark' ? '☀️' : '🌙'}
-          </button>
+          <ThemeToggle />
         </div>
 
         {/* Balance Display */}
-        <div className="ghrs-card p-5 mb-6" style={{ background: 'linear-gradient(135deg, var(--ghrs-amber-50), var(--ghrs-green-50))', border: '2px solid var(--ghrs-amber-200)' }}>
+        <div className="mb-6 rounded-3xl p-5" style={{ background: 'var(--ghrs-bg-card)', border: '1.5px solid var(--ghrs-border-default)', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
           <div className="flex items-center justify-center gap-8">
             <div className="text-center">
-              <div className="w-12 h-12 rounded-full mx-auto mb-1 flex items-center justify-center" style={{ background: 'var(--ghrs-amber-100)' }}>
-                <StarIcon size={24} color="var(--ghrs-amber-600)" />
+              <div className="w-12 h-12 rounded-2xl mx-auto mb-1 flex items-center justify-center" style={{ background: 'var(--ghrs-amber-50)', border: '1.5px solid var(--ghrs-amber-200)' }}>
+                <StarIcon size={22} color="var(--ghrs-amber-600)" />
               </div>
-              <p className="text-2xl font-bold" style={{ color: 'var(--ghrs-amber-600)' }}>{xp}</p>
-              <p className="text-xs" style={{ color: 'var(--ghrs-text-secondary)' }}>XP</p>
+              <p className="text-2xl font-extrabold" style={{ color: 'var(--ghrs-amber-600)' }}>{xp}</p>
+              <p className="text-[10px]" style={{ color: 'var(--ghrs-text-tertiary)' }}>XP</p>
             </div>
             <div className="w-px h-12" style={{ background: 'var(--ghrs-border-default)' }} />
             <div className="text-center">
-              <div className="w-12 h-12 rounded-full mx-auto mb-1 flex items-center justify-center" style={{ background: 'var(--ghrs-green-100)' }}>
-                <CoinIcon size={24} color="var(--ghrs-green-600)" />
+              <div className="w-12 h-12 rounded-2xl mx-auto mb-1 flex items-center justify-center" style={{ background: 'var(--ghrs-green-50)', border: '1.5px solid var(--ghrs-green-200)' }}>
+                <CoinIcon size={22} color="var(--ghrs-green-600)" />
               </div>
-              <p className="text-2xl font-bold" style={{ color: 'var(--ghrs-green-600)' }}>{fmtMoney(moneyBalance)}</p>
-              <p className="text-xs" style={{ color: 'var(--ghrs-text-secondary)' }}>د.ب</p>
+              <p className="text-2xl font-extrabold" style={{ color: 'var(--ghrs-green-600)' }}>{fmtMoney(moneyBalance)}</p>
+              <p className="text-[10px]" style={{ color: 'var(--ghrs-text-tertiary)' }}>د.ب</p>
             </div>
           </div>
         </div>
 
-        <h1 className="text-2xl font-bold mb-6" style={{ color: 'var(--ghrs-text-primary)' }}>الهدايا</h1>
+        <h1 className="text-2xl font-extrabold mb-6" style={{ color: 'var(--ghrs-text-primary)' }}>هداياي</h1>
 
         {gifts.length === 0 ? (
           <EmptyState icon={<GiftsIcon size={48} />} title="ما في هدايا حالياً" description="الوالد لم يضف هدايا بعد. انتظر!" />

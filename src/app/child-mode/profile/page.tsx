@@ -2,9 +2,12 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { ChildBottomNav } from '@/components/layout'
+import { ChildBottomNav, Toast } from '@/components/layout'
 import { LEVELS, getLevel, Level } from '@/lib/gamification'
-import { StarIcon, FireIcon, CheckIcon, TasksIcon, LeafIcon } from '@/components/icons'
+import ThemeToggle from '@/components/child/ThemeToggle'
+import ChildLoading from '@/components/child/ChildLoading'
+import AchievementBadge from '@/components/child/AchievementBadge'
+import { StarIcon, FireIcon, CheckIcon, TasksIcon, TrophyIcon, ShieldIcon } from '@/components/icons'
 import { getCurrentUser } from '@/lib/auth/helper'
 
 export default function ChildProfilePage() {
@@ -14,18 +17,17 @@ export default function ChildProfilePage() {
   const [completedTasks, setCompletedTasks] = useState(0)
   const [streak, setStreak] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
   const router = useRouter()
 
   useEffect(() => {
     const getData = async () => {
-      // Get authenticated user from secure session
       const authUser = await getCurrentUser()
       if (!authUser || authUser.role !== 'child') {
         router.push('/family-login')
         return
       }
 
-      // Profile data is resolved server-side, scoped to the session member
       const response = await fetch('/api/child-mode/data', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -42,7 +44,6 @@ export default function ChildProfilePage() {
       setTotalTasks(result.total_tasks)
       setCompletedTasks(result.completed_tasks)
       setStreak(result.member.current_streak || 0)
-
       setLoading(false)
     }
 
@@ -58,33 +59,16 @@ export default function ChildProfilePage() {
   }
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--ghrs-bg-primary)' }}>
-        <div className="text-center">
-          <div className="text-5xl mb-4 animate-bounce">👤</div>
-          <p style={{ color: 'var(--ghrs-text-secondary)' }}>جاري تحميل الملف...</p>
-        </div>
-      </div>
-    )
+    return <ChildLoading text="جاري تحميل الملف..." icon="👤" />
   }
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--ghrs-bg-primary)' }}>
+      {toast && <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />}
+
       <div className="p-4 md:p-8 max-w-2xl mx-auto pb-32">
-        {/* Theme Toggle */}
         <div className="flex justify-end mb-4">
-          <button
-            onClick={() => {
-              const newTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'
-              document.documentElement.setAttribute('data-theme', newTheme)
-              localStorage.setItem('ghrs-theme', newTheme)
-            }}
-            className="p-3 rounded-xl transition-all"
-            style={{ background: 'var(--ghrs-bg-card)', border: '2px solid var(--ghrs-border-default)' }}
-            aria-label="تبديل المظهر"
-          >
-            {document.documentElement.getAttribute('data-theme') === 'dark' ? '☀️' : '🌙'}
-          </button>
+          <ThemeToggle />
         </div>
 
         {/* Profile Header */}
@@ -104,7 +88,7 @@ export default function ChildProfilePage() {
               <StarIcon size={24} color="var(--ghrs-amber-600)" />
             </div>
             <p className="text-2xl font-bold" style={{ color: 'var(--ghrs-amber-600)' }}>{xp}</p>
-            <p className="text-xs" style={{ color: 'var(--ghrs-text-secondary)' }}>نقاط الخبرة</p>
+            <p className="text-xs" style={{ color: 'var(--ghrs-text-secondary)' }}>XP</p>
           </div>
           <div className="ghrs-card p-5 text-center">
             <div className="w-12 h-12 rounded-full mx-auto mb-2 flex items-center justify-center" style={{ background: 'var(--ghrs-red-50)' }}>
@@ -129,32 +113,64 @@ export default function ChildProfilePage() {
           </div>
         </div>
 
-        {/* Info */}
-        <div className="ghrs-card p-6 mb-6">
-          <h3 className="font-bold mb-4" style={{ color: 'var(--ghrs-text-primary)' }}>معلوماتي</h3>
-          <div className="space-y-3">
-            <div className="flex justify-between items-center py-2" style={{ borderBottom: '1px solid var(--ghrs-border-default)' }}>
-              <span style={{ color: 'var(--ghrs-text-secondary)' }}>الاسم</span>
-              <span className="font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>{member?.name}</span>
-            </div>
-            <div className="flex justify-between items-center py-2" style={{ borderBottom: '1px solid var(--ghrs-border-default)' }}>
-              <span style={{ color: 'var(--ghrs-text-secondary)' }}>كود الدخول</span>
-              <span className="font-bold font-mono" style={{ color: 'var(--ghrs-green-600)' }}>{member?.login_code}</span>
-            </div>
-            <div className="flex justify-between items-center py-2">
-              <span style={{ color: 'var(--ghrs-text-secondary)' }}>المستوى</span>
-              <span className="font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>{level.name} {level.emoji}</span>
-            </div>
+        {/* Achievements */}
+        <div className="mb-6">
+          <h3 className="text-lg font-bold mb-3 flex items-center gap-2" style={{ color: 'var(--ghrs-text-primary)' }}>
+            <TrophyIcon size={20} color="var(--ghrs-amber-600)" /> إنجازاتي
+          </h3>
+          <div className="space-y-2">
+            <AchievementBadge
+              title="جامع النقاط"
+              description="اجمع 500 نقطة خبرة"
+              icon="⭐"
+              unlocked={xp >= 500}
+              progress={{ current: xp, max: 500 }}
+            />
+            <AchievementBadge
+              title="المهام النشطة"
+              description="أكمل 10 مهام"
+              icon="📋"
+              unlocked={completedTasks >= 10}
+              progress={{ current: completedTasks, max: 10 }}
+            />
+            <AchievementBadge
+              title="محارب الإنجاز"
+              description="حافظ على سلسلة 7 أيام"
+              icon="🔥"
+              unlocked={streak >= 7}
+              progress={{ current: streak, max: 7 }}
+            />
+            <AchievementBadge
+              title="المستوى العالي"
+              description="وصل إلى المستوى 4"
+              icon="🌳"
+              unlocked={level.level >= 4}
+              progress={{ current: level.level, max: 4 }}
+            />
+            <AchievementBadge
+              title="حديقة كاملة"
+              description="اصل إلى أعلى مستوى"
+              icon="🏡"
+              unlocked={level.level >= 6}
+              progress={{ current: level.level, max: 6 }}
+            />
+            <AchievementBadge
+              title="درع الحماية"
+              description="احصل على 3 دروع حماية"
+              icon="🛡️"
+              unlocked={(member?.grace_shields || 0) >= 3}
+              progress={{ current: member?.grace_shields || 0, max: 3 }}
+            />
           </div>
         </div>
 
         {/* Logout */}
         <button
           onClick={handleLogout}
-          className="w-full py-3 px-6 rounded-xl font-bold transition-colors"
-          style={{ background: 'var(--ghrs-red-50)', color: 'var(--ghrs-red-600)', border: '1px solid var(--ghrs-red-200)' }}
+          className="w-full py-3 px-6 rounded-xl text-sm font-semibold transition-colors"
+          style={{ background: 'var(--ghrs-bg-tertiary)', color: 'var(--ghrs-text-tertiary)' }}
         >
-          🚪 خروج من الحساب
+          خروج من الحساب
         </button>
       </div>
 
