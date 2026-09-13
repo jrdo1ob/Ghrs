@@ -2,11 +2,12 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
+import { motion, AnimatePresence } from 'framer-motion'
 import { ChildBottomNav, EmptyState, Toast } from '@/components/layout'
 import { useFamilyCurrency } from '@/hooks/useFamilyCurrency'
 import RewardDetailsModal from '@/components/RewardDetailsModal'
 import RequestDetailsModal from '@/components/RequestDetailsModal'
-import { GiftsIcon, StarIcon, CoinIcon, ClockIcon, LockIcon } from '@/components/icons'
+import { GiftsIcon, StarIcon, CoinIcon, ClockIcon, LockIcon, CheckIcon, RejectIcon } from '@/components/icons'
 import { getCurrentUser } from '@/lib/auth/helper'
 
 export default function ChildGiftsPage() {
@@ -21,6 +22,8 @@ export default function ChildGiftsPage() {
   const [showGiftModal, setShowGiftModal] = useState(false)
   const [selectedRequest, setSelectedRequest] = useState<any>(null)
   const [showRequestModal, setShowRequestModal] = useState(false)
+  const [selectedStatus, setSelectedStatus] = useState<string | null>(null)
+  const [showStatusModal, setShowStatusModal] = useState(false)
   const [childId, setChildId] = useState<string | null>(null)
   const router = useRouter()
   const { format: fmtMoney } = useFamilyCurrency()
@@ -98,6 +101,18 @@ export default function ChildGiftsPage() {
   const openRequestModal = (req: any) => {
     setSelectedRequest(req)
     setShowRequestModal(true)
+  }
+
+  const openStatusModal = (status: string) => {
+    setSelectedStatus(status)
+    setShowStatusModal(true)
+  }
+
+  const statusConfig: Record<string, { label: string; color: string; bg: string; iconBg: string; icon: React.ReactNode }> = {
+    pending: { label: 'قيد الانتظار', color: 'var(--ghrs-amber-700)', bg: 'var(--ghrs-amber-50)', iconBg: 'var(--ghrs-amber-100)', icon: <ClockIcon size={24} color="var(--ghrs-amber-600)" /> },
+    rejected: { label: 'تم الرفض', color: 'var(--ghrs-red-600)', bg: 'var(--ghrs-red-50)', iconBg: 'var(--ghrs-red-100)', icon: <RejectIcon size={24} color="var(--ghrs-red-500)" /> },
+    approved: { label: 'تمت الموافقة', color: 'var(--ghrs-green-600)', bg: 'var(--ghrs-green-50)', iconBg: 'var(--ghrs-green-100)', icon: <CheckIcon size={24} color="var(--ghrs-green-500)" /> },
+    revoked: { label: 'تم سحب الموافقة', color: 'var(--ghrs-purple-600)', bg: 'var(--ghrs-purple-50)', iconBg: 'var(--ghrs-purple-100)', icon: <ClockIcon size={24} color="var(--ghrs-purple-500)" /> },
   }
 
   const groupedRequests = useMemo(() => {
@@ -232,67 +247,89 @@ export default function ChildGiftsPage() {
         )}
 
         {/* طلبات الهدايا */}
-        {redemptionRequests.length > 0 && (
-          <>
-            <h2 className="text-xl font-bold mt-10 mb-4" style={{ color: 'var(--ghrs-text-primary)' }}>طلبات الهدايا</h2>
-            {([
-              { key: 'pending', label: 'بانتظار الموافقة' },
-              { key: 'rejected', label: 'تم الرفض' },
-              { key: 'revoked', label: 'تم سحب الموافقة' },
-              { key: 'approved', label: 'تمت الموافقة' },
-            ] as const).map(({ key, label }) => {
-              const items = groupedRequests[key]
-              if (items.length === 0) return null
-              const getStatusColor = (s: string) => {
-                switch (s) {
-                  case 'approved': return { color: 'var(--ghrs-green-600)', bg: 'var(--ghrs-green-50)' }
-                  case 'rejected': return { color: 'var(--ghrs-red-600)', bg: 'var(--ghrs-red-50)' }
-                  case 'revoked': return { color: 'var(--ghrs-purple-600)', bg: 'var(--ghrs-purple-50)' }
-                  case 'pending': return { color: 'var(--ghrs-amber-700)', bg: 'var(--ghrs-amber-50)' }
-                  default: return { color: 'var(--ghrs-text-secondary)', bg: 'var(--ghrs-bg-tertiary)' }
-                }
-              }
-              const sc = getStatusColor(key)
-              return (
-                <div key={key} className="mb-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-sm font-bold" style={{ color: sc.color }}>{label}</span>
-                    <span className="text-xs px-2 py-0.5 rounded-full font-bold" style={{ background: sc.bg, color: sc.color }}>{items.length}</span>
-                  </div>
-                  <div className="space-y-2.5">
-                    {items.map((req: any) => (
-                      <div key={req.id} onClick={() => openRequestModal(req)}
-                        className="cursor-pointer active:scale-[0.97] transition-all rounded-2xl p-4 flex items-center gap-3"
-                        style={{ background: 'var(--ghrs-bg-card)', border: '1.5px solid var(--ghrs-border-default)', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-                        <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'var(--ghrs-purple-50)' }}>
-                          <GiftsIcon size={20} color="var(--ghrs-purple-600)" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-bold truncate" style={{ color: 'var(--ghrs-text-primary)' }}>{req.gift_name}</p>
-                          <div className="flex items-center gap-2.5 mt-1">
-                            {req.requested_xp != null && (
-                              <span className="text-xs font-bold" style={{ color: 'var(--ghrs-amber-600)' }}>
-                                <StarIcon size={12} className="inline" /> {req.requested_xp} XP
-                              </span>
-                            )}
-                            {req.money_spent != null && req.money_spent > 0 && (
-                              <span className="text-xs font-bold" style={{ color: 'var(--ghrs-green-600)' }}>
-                                <CoinIcon size={12} className="inline" /> {fmtMoney(req.money_spent)}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ghrs-text-tertiary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0" style={{ transform: 'scaleX(-1)' }}>
-                          <polyline points="9 18 15 12 9 6" />
-                        </svg>
-                      </div>
-                    ))}
-                  </div>
+        <h2 className="text-xl font-bold mt-10 mb-4" style={{ color: 'var(--ghrs-text-primary)' }}>طلبات الهدايا</h2>
+        <div className="grid grid-cols-2 gap-3">
+          {(['pending', 'rejected', 'approved', 'revoked'] as const).map(key => {
+            const sc = statusConfig[key]
+            const count = groupedRequests[key].length
+            return (
+              <div key={key} onClick={() => openStatusModal(key)}
+                className="cursor-pointer active:scale-[0.97] transition-all rounded-2xl p-4 flex flex-col items-center text-center gap-2"
+                style={{ background: 'var(--ghrs-bg-card)', border: '1.5px solid var(--ghrs-border-default)', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+                <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: sc.iconBg }}>
+                  {sc.icon}
                 </div>
-              )
-            })}
-          </>
-        )}
+                <span className="text-xs font-bold" style={{ color: sc.color }}>{sc.label}</span>
+                <span className="text-lg font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>{count}</span>
+                <span className="text-[10px]" style={{ color: 'var(--ghrs-text-tertiary)' }}>{count === 1 ? 'طلب' : 'طلبات'}</span>
+              </div>
+            )
+          })}
+        </div>
+
+        {/* Status List Modal */}
+        <AnimatePresence>
+          {showStatusModal && selectedStatus && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 flex items-end md:items-center justify-center"
+              style={{ background: 'rgba(0,0,0,0.6)' }}
+              onClick={() => { setShowStatusModal(false); setSelectedStatus(null) }}
+            >
+              <motion.div
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 50 }}
+                transition={{ type: 'spring', damping: 25 }}
+                className="w-full md:max-w-sm max-h-[80vh] overflow-y-auto rounded-t-3xl md:rounded-2xl"
+                style={{ background: 'var(--ghrs-bg-card)' }}
+                onClick={e => e.stopPropagation()}
+              >
+                <div className="p-5 flex items-center justify-between" style={{ borderBottom: '1px solid var(--ghrs-border-default)' }}>
+                  <h3 className="text-base font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>
+                    طلبات {statusConfig[selectedStatus].label} ({groupedRequests[selectedStatus].length})
+                  </h3>
+                  <button onClick={() => { setShowStatusModal(false); setSelectedStatus(null) }}
+                    className="p-2 rounded-lg" style={{ background: 'var(--ghrs-bg-tertiary)', color: 'var(--ghrs-text-secondary)' }}>✕</button>
+                </div>
+                <div className="p-4 space-y-2.5">
+                  {groupedRequests[selectedStatus].map((req: any) => (
+                    <div key={req.id} onClick={() => { setShowStatusModal(false); setSelectedStatus(null); openRequestModal(req) }}
+                      className="cursor-pointer active:scale-[0.97] transition-all rounded-2xl p-4 flex items-center gap-3"
+                      style={{ background: 'var(--ghrs-bg-primary)', border: '1px solid var(--ghrs-border-default)' }}>
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'var(--ghrs-purple-50)' }}>
+                        <GiftsIcon size={20} color="var(--ghrs-purple-600)" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold truncate" style={{ color: 'var(--ghrs-text-primary)' }}>{req.gift_name}</p>
+                        <div className="flex items-center gap-2.5 mt-1">
+                          {req.requested_xp != null && (
+                            <span className="text-xs font-bold" style={{ color: 'var(--ghrs-amber-600)' }}>
+                              <StarIcon size={12} className="inline" /> {req.requested_xp} XP
+                            </span>
+                          )}
+                          {req.money_spent != null && req.money_spent > 0 && (
+                            <span className="text-xs font-bold" style={{ color: 'var(--ghrs-green-600)' }}>
+                              <CoinIcon size={12} className="inline" /> {fmtMoney(req.money_spent)}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ghrs-text-tertiary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0" style={{ transform: 'scaleX(-1)' }}>
+                        <polyline points="9 18 15 12 9 6" />
+                      </svg>
+                    </div>
+                  ))}
+                  {groupedRequests[selectedStatus].length === 0 && (
+                    <p className="text-center text-sm py-6" style={{ color: 'var(--ghrs-text-tertiary)' }}>لا توجد طلبات</p>
+                  )}
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       <ChildBottomNav />
