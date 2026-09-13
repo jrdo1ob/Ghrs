@@ -78,7 +78,7 @@ export default function ChildTasksPage() {
       const task = tasks.find(t => t.id === taskId)
       const needsApproval = task?.requires_approval !== false
 
-      setPendingToday([...pendingToday, taskId])
+      setPendingToday(prev => [...prev, taskId])
       setShowTaskModal(false)
 
       if (!needsApproval) {

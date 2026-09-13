@@ -65,35 +65,41 @@ export default function ChildGiftsPage() {
     setRedeeming(giftId)
     setShowGiftModal(false)
 
-    const response = await fetch('/api/gifts/redeem', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ gift_id: giftId }),
-    })
+    try {
+      const response = await fetch('/api/gifts/redeem', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ gift_id: giftId }),
+      })
 
-    const data = await response.json()
+      const data = await response.json()
 
-    if (!response.ok || !data.success) {
-      setToast({ type: 'error', message: data.error || 'حدث خطأ' })
-      setRedeeming(null)
+      if (!response.ok || !data.success) {
+        setToast({ type: 'error', message: data.error || 'حدث خطأ' })
+        play('error')
+        return
+      }
+
+      const refreshResponse = await fetch('/api/child-mode/data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ section: 'gifts' }),
+      })
+      const refreshResult = await refreshResponse.json()
+      if (refreshResponse.ok && refreshResult.success) {
+        setXp(refreshResult.xp)
+        setMoneyBalance(refreshResult.money_balance)
+      }
+
+      play('gift')
+      setToast({ type: 'success', message: 'تم طلب الهدية! انتظر موافقة الوالد' })
+    } catch (err) {
+      console.error('[GHRS] Gift redeem error:', err)
+      setToast({ type: 'error', message: 'حدث خطأ أثناء طلب الهدية' })
       play('error')
-      return
+    } finally {
+      setRedeeming(null)
     }
-
-    const refreshResponse = await fetch('/api/child-mode/data', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ section: 'gifts' }),
-    })
-    const refreshResult = await refreshResponse.json()
-    if (refreshResponse.ok && refreshResult.success) {
-      setXp(refreshResult.xp)
-      setMoneyBalance(refreshResult.money_balance)
-    }
-
-    setRedeeming(null)
-    play('gift')
-    setToast({ type: 'success', message: 'تم طلب الهدية! انتظر موافقة الوالد' })
   }
 
   const openGiftModal = (gift: any) => {

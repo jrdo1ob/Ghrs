@@ -52,38 +52,43 @@ export default function ChildModePage() {
 
   useEffect(() => {
     const getData = async () => {
-      const authUser = await getCurrentUser()
-      if (!authUser || authUser.role !== 'child') {
-        router.push('/family-login')
-        return
+      try {
+        const authUser = await getCurrentUser()
+        if (!authUser || authUser.role !== 'child') {
+          router.push('/family-login')
+          return
+        }
+
+        const response = await fetch('/api/child-mode/data', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ section: 'home' }),
+        })
+        const result = await response.json()
+        if (!response.ok || !result.success) {
+          router.push('/family-login')
+          return
+        }
+
+        setMember(result.member)
+        setStreak(result.member.current_streak || 0)
+        setTasks(result.tasks)
+        setXp(result.xp)
+        setMoneyBalance(result.money_balance)
+        setCompletedToday(result.completed_today)
+        setPendingToday(result.pending_today)
+
+        if (result.recent_manual) {
+          setTimeout(() => {
+            setToast({ type: result.recent_manual.type, message: result.recent_manual.message })
+          }, 1500)
+        }
+      } catch (err) {
+        console.error('[GHRS] Home data fetch error:', err)
+        setToast({ type: 'error', message: 'حدث خطأ أثناء تحميل البيانات' })
+      } finally {
+        setLoading(false)
       }
-
-      const response = await fetch('/api/child-mode/data', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ section: 'home' }),
-      })
-      const result = await response.json()
-      if (!response.ok || !result.success) {
-        router.push('/family-login')
-        return
-      }
-
-      setMember(result.member)
-      setStreak(result.member.current_streak || 0)
-      setTasks(result.tasks)
-      setXp(result.xp)
-      setMoneyBalance(result.money_balance)
-      setCompletedToday(result.completed_today)
-      setPendingToday(result.pending_today)
-
-      if (result.recent_manual) {
-        setTimeout(() => {
-          setToast({ type: result.recent_manual.type, message: result.recent_manual.message })
-        }, 1500)
-      }
-
-      setLoading(false)
     }
 
     getData()
@@ -129,7 +134,7 @@ export default function ChildModePage() {
       const task = tasks.find(t => t.id === taskId)
       const needsApproval = task?.requires_approval !== false
 
-      setPendingToday([...pendingToday, taskId])
+      setPendingToday(prev => [...prev, taskId])
 
       if (!needsApproval) {
         setShowConfetti(true)

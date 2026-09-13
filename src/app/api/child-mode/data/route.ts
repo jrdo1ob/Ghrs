@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
 
     const { data: memberData, error: memberError } = await supabase
       .from('members')
-      .select('id, name, role, login_code, current_streak, longest_streak, grace_shields, last_active_date')
+      .select('id, name, role, current_streak, longest_streak, grace_shields, last_active_date')
       .eq('id', memberId)
       .single()
 
@@ -194,7 +194,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      member: { name: memberData.name, login_code: memberData.login_code, current_streak: memberData.current_streak },
+      member: { name: memberData.name, current_streak: memberData.current_streak },
       xp: (xpResult.data || []).reduce((sum, t) => sum + t.amount, 0),
       total_tasks: tasksResult.data?.length || 0,
       completed_tasks: completionsResult.data?.length || 0,
