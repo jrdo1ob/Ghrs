@@ -168,20 +168,20 @@ export default function SettingsPage() {
             backHref="/dashboard"
           />
 
-          <div className="space-y-6">
+          <div className="space-y-4">
             {/* Family Info */}
-            <div className="ghrs-card p-6">
-              <h2 className="text-lg font-bold mb-4" style={{ color: 'var(--ghrs-text-primary)' }}>معلومات العائلة</h2>
-              
+            <div className="ghrs-card p-5">
+              <h2 className="text-base font-bold mb-3" style={{ color: 'var(--ghrs-text-primary)' }}>معلومات العائلة</h2>
+
               {error && (
-                <div className="mb-4 p-3 rounded-xl text-sm font-semibold" style={{ background: 'var(--ghrs-red-50)', color: 'var(--ghrs-red-600)', border: '1px solid var(--ghrs-red-200)' }}>
+                <div className="mb-3 p-2.5 rounded-lg text-xs" style={{ background: 'var(--ghrs-red-50)', color: 'var(--ghrs-red-600)', border: '1px solid var(--ghrs-red-200)' }}>
                   {error}
                 </div>
               )}
 
-              <div className="space-y-4">
+              <div className="space-y-3">
                 <div>
-                  <p className="text-sm font-semibold mb-2" style={{ color: 'var(--ghrs-text-secondary)' }}>اسم العائلة</p>
+                  <p className="ghrs-label">اسم العائلة</p>
                   {editing ? (
                     <div className="flex gap-2">
                       <input
@@ -191,38 +191,38 @@ export default function SettingsPage() {
                         className="ghrs-input flex-1"
                         placeholder="اسم جديد"
                       />
-                      <button onClick={handleUpdateName} className="ghrs-btn-primary">حفظ</button>
-                      <button onClick={() => { setEditing(false); setError('') }} className="ghrs-btn-secondary">إلغاء</button>
+                      <button onClick={handleUpdateName} className="ghrs-btn-primary flex-shrink-0">حفظ</button>
+                      <button onClick={() => { setEditing(false); setError('') }} className="ghrs-btn-secondary flex-shrink-0">إلغاء</button>
                     </div>
                   ) : (
                     <div className="flex items-center gap-2">
-                      <p className="font-bold text-lg" style={{ color: 'var(--ghrs-text-primary)' }}>{family?.name}</p>
+                      <p className="text-base font-bold flex-1 min-w-0 truncate" style={{ color: 'var(--ghrs-text-primary)' }}>{family?.name}</p>
                       <button
                         onClick={() => { setNewName(family?.name); setEditing(true) }}
-                        className="text-sm font-semibold"
-                        style={{ color: 'var(--ghrs-green-600)' }}
+                        className="text-xs font-semibold flex items-center gap-1"
+                        style={{ color: 'var(--ghrs-text-secondary)' }}
                       >
-                        <EditIcon size={14} className="inline" /> تعديل
+                        <EditIcon size={12} /> تعديل
                       </button>
                     </div>
                   )}
                 </div>
 
                 <div>
-                  <p className="text-sm font-semibold mb-2" style={{ color: 'var(--ghrs-text-secondary)' }}>كود العائلة</p>
-                  <p className="font-bold font-mono text-xl" style={{ color: 'var(--ghrs-green-600)' }}>{family?.code}</p>
-                  <p className="text-xs mt-1" style={{ color: 'var(--ghrs-text-tertiary)' }}>شارك هذا الكود مع أفراد العائلة للدخول</p>
+                  <p className="ghrs-label">كود العائلة</p>
+                  <p className="text-base font-bold font-mono tabular-nums" style={{ color: 'var(--ghrs-text-primary)' }}>{family?.code}</p>
+                  <p className="text-[10px] mt-1" style={{ color: 'var(--ghrs-text-tertiary)' }}>شارك هذا الكود مع أفراد العائلة للدخول</p>
                 </div>
 
                 <div>
-                  <p className="text-sm font-semibold mb-2" style={{ color: 'var(--ghrs-text-secondary)' }}>دورك</p>
-                  <p className="font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>
+                  <p className="ghrs-label">دورك</p>
+                  <p className="text-sm font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>
                     {member?.role === 'owner' ? 'مالك العائلة' : member?.role === 'parent' ? 'ولي الأمر' : 'طفل'}
                   </p>
                 </div>
 
                 <div>
-                  <p className="text-sm font-semibold mb-2" style={{ color: 'var(--ghrs-text-secondary)' }}>اسمك</p>
+                  <p className="ghrs-label">اسمك</p>
                   {editingMemberName ? (
                     <div className="flex gap-2">
                       <input
@@ -232,18 +232,18 @@ export default function SettingsPage() {
                         className="ghrs-input flex-1"
                         placeholder="اسم جديد"
                       />
-                      <button onClick={handleUpdateMemberName} className="ghrs-btn-primary">حفظ</button>
-                      <button onClick={() => { setEditingMemberName(false); setError('') }} className="ghrs-btn-secondary">إلغاء</button>
+                      <button onClick={handleUpdateMemberName} className="ghrs-btn-primary flex-shrink-0">حفظ</button>
+                      <button onClick={() => { setEditingMemberName(false); setError('') }} className="ghrs-btn-secondary flex-shrink-0">إلغاء</button>
                     </div>
                   ) : (
                     <div className="flex items-center gap-2">
-                      <p className="font-bold text-lg" style={{ color: 'var(--ghrs-text-primary)' }}>{member?.name}</p>
+                      <p className="text-base font-bold flex-1 min-w-0 truncate" style={{ color: 'var(--ghrs-text-primary)' }}>{member?.name}</p>
                       <button
                         onClick={() => { setNewMemberName(member?.name); setEditingMemberName(true) }}
-                        className="text-sm font-semibold"
-                        style={{ color: 'var(--ghrs-green-600)' }}
+                        className="text-xs font-semibold flex items-center gap-1"
+                        style={{ color: 'var(--ghrs-text-secondary)' }}
                       >
-                        <EditIcon size={14} className="inline" /> تعديل
+                        <EditIcon size={12} /> تعديل
                       </button>
                     </div>
                   )}
@@ -252,12 +252,12 @@ export default function SettingsPage() {
             </div>
 
             {/* Currency Settings */}
-            <div className="ghrs-card p-6">
-              <h2 className="text-lg font-bold mb-4" style={{ color: 'var(--ghrs-text-primary)' }}>العملة</h2>
-              <p className="text-sm mb-4" style={{ color: 'var(--ghrs-text-secondary)' }}>
-                اختر عملة العائلة用于عرض المكافآت المالية
+            <div className="ghrs-card p-5">
+              <h2 className="text-base font-bold mb-3" style={{ color: 'var(--ghrs-text-primary)' }}>العملة</h2>
+              <p className="text-xs mb-3" style={{ color: 'var(--ghrs-text-tertiary)' }}>
+                اختر عملة العائلة لعرض المكافآت المالية
               </p>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-3 gap-2">
                 {[
                   { code: 'KWD', name: 'الدينار الكويتي', symbol: 'د.ك' },
                   { code: 'SAR', name: 'الريال السعودي', symbol: 'ر.س' },
@@ -270,23 +270,23 @@ export default function SettingsPage() {
                     key={currency.code}
                     onClick={() => handleCurrencyChange(currency.code)}
                     disabled={currencySaving}
-                    className="flex flex-col items-center gap-1 p-3 rounded-xl transition-all"
+                    className="flex flex-col items-center gap-1 p-2.5 rounded-lg transition-all"
                     style={{
-                      background: family?.currency === currency.code ? 'var(--ghrs-green-50)' : 'var(--ghrs-bg-tertiary)',
-                      border: `2px solid ${family?.currency === currency.code ? 'var(--ghrs-green-500)' : 'transparent'}`,
+                      background: family?.currency === currency.code ? 'var(--ghrs-green-50)' : 'var(--ghrs-bg-secondary)',
+                      border: `1px solid ${family?.currency === currency.code ? 'var(--ghrs-green-300)' : 'var(--ghrs-border-default)'}`,
                       color: family?.currency === currency.code ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)',
                       opacity: currencySaving ? 0.7 : 1
                     }}
                   >
-                    <span className="text-lg font-bold">{currency.symbol}</span>
-                    <span className="text-xs font-semibold">{currency.code}</span>
+                    <span className="text-base font-bold">{currency.symbol}</span>
+                    <span className="text-[10px] font-semibold">{currency.code}</span>
                   </button>
                 ))}
               </div>
             </div>
-            <div className="ghrs-card p-6">
-              <h2 className="text-lg font-bold mb-4" style={{ color: 'var(--ghrs-text-primary)' }}>المظهر</h2>
-              <div className="grid grid-cols-3 gap-3">
+            <div className="ghrs-card p-5">
+              <h2 className="text-base font-bold mb-3" style={{ color: 'var(--ghrs-text-primary)' }}>المظهر</h2>
+              <div className="grid grid-cols-3 gap-2">
                 {[
                   { value: 'light' as const, label: 'فاتح', icon: '☀️' },
                   { value: 'dark' as const, label: 'داكن', icon: '🌙' },
@@ -295,31 +295,30 @@ export default function SettingsPage() {
                   <button
                     key={option.value}
                     onClick={() => setTheme(option.value)}
-                    className="flex flex-col items-center gap-2 p-4 rounded-xl transition-all"
+                    className="flex flex-col items-center gap-1.5 p-3 rounded-lg transition-all"
                     style={{
-                      background: theme === option.value ? 'var(--ghrs-green-50)' : 'var(--ghrs-bg-tertiary)',
-                      border: `2px solid ${theme === option.value ? 'var(--ghrs-green-500)' : 'transparent'}`,
+                      background: theme === option.value ? 'var(--ghrs-green-50)' : 'var(--ghrs-bg-secondary)',
+                      border: `1px solid ${theme === option.value ? 'var(--ghrs-green-300)' : 'var(--ghrs-border-default)'}`,
                       color: theme === option.value ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)'
                     }}
                   >
-                    <span className="text-2xl">{option.icon}</span>
-                    <span className="text-sm font-bold">{option.label}</span>
+                    <span className="text-xl">{option.icon}</span>
+                    <span className="text-xs font-bold">{option.label}</span>
                   </button>
                 ))}
               </div>
             </div>
 
             {/* Account */}
-            <div className="ghrs-card p-6">
-              <h2 className="text-lg font-bold mb-4" style={{ color: 'var(--ghrs-text-primary)' }}>الحساب</h2>
+            <div className="ghrs-card p-5">
+              <h2 className="text-base font-bold mb-3" style={{ color: 'var(--ghrs-text-primary)' }}>الحساب</h2>
               <button
                 onClick={async () => {
                   clearAuth()
                   await supabase.auth.signOut()
                   router.push('/')
                 }}
-                className="w-full py-3 px-6 rounded-xl text-sm font-bold transition-colors"
-                style={{ background: 'var(--ghrs-red-50)', color: 'var(--ghrs-red-600)', border: '1px solid var(--ghrs-red-200)' }}
+                className="ghrs-btn-danger w-full justify-center"
               >
                 خروج من الحساب
               </button>

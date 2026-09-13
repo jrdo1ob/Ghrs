@@ -159,13 +159,18 @@ export default function RewardBankPage() {
           <PageHeader title="بنك المكافآت" subtitle="50 مكافأة تربوية جاهزة لإضافة لمتجر العائلة" backHref="/rewards" />
 
           {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 mb-5">
             {CATEGORIES.filter(c => c.id !== 'all').map(cat => {
               const colors = CATEGORY_COLORS[cat.id] || { bg: 'var(--ghrs-bg-tertiary)', text: 'var(--ghrs-text-secondary)', border: 'var(--ghrs-border-default)' }
               return (
-                <div key={cat.id} className="ghrs-card p-4 text-center" style={{ border: `2px solid ${colors.border}` }}>
-                  <div className="text-2xl font-bold" style={{ color: colors.text }}>{categoryCount(cat.id)}</div>
-                  <div className="text-xs font-semibold" style={{ color: colors.text }}>{cat.label}</div>
+                <div key={cat.id} className="ghrs-card p-3.5 flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: colors.bg }}>
+                    <span className="text-base">{cat.icon}</span>
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-lg font-extrabold tabular-nums leading-none" style={{ color: colors.text }}>{categoryCount(cat.id)}</div>
+                    <div className="text-[10px] mt-0.5" style={{ color: 'var(--ghrs-text-tertiary)' }}>{cat.label}</div>
+                  </div>
                 </div>
               )
             })}
@@ -177,42 +182,42 @@ export default function RewardBankPage() {
           </div>
 
           {/* Category Tabs */}
-          <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
+          <div className="flex gap-1.5 mb-5 border-b overflow-x-auto pb-1" style={{ borderColor: 'var(--ghrs-border-default)' }}>
             {CATEGORIES.map(cat => (
               <button key={cat.id} onClick={() => setActiveCategory(cat.id)}
-                className="flex items-center gap-1 px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap"
-                style={{ background: activeCategory === cat.id ? 'var(--ghrs-green-100)' : 'var(--ghrs-bg-tertiary)', color: activeCategory === cat.id ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)' }}>
+                className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold transition-all border-b-2 whitespace-nowrap"
+                style={{ borderColor: activeCategory === cat.id ? 'var(--ghrs-green-600)' : 'transparent', color: activeCategory === cat.id ? 'var(--ghrs-text-primary)' : 'var(--ghrs-text-tertiary)' }}>
                 {cat.icon} {cat.label} ({categoryCount(cat.id)})
               </button>
             ))}
           </div>
 
           {/* Rewards Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {filteredPresets.map(preset => {
               const colors = CATEGORY_COLORS[preset.category] || { bg: 'var(--ghrs-bg-tertiary)', text: 'var(--ghrs-text-secondary)', border: 'var(--ghrs-border-default)' }
               return (
                 <motion.div key={preset.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-                  className="ghrs-card p-4 transition-all hover:shadow-lg" style={{ borderLeft: `4px solid ${colors.border}` }}>
+                  className="ghrs-card p-4 transition-all" style={{ borderLeft: `3px solid ${colors.border}` }}>
                   {/* Header */}
                   <div className="flex items-start justify-between mb-2">
-                    <div className="flex-1">
-                      <span className="px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: colors.bg, color: colors.text }}>
+                    <div className="flex-1 min-w-0">
+                      <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ghrs-badge`} style={{ background: colors.bg, color: colors.text }}>
                         {CATEGORY_LABELS[preset.category]}
                       </span>
-                      <h3 className="text-base font-bold mt-2" style={{ color: 'var(--ghrs-text-primary)' }}>{preset.title}</h3>
-                      {preset.description && <p className="text-xs mt-1" style={{ color: 'var(--ghrs-text-secondary)' }}>{preset.description}</p>}
+                      <h3 className="text-sm font-bold mt-2 truncate" style={{ color: 'var(--ghrs-text-primary)' }}>{preset.title}</h3>
+                      {preset.description && <p className="text-xs mt-1 line-clamp-2" style={{ color: 'var(--ghrs-text-secondary)' }}>{preset.description}</p>}
                     </div>
                   </div>
 
                   {/* Price */}
-                  <div className="flex items-center gap-3 mb-3">
-                    <span className="text-sm font-semibold" style={{ color: 'var(--ghrs-amber-600)' }}>
-                      <StarIcon size={14} className="inline" /> {preset.default_xp} XP
+                  <div className="flex items-center gap-3 mb-3 pb-3 border-t pt-3" style={{ borderColor: 'var(--ghrs-border-default)' }}>
+                    <span className="inline-flex items-center gap-1 text-xs font-semibold tabular-nums" style={{ color: 'var(--ghrs-text-secondary)' }}>
+                      <StarIcon size={12} /> {preset.default_xp} XP
                     </span>
                     {preset.default_price > 0 && (
-                      <span className="text-sm font-semibold" style={{ color: 'var(--ghrs-green-600)' }}>
-                        <CoinIcon size={14} className="inline" /> {preset.default_price} {currencySymbol}
+                      <span className="inline-flex items-center gap-1 text-xs font-semibold tabular-nums" style={{ color: 'var(--ghrs-text-secondary)' }}>
+                        <CoinIcon size={12} /> {preset.default_price} {currencySymbol}
                       </span>
                     )}
                   </div>
@@ -220,13 +225,12 @@ export default function RewardBankPage() {
                   {/* Action Buttons */}
                   <div className="flex gap-2">
                     <button onClick={() => openAdd(preset)} disabled={addingId === preset.id}
-                      className="flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-xl text-xs font-bold transition-all"
-                      style={{ background: 'var(--ghrs-green-500)', color: 'white', opacity: addingId === preset.id ? 0.6 : 1 }}>
-                      {addingId === preset.id ? '...' : <><PlusIcon size={14} /> إضافة للمتجر</>}
+                      className="flex-1 ghrs-btn-primary text-xs py-2 justify-center"
+                      style={{ opacity: addingId === preset.id ? 0.6 : 1 }}>
+                      {addingId === preset.id ? '...' : <><PlusIcon size={12} /> إضافة</>}
                     </button>
                     <button onClick={() => openEdit(preset)}
-                      className="px-3 py-2 rounded-xl text-xs font-bold transition-all"
-                      style={{ background: 'var(--ghrs-bg-tertiary)', color: 'var(--ghrs-text-secondary)' }}>
+                      className="px-3 py-2 ghrs-btn-secondary text-xs flex-shrink-0">
                       <EditIcon size={14} />
                     </button>
                   </div>

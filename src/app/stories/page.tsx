@@ -159,13 +159,13 @@ export default function StoriesPage() {
           } />
 
           {/* Tabs */}
-          <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
+          <div className="flex gap-1.5 mb-5 border-b overflow-x-auto pb-1" style={{ borderColor: 'var(--ghrs-border-default)' }}>
             {[
               { id: 'library', label: 'المكتبة', count: presetStories.length },
               { id: 'my', label: 'قصصي', count: stories.length },
               { id: 'custom', label: 'قصة جديدة', count: 0 },
             ].map(tab => (
-              <button key={tab.id} onClick={() => setActiveTab(tab.id as any)} className="px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap" style={{ background: activeTab === tab.id ? 'var(--ghrs-green-100)' : 'var(--ghrs-bg-tertiary)', color: activeTab === tab.id ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)' }}>
+              <button key={tab.id} onClick={() => setActiveTab(tab.id as any)} className="px-3 py-2 text-xs font-bold transition-all border-b-2 whitespace-nowrap" style={{ borderColor: activeTab === tab.id ? 'var(--ghrs-green-600)' : 'transparent', color: activeTab === tab.id ? 'var(--ghrs-text-primary)' : 'var(--ghrs-text-tertiary)' }}>
                 {tab.label}
               </button>
             ))}
@@ -173,12 +173,12 @@ export default function StoriesPage() {
 
           {/* Child Filter */}
           {children.length > 0 && (
-            <div className="mb-4 flex items-center gap-2">
-              <span className="text-sm font-semibold" style={{ color: 'var(--ghrs-text-secondary)' }}>تعيين لـ:</span>
-              <div className="flex gap-2">
-                <button onClick={() => setSelectedChild(null)} className="px-3 py-1 rounded-lg text-xs font-bold transition-all" style={{ background: !selectedChild ? 'var(--ghrs-green-100)' : 'var(--ghrs-bg-tertiary)', color: !selectedChild ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)' }}>الجميع</button>
+            <div className="mb-4 flex items-center gap-2 flex-wrap">
+              <span className="text-xs font-semibold" style={{ color: 'var(--ghrs-text-tertiary)' }}>تعيين لـ:</span>
+              <div className="flex gap-1.5 flex-wrap">
+                <button onClick={() => setSelectedChild(null)} className="px-2.5 py-1 rounded-md text-[11px] font-bold transition-all" style={{ background: !selectedChild ? 'var(--ghrs-bg-secondary)' : 'transparent', color: !selectedChild ? 'var(--ghrs-text-primary)' : 'var(--ghrs-text-tertiary)', border: `1px solid ${!selectedChild ? 'var(--ghrs-border-default)' : 'transparent'}` }}>الجميع</button>
                 {children.map(c => (
-                  <button key={c.id} onClick={() => setSelectedChild(c.id)} className="px-3 py-1 rounded-lg text-xs font-bold transition-all" style={{ background: selectedChild === c.id ? 'var(--ghrs-green-100)' : 'var(--ghrs-bg-tertiary)', color: selectedChild === c.id ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)' }}><ChildIcon size={16} className="inline" /> {c.name}</button>
+                  <button key={c.id} onClick={() => setSelectedChild(c.id)} className="px-2.5 py-1 rounded-md text-[11px] font-bold transition-all" style={{ background: selectedChild === c.id ? 'var(--ghrs-bg-secondary)' : 'transparent', color: selectedChild === c.id ? 'var(--ghrs-text-primary)' : 'var(--ghrs-text-tertiary)', border: `1px solid ${selectedChild === c.id ? 'var(--ghrs-border-default)' : 'transparent'}` }}><ChildIcon size={12} className="inline" /> {c.name}</button>
                 ))}
               </div>
             </div>
@@ -186,25 +186,25 @@ export default function StoriesPage() {
 
           {/* Preset Stories Library */}
           {activeTab === 'library' && (
-            <div className="space-y-4">
+            <div className="space-y-2.5">
               {presetStories.length === 0 ? (
-                <EmptyState icon={<BookIcon size={48} />} title="لا توجد قصص في المكتبة" description="جاري تحميل القصص..." />
+                <EmptyState icon={<BookIcon size={32} />} title="لا توجد قصص في المكتبة" description="جاري تحميل القصص..." />
               ) : presetStories.map(preset => (
-                <div key={preset.id} className="ghrs-card p-5">
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
+                <div key={preset.id} className="ghrs-card p-4">
+                  <div className="flex justify-between items-start gap-3">
+                    <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-xl">{preset.icon}</span>
-                        <h3 className="text-lg font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>{preset.title}</h3>
+                        <span className="text-lg flex-shrink-0">{preset.icon}</span>
+                        <h3 className="text-sm font-bold truncate" style={{ color: 'var(--ghrs-text-primary)' }}>{preset.title}</h3>
                       </div>
-                      <p className="text-sm mb-2" style={{ color: 'var(--ghrs-text-secondary)', lineHeight: '1.8' }}>{preset.content.substring(0, 150)}...</p>
-                      <div className="flex gap-2">
-                        <span className="px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: 'var(--ghrs-green-50)', color: 'var(--ghrs-green-700)' }}><SparkleIcon size={16} className="inline" /> {preset.moral_value}</span>
-                        <span className="px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: 'var(--ghrs-amber-50)', color: 'var(--ghrs-amber-700)' }}><StarIcon size={16} className="inline" /> 5 XP</span>
+                      <p className="text-xs mb-2" style={{ color: 'var(--ghrs-text-secondary)' }}>{preset.content.substring(0, 150)}...</p>
+                      <div className="flex gap-1.5 flex-wrap">
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold ghrs-badge ghrs-badge-success"><SparkleIcon size={10} /> {preset.moral_value}</span>
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold ghrs-badge ghrs-badge-warning"><StarIcon size={10} /> 5 XP</span>
                       </div>
                     </div>
-                    <button onClick={() => handleAddPreset(preset)} className="px-3 py-2 rounded-xl text-sm font-bold transition-all" style={{ background: 'var(--ghrs-green-500)', color: 'white' }}>
-                      <BookIcon size={16} className="inline" /> تعيين
+                    <button onClick={() => handleAddPreset(preset)} className="ghrs-btn-primary text-xs py-2 px-3 flex-shrink-0">
+                      <BookIcon size={12} /> تعيين
                     </button>
                   </div>
                 </div>
@@ -214,36 +214,36 @@ export default function StoriesPage() {
 
           {/* Custom Story Form */}
           {activeTab === 'custom' && (
-            <div className="ghrs-card p-6 ghrs-animate-scale-in">
-              <h2 className="text-lg font-bold mb-4" style={{ color: 'var(--ghrs-text-primary)' }}><EditIcon size={24} className="inline" /> إنشاء قصة جديدة</h2>
-              <form onSubmit={handleCreateStory} className="space-y-4">
-                <div><label className="block text-sm font-semibold mb-1" style={{ color: 'var(--ghrs-text-secondary)' }}>عنوان القصة *</label><input type="text" value={customForm.title} onChange={e => setCustomForm({ ...customForm, title: e.target.value })} required className="ghrs-input w-full" placeholder="النحلة والوردة" /></div>
-                <div><label className="block text-sm font-semibold mb-1" style={{ color: 'var(--ghrs-text-secondary)' }}>نص القصة *</label><textarea value={customForm.content} onChange={e => setCustomForm({ ...customForm, content: e.target.value })} required className="ghrs-input w-full" rows={6} placeholder="كانت هناك نحلة صغيرة..." style={{ lineHeight: '2' }} /></div>
+            <div className="ghrs-card p-5 ghrs-animate-scale-in">
+              <h2 className="text-base font-bold mb-3" style={{ color: 'var(--ghrs-text-primary)' }}><EditIcon size={18} className="inline" /> إنشاء قصة جديدة</h2>
+              <form onSubmit={handleCreateStory} className="space-y-3">
+                <div><label className="ghrs-label">عنوان القصة *</label><input type="text" value={customForm.title} onChange={e => setCustomForm({ ...customForm, title: e.target.value })} required className="ghrs-input w-full" placeholder="النحلة والوردة" /></div>
+                <div><label className="ghrs-label">نص القصة *</label><textarea value={customForm.content} onChange={e => setCustomForm({ ...customForm, content: e.target.value })} required className="ghrs-input w-full" rows={6} placeholder="كانت هناك نحلة صغيرة..." /></div>
 
-                <div><label className="block text-sm font-semibold mb-1" style={{ color: 'var(--ghrs-text-secondary)' }}>القيمة التربوية</label>
-                  <div className="flex flex-wrap gap-2">
+                <div><label className="ghrs-label">القيمة التربوية</label>
+                  <div className="flex flex-wrap gap-1.5">
                     {MORAL_VALUES.map(v => (
                       <button key={v} type="button" onClick={() => setCustomForm({ ...customForm, moral_value: v })}
-                        className="px-3 py-1 rounded-xl text-xs font-bold transition-all border-2"
-                        style={{ borderColor: customForm.moral_value === v ? 'var(--ghrs-green-500)' : 'var(--ghrs-border-default)', background: customForm.moral_value === v ? 'var(--ghrs-green-100)' : 'transparent', color: customForm.moral_value === v ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)' }}>
+                        className="px-3 py-1.5 rounded-md text-xs font-bold transition-all"
+                        style={{ background: customForm.moral_value === v ? 'var(--ghrs-green-50)' : 'var(--ghrs-bg-secondary)', color: customForm.moral_value === v ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)', border: `1px solid ${customForm.moral_value === v ? 'var(--ghrs-green-300)' : 'var(--ghrs-border-default)'}` }}>
                         {v}
                       </button>
                     ))}
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div><label className="block text-sm font-semibold mb-1" style={{ color: 'var(--ghrs-text-secondary)' }}>مكافأة XP</label><input type="number" value={customForm.reward_xp} onChange={e => setCustomForm({ ...customForm, reward_xp: parseInt(e.target.value) || 5 })} min="1" className="ghrs-input w-full" /></div>
-                  <div><label className="block text-sm font-semibold mb-1" style={{ color: 'var(--ghrs-text-secondary)' }}>تعيين لـ</label>
+                <div className="grid grid-cols-2 gap-3">
+                  <div><label className="ghrs-label">مكافأة XP</label><input type="number" value={customForm.reward_xp} onChange={e => setCustomForm({ ...customForm, reward_xp: parseInt(e.target.value) || 5 })} min="1" className="ghrs-input w-full" /></div>
+                  <div><label className="ghrs-label">تعيين لـ</label>
                     <select value={customForm.assigned_to} onChange={e => setCustomForm({ ...customForm, assigned_to: e.target.value })} className="ghrs-input w-full">
                       <option value="">الجميع</option>
-                      {children.map(c => <option key={c.id} value={c.id}><ChildIcon size={16} className="inline" /> {c.name}</option>)}
+                      {children.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                     </select>
                   </div>
                 </div>
 
-                <div className="flex gap-2">
-                  <button type="submit" className="ghrs-btn-primary"><BookIcon size={16} className="inline" /> إنشاء القصة وتعيينها</button>
+                <div className="flex gap-2 pt-1">
+                  <button type="submit" className="ghrs-btn-primary"><BookIcon size={14} /> إنشاء القصة وتعيينها</button>
                   <button type="button" onClick={() => setActiveTab('library')} className="ghrs-btn-secondary">إلغاء</button>
                 </div>
               </form>

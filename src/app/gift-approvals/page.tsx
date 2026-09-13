@@ -110,32 +110,35 @@ export default function GiftApprovalsPage() {
       {toast && <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />}
       
       <div className="p-4 md:p-8 max-w-2xl mx-auto pb-24">
-        <h1 className="text-2xl font-bold mb-6" style={{ color: 'var(--ghrs-text-primary)' }}>
-          <GiftsIcon size={24} className="inline" /> طلبات الهدايا
-        </h1>
+        <div className="mb-5">
+          <h1 className="text-xl md:text-2xl font-bold tracking-tight" style={{ color: 'var(--ghrs-text-primary)' }}>
+            <GiftsIcon size={20} className="inline" /> طلبات الهدايا
+          </h1>
+          <p className="text-sm mt-1" style={{ color: 'var(--ghrs-text-secondary)' }}>مراجعة واعتماد طلبات الأطفال</p>
+        </div>
 
         {pendingRequests.length === 0 ? (
-          <div className="ghrs-card p-8 text-center">
-            <p style={{ color: 'var(--ghrs-text-secondary)' }}>لا توجد طلبات هدايا معلقة</p>
+          <div className="ghrs-card p-10 text-center">
+            <p className="text-sm" style={{ color: 'var(--ghrs-text-secondary)' }}>لا توجد طلبات هدايا معلقة</p>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-2.5">
             {pendingRequests.map((req) => (
-              <div key={req.id} className="ghrs-card p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <div>
-                    <p className="font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>
+              <div key={req.id} className="ghrs-card p-3.5">
+                <div className="flex items-center justify-between gap-3 mb-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-bold truncate" style={{ color: 'var(--ghrs-text-primary)' }}>
                       {req.gift_title || 'هدية'}
                     </p>
-                    <p className="text-sm" style={{ color: 'var(--ghrs-text-secondary)' }}>
+                    <p className="text-xs truncate" style={{ color: 'var(--ghrs-text-tertiary)' }}>
                       {req.child_name || 'طفل'}
                     </p>
                   </div>
-                  <div className="text-right">
-                    <p className="font-bold" style={{ color: 'var(--ghrs-amber-600)' }}>
-                      <StarIcon size={14} className="inline" /> {req.requested_xp_cost} XP
+                  <div className="text-right flex-shrink-0">
+                    <p className="text-xs font-bold tabular-nums" style={{ color: 'var(--ghrs-text-secondary)' }}>
+                      <StarIcon size={12} className="inline" /> {req.requested_xp_cost} XP
                     </p>
-                    <p className="text-xs" style={{ color: 'var(--ghrs-text-tertiary)' }}>
+                    <p className="text-[10px] mt-0.5" style={{ color: 'var(--ghrs-text-tertiary)' }}>
                       {new Date(req.redeemed_at).toLocaleDateString('ar-SA')}
                     </p>
                   </div>
@@ -144,18 +147,16 @@ export default function GiftApprovalsPage() {
                   <button
                     onClick={() => handleApprove(req.id)}
                     disabled={processingId === req.id}
-                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all"
-                    style={{ background: 'var(--ghrs-green-500)', color: 'white' }}
+                    className="flex-1 ghrs-btn-primary text-xs py-2 justify-center"
                   >
-                    <CheckIcon size={14} /> موافقة
+                    <CheckIcon size={12} /> موافقة
                   </button>
                   <button
                     onClick={() => handleReject(req.id)}
                     disabled={processingId === req.id}
-                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all"
-                    style={{ background: 'var(--ghrs-red-500)', color: 'white' }}
+                    className="flex-1 ghrs-btn-danger text-xs py-2 justify-center"
                   >
-                    <RejectIcon size={14} /> رفض
+                    <RejectIcon size={12} /> رفض
                   </button>
                 </div>
               </div>

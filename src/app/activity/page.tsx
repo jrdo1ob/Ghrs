@@ -263,20 +263,20 @@ export default function ActivityLogPage() {
       {toast && <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />}
       {revokeConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.5)' }} onClick={() => setRevokeConfirm(null)}>
-          <div className="ghrs-card p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
-            <h2 className="text-lg font-bold mb-2" style={{ color: 'var(--ghrs-red-600)' }}>سحب الاعتماد</h2>
+          <div className="ghrs-card p-5 w-full max-w-md" onClick={e => e.stopPropagation()}>
+            <h2 className="text-base font-bold mb-2" style={{ color: 'var(--ghrs-red-600)' }}>سحب الاعتماد</h2>
             <p className="text-sm mb-4" style={{ color: 'var(--ghrs-text-secondary)' }}>
               {revokeConfirm?.is_gift
                 ? 'هل أنت متأكد من سحب اعتماد هذا الطلب؟ سيتم رد النقاط والرصيد.'
                 : 'هل أنت متأكد من سحب اعتماد هذه المهمة؟ سيتم خصم النقاط.'}
             </p>
             <div className="mb-4">
-              <label className="block text-sm font-semibold mb-1" style={{ color: 'var(--ghrs-text-secondary)' }}>السبب (اختياري)</label>
+              <label className="ghrs-label">السبب (اختياري)</label>
               <input type="text" value={revokeReason} onChange={e => setRevokeReason(e.target.value)} className="ghrs-input w-full" placeholder="مثال: تم الاعتماد بالخطأ" />
             </div>
             <div className="flex gap-2">
-              <button onClick={() => handleRevoke(revokeConfirm.completion_id!)} className="flex-1 px-4 py-2 rounded-xl text-sm font-bold" style={{ background: 'var(--ghrs-red-500)', color: 'white' }}>سحب الاعتماد</button>
-              <button onClick={() => { setRevokeConfirm(null); setRevokeReason('') }} className="flex-1 px-4 py-2 rounded-xl text-sm font-bold" style={{ background: 'var(--ghrs-bg-tertiary)', color: 'var(--ghrs-text-secondary)' }}>إلغاء</button>
+              <button onClick={() => handleRevoke(revokeConfirm.completion_id!)} className="flex-1 ghrs-btn-danger">سحب الاعتماد</button>
+              <button onClick={() => { setRevokeConfirm(null); setRevokeReason('') }} className="flex-1 ghrs-btn-secondary">إلغاء</button>
             </div>
           </div>
         </div>
@@ -299,67 +299,51 @@ export default function ActivityLogPage() {
           </div>
 
           {/* Filters */}
-          <div className="mb-6">
+          <div className="mb-5">
             {/* Category Filter (Gift vs Task) */}
-            <div className="flex gap-2 mb-3 overflow-x-auto pb-2">
-              <button onClick={() => setFilterCategory('all')}
-                className="px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1"
-                style={{ background: filterCategory === 'all' ? 'var(--ghrs-green-100)' : 'var(--ghrs-bg-tertiary)', color: filterCategory === 'all' ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)' }}>
-                الكل
-              </button>
-              <button onClick={() => setFilterCategory('gift')}
-                className="px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1"
-                style={{ background: filterCategory === 'gift' ? 'var(--ghrs-purple-100)' : 'var(--ghrs-bg-tertiary)', color: filterCategory === 'gift' ? 'var(--ghrs-purple-700)' : 'var(--ghrs-text-secondary)' }}>
-                <GiftsIcon size={14} /> الهدايا
-              </button>
-              <button onClick={() => setFilterCategory('task')}
-                className="px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1"
-                style={{ background: filterCategory === 'task' ? 'var(--ghrs-amber-100)' : 'var(--ghrs-bg-tertiary)', color: filterCategory === 'task' ? 'var(--ghrs-amber-700)' : 'var(--ghrs-text-secondary)' }}>
-                <TasksIcon size={14} /> المهام
-              </button>
+            <div className="flex gap-1.5 mb-2 overflow-x-auto pb-1">
+              {[
+                { id: 'all', label: 'الكل', color: 'var(--ghrs-green-700)', bg: 'var(--ghrs-green-100)' },
+                { id: 'gift', label: 'الهدايا', icon: <GiftsIcon size={12} />, color: 'var(--ghrs-purple-700)', bg: 'var(--ghrs-purple-100)' },
+                { id: 'task', label: 'المهام', icon: <TasksIcon size={12} />, color: 'var(--ghrs-amber-700)', bg: 'var(--ghrs-amber-100)' },
+              ].map(f => (
+                <button key={f.id} onClick={() => setFilterCategory(f.id as any)}
+                  className="px-3 py-1.5 rounded-md text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1"
+                  style={{ background: filterCategory === f.id ? f.bg : 'var(--ghrs-bg-secondary)', color: filterCategory === f.id ? f.color : 'var(--ghrs-text-secondary)' }}>
+                  {f.icon}{f.label}
+                </button>
+              ))}
             </div>
 
             {/* Status Filter */}
-            <div className="flex gap-2 mb-3 overflow-x-auto pb-2">
-              <button onClick={() => handleFilterChange(filterChild, 'all')}
-                className="px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1"
-                style={{ background: filterType === 'all' ? 'var(--ghrs-green-100)' : 'var(--ghrs-bg-tertiary)', color: filterType === 'all' ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)' }}>
-                الكل
-              </button>
-              <button onClick={() => handleFilterChange(filterChild, 'completed')}
-                className="px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1"
-                style={{ background: filterType === 'completed' ? 'var(--ghrs-amber-100)' : 'var(--ghrs-bg-tertiary)', color: filterType === 'completed' ? 'var(--ghrs-amber-700)' : 'var(--ghrs-text-secondary)' }}>
-                <ClockIcon size={12} /> إنجاز
-              </button>
-              <button onClick={() => handleFilterChange(filterChild, 'approved')}
-                className="px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1"
-                style={{ background: filterType === 'approved' ? 'var(--ghrs-green-100)' : 'var(--ghrs-bg-tertiary)', color: filterType === 'approved' ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)' }}>
-                <CheckIcon size={12} /> اعتماد
-              </button>
-              <button onClick={() => handleFilterChange(filterChild, 'rejected')}
-                className="px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1"
-                style={{ background: filterType === 'rejected' ? 'var(--ghrs-red-100)' : 'var(--ghrs-bg-tertiary)', color: filterType === 'rejected' ? 'var(--ghrs-red-700)' : 'var(--ghrs-text-secondary)' }}>
-                <RejectIcon size={12} /> رفض
-              </button>
-              <button onClick={() => handleFilterChange(filterChild, 'revoked')}
-                className="px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1"
-                style={{ background: filterType === 'revoked' ? 'var(--ghrs-purple-100)' : 'var(--ghrs-bg-tertiary)', color: filterType === 'revoked' ? 'var(--ghrs-purple-700)' : 'var(--ghrs-text-secondary)' }}>
-                <RejectIcon size={12} /> سحب
-              </button>
+            <div className="flex gap-1.5 mb-2 overflow-x-auto pb-1">
+              {[
+                { id: 'all', label: 'الكل' },
+                { id: 'completed', label: 'إنجاز', icon: <ClockIcon size={12} /> },
+                { id: 'approved', label: 'اعتماد', icon: <CheckIcon size={12} /> },
+                { id: 'rejected', label: 'رفض', icon: <RejectIcon size={12} /> },
+                { id: 'revoked', label: 'سحب', icon: <RejectIcon size={12} /> },
+              ].map(s => (
+                <button key={s.id} onClick={() => handleFilterChange(filterChild, s.id)}
+                  className="px-3 py-1.5 rounded-md text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1"
+                  style={{ background: filterType === s.id ? 'var(--ghrs-bg-secondary)' : 'transparent', color: filterType === s.id ? 'var(--ghrs-text-primary)' : 'var(--ghrs-text-tertiary)', border: filterType === s.id ? '1px solid var(--ghrs-border-default)' : '1px solid transparent' }}>
+                  {s.icon}{s.label}
+                </button>
+              ))}
             </div>
 
             {/* Child Filter */}
             {children.length > 0 && (
-              <div className="flex gap-2 overflow-x-auto pb-2">
+              <div className="flex gap-1.5 overflow-x-auto pb-1">
                 <button onClick={() => handleFilterChange('all', filterType)}
-                  className="px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap"
-                  style={{ background: filterChild === 'all' ? 'var(--ghrs-green-100)' : 'var(--ghrs-bg-tertiary)', color: filterChild === 'all' ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)' }}>
+                  className="px-3 py-1.5 rounded-md text-xs font-bold transition-all whitespace-nowrap"
+                  style={{ background: filterChild === 'all' ? 'var(--ghrs-bg-secondary)' : 'transparent', color: filterChild === 'all' ? 'var(--ghrs-text-primary)' : 'var(--ghrs-text-tertiary)', border: filterChild === 'all' ? '1px solid var(--ghrs-border-default)' : '1px solid transparent' }}>
                   الجميع
                 </button>
                 {children.map(c => (
                   <button key={c.id} onClick={() => handleFilterChange(c.id, filterType)}
-                    className="px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap"
-                    style={{ background: filterChild === c.id ? 'var(--ghrs-green-100)' : 'var(--ghrs-bg-tertiary)', color: filterChild === c.id ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)' }}>
+                    className="px-3 py-1.5 rounded-md text-xs font-bold transition-all whitespace-nowrap"
+                    style={{ background: filterChild === c.id ? 'var(--ghrs-bg-secondary)' : 'transparent', color: filterChild === c.id ? 'var(--ghrs-text-primary)' : 'var(--ghrs-text-tertiary)', border: filterChild === c.id ? '1px solid var(--ghrs-border-default)' : '1px solid transparent' }}>
                     {c.name}
                   </button>
                 ))}
@@ -368,39 +352,36 @@ export default function ActivityLogPage() {
           </div>
 
           {/* Events List */}
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             {filteredEvents.map(event => (
               <div key={event.id} className="ghrs-card p-4">
                 <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: event.is_gift ? 'var(--ghrs-purple-50)' : 'var(--ghrs-green-50)' }}>
+                  <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: event.is_gift ? 'var(--ghrs-purple-50)' : 'var(--ghrs-green-50)' }}>
                     {event.is_gift
                       ? <GiftsIcon size={20} color="var(--ghrs-purple-600)" />
                       : <ChildIcon size={20} color="var(--ghrs-green-600)" />}
                   </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>{event.child_name}</span>
-                      <span className="text-sm" style={{ color: 'var(--ghrs-text-secondary)' }}>{getEventVerb(event.type, event.is_gift)}</span>
-                      <span className="font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>{event.task_title}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5 flex-wrap mb-1.5">
+                      <span className="text-sm font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>{event.child_name}</span>
+                      <span className="text-xs" style={{ color: 'var(--ghrs-text-tertiary)' }}>{getEventVerb(event.type, event.is_gift)}</span>
+                      <span className="text-sm font-bold truncate" style={{ color: 'var(--ghrs-text-primary)' }}>{event.task_title}</span>
                     </div>
-                    <div className="flex items-center gap-2 mb-1 flex-wrap">
+                    <div className="flex items-center gap-1.5 mb-1.5 flex-wrap">
                       {/* Category badge */}
-                      <span className="px-2 py-0.5 rounded-full text-xs font-bold flex items-center gap-1" style={{
-                        background: event.is_gift ? 'var(--ghrs-purple-100)' : 'var(--ghrs-amber-100)',
-                        color: event.is_gift ? 'var(--ghrs-purple-700)' : 'var(--ghrs-amber-700)'
-                      }}>
-                        {event.is_gift ? <GiftsIcon size={12} /> : <TasksIcon size={12} />}
+                      <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold flex items-center gap-1 ghrs-badge ${
+                        event.is_gift ? 'ghrs-badge-info' : 'ghrs-badge-warning'
+                      }`}>
+                        {event.is_gift ? <GiftsIcon size={10} /> : <TasksIcon size={10} />}
                         {event.is_gift ? 'هدية' : 'مهمة'}
                       </span>
                       {/* Status badge */}
-                      <span className="px-2 py-0.5 rounded-full text-xs font-bold flex items-center gap-1" style={{
-                        background: event.type === 'completed' ? 'var(--ghrs-amber-100)' :
-                                   event.type === 'approved' ? 'var(--ghrs-green-100)' :
-                                   event.type === 'rejected' ? 'var(--ghrs-red-100)' : 'var(--ghrs-purple-100)',
-                        color: event.type === 'completed' ? 'var(--ghrs-amber-700)' :
-                               event.type === 'approved' ? 'var(--ghrs-green-700)' :
-                               event.type === 'rejected' ? 'var(--ghrs-red-700)' : 'var(--ghrs-purple-700)'
-                      }}>
+                      <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold flex items-center gap-1 ghrs-badge ${
+                        event.type === 'completed' ? 'ghrs-badge-warning'
+                        : event.type === 'approved' ? 'ghrs-badge-success'
+                        : event.type === 'rejected' ? 'ghrs-badge-error'
+                        : 'ghrs-badge-info'
+                      }`}>
                         {getEventStatusIcon(event.type)} {getEventLabel(event.type)}
                       </span>
                     </div>
@@ -408,42 +389,42 @@ export default function ActivityLogPage() {
                     {event.is_gift && (event.xp_amount > 0 || event.money_amount > 0) && (
                       <div className="flex items-center gap-3 mb-1">
                         {event.xp_amount > 0 && (
-                          <span className="text-xs font-bold" style={{ color: 'var(--ghrs-amber-600)' }}>
+                          <span className="text-xs font-semibold tabular-nums" style={{ color: 'var(--ghrs-text-secondary)' }}>
                             <StarIcon size={12} className="inline" /> {event.xp_amount} XP
                           </span>
                         )}
                         {event.money_amount > 0 && (
-                          <span className="text-xs font-bold" style={{ color: 'var(--ghrs-green-600)' }}>
+                          <span className="text-xs font-semibold tabular-nums" style={{ color: 'var(--ghrs-text-secondary)' }}>
                             <CoinIcon size={12} className="inline" /> {fmtMoney(event.money_amount)}
                           </span>
                         )}
                       </div>
                     )}
                     {event.performed_by && (
-                      <p className="text-xs" style={{ color: 'var(--ghrs-text-tertiary)' }}>
+                      <p className="text-[11px]" style={{ color: 'var(--ghrs-text-tertiary)' }}>
                         بواسطة: {event.performed_by}
                       </p>
                     )}
-                    <p className="text-xs" style={{ color: 'var(--ghrs-text-tertiary)' }}>
+                    <p className="text-[11px]" style={{ color: 'var(--ghrs-text-tertiary)' }}>
                       {new Date(event.timestamp).toLocaleString('ar')}
                     </p>
 
                     {/* Approval Actions */}
                     {event.approved === null && event.completion_id && (
                       <div className="flex gap-2 mt-3">
-                        <button onClick={() => handleApprove(event.completion_id!)} disabled={processingId === event.completion_id} className="flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-xs font-bold" style={{ background: 'var(--ghrs-green-500)', color: 'white' }}>
-                          <CheckIcon size={14} className="inline" /> {processingId === event.completion_id ? 'جاري...' : 'اعتماد'}
+                        <button onClick={() => handleApprove(event.completion_id!)} disabled={processingId === event.completion_id} className="flex-1 ghrs-btn-primary text-xs py-2 justify-center">
+                          <CheckIcon size={12} /> {processingId === event.completion_id ? 'جاري...' : 'اعتماد'}
                         </button>
-                        <button onClick={() => handleReject(event.completion_id!)} disabled={processingId === event.completion_id} className="flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-xs font-bold" style={{ background: 'var(--ghrs-red-500)', color: 'white' }}>
-                          <RejectIcon size={14} className="inline" /> {processingId === event.completion_id ? 'جاري...' : 'رفض'}
+                        <button onClick={() => handleReject(event.completion_id!)} disabled={processingId === event.completion_id} className="flex-1 ghrs-btn-danger text-xs py-2 justify-center">
+                          <RejectIcon size={12} /> {processingId === event.completion_id ? 'جاري...' : 'رفض'}
                         </button>
                       </div>
                     )}
 
                     {event.approved === true && event.completion_id && (
-                      <div className="flex gap-2 mt-3">
-                        <button onClick={() => setRevokeConfirm(event)} disabled={processingId === event.completion_id} className="flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-xs font-bold" style={{ background: 'var(--ghrs-red-50)', color: 'var(--ghrs-red-600)', border: '1px solid var(--ghrs-red-200)' }}>
-                          <RejectIcon size={14} className="inline" /> سحب الاعتماد
+                      <div className="mt-3">
+                        <button onClick={() => setRevokeConfirm(event)} disabled={processingId === event.completion_id} className="w-full ghrs-btn-secondary text-xs py-2 justify-center" style={{ color: 'var(--ghrs-red-600)' }}>
+                          <RejectIcon size={12} /> سحب الاعتماد
                         </button>
                       </div>
                     )}
@@ -454,7 +435,7 @@ export default function ActivityLogPage() {
           </div>
 
           {filteredEvents.length === 0 && (
-            <EmptyState icon={<ClockIcon size={48} />} title="لا يوجد نشاط" description={searchQuery || filterCategory !== 'all' ? 'لا توجد نتائج مطابقة للبحث' : 'لم تُسجل أي عمليات بعد'} />
+            <EmptyState icon={<ClockIcon size={32} />} title="لا يوجد نشاط" description={searchQuery || filterCategory !== 'all' ? 'لا توجد نتائج مطابقة للبحث' : 'لم تُسجل أي عمليات بعد'} />
           )}
         </div>
       </div>

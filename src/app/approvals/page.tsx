@@ -144,12 +144,15 @@ export default function ApprovalsPage() {
       {toast && <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />}
 
       <div className="p-4 md:p-8 max-w-2xl mx-auto pb-24">
-        <h1 className="text-2xl font-bold mb-6" style={{ color: 'var(--ghrs-text-primary)' }}>
-          <ClockIcon size={24} className="inline" /> مركز الموافقات
-        </h1>
+        <div className="mb-5">
+          <h1 className="text-xl md:text-2xl font-bold tracking-tight" style={{ color: 'var(--ghrs-text-primary)' }}>
+            <ClockIcon size={20} className="inline" /> مركز الموافقات
+          </h1>
+          <p className="text-sm mt-1" style={{ color: 'var(--ghrs-text-secondary)' }}>مراجعة واعتماد طلبات الأطفال</p>
+        </div>
 
         {/* Tabs */}
-        <div className="flex gap-2 mb-6 overflow-x-auto">
+        <div className="flex gap-1.5 mb-5 border-b overflow-x-auto pb-1" style={{ borderColor: 'var(--ghrs-border-default)' }}>
           {[
             { key: 'all', label: 'الكل', count: pendingCount },
             { key: 'task', label: 'المهام', count: approvals.filter(a => a.type === 'task' && a.status === 'pending').length },
@@ -157,54 +160,57 @@ export default function ApprovalsPage() {
             { key: 'withdrawal', label: 'الأموال', count: approvals.filter(a => a.type === 'withdrawal' && a.status === 'pending').length },
           ].map(tab => (
             <button key={tab.key} onClick={() => setActiveTab(tab.key as any)}
-              className="px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap"
+              className="px-3 py-2 text-xs font-bold transition-all border-b-2 whitespace-nowrap flex items-center gap-1.5"
               style={{
-                background: activeTab === tab.key ? 'var(--ghrs-green-100)' : 'var(--ghrs-bg-card)',
-                color: activeTab === tab.key ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)',
-                border: `2px solid ${activeTab === tab.key ? 'var(--ghrs-green-300)' : 'var(--ghrs-border-default)'}`,
+                borderColor: activeTab === tab.key ? 'var(--ghrs-green-600)' : 'transparent',
+                color: activeTab === tab.key ? 'var(--ghrs-text-primary)' : 'var(--ghrs-text-tertiary)',
               }}>
-              {tab.label} {tab.count > 0 && <span className="mr-1 px-1.5 py-0.5 rounded-full text-xs" style={{ background: 'var(--ghrs-amber-100)', color: 'var(--ghrs-amber-700)' }}>{tab.count}</span>}
+              {tab.label}
+              {tab.count > 0 && <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold tabular-nums ghrs-badge ghrs-badge-warning">{tab.count}</span>}
             </button>
           ))}
         </div>
 
         {/* Approval List */}
         {filteredApprovals.length === 0 ? (
-          <div className="ghrs-card p-8 text-center">
-            <ClockIcon size={48} className="mx-auto mb-4" color="var(--ghrs-text-tertiary)" />
-            <p style={{ color: 'var(--ghrs-text-secondary)' }}>لا توجد طلبات معلقة</p>
+          <div className="ghrs-card p-10 text-center">
+            <ClockIcon size={32} className="mx-auto mb-3" color="var(--ghrs-text-tertiary)" />
+            <p className="text-sm" style={{ color: 'var(--ghrs-text-secondary)' }}>لا توجد طلبات معلقة</p>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             {filteredApprovals.map(item => (
-              <div key={item.id} className="ghrs-card p-4">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    {item.type === 'task' && <TasksIcon size={18} color="var(--ghrs-amber-600)" />}
-                    {item.type === 'gift' && <GiftsIcon size={18} color="var(--ghrs-green-600)" />}
-                    {item.type === 'withdrawal' && <CoinIcon size={18} color="var(--ghrs-blue-600)" />}
-                    <div>
-                      <p className="font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>{item.item_name}</p>
-                      <p className="text-xs" style={{ color: 'var(--ghrs-text-secondary)' }}>{item.child_name}</p>
+              <div key={item.id} className="ghrs-card p-3.5">
+                <div className="flex items-start justify-between mb-3 gap-2">
+                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                    <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
+                      style={{ background: item.type === 'task' ? 'var(--ghrs-surface-pending)' : item.type === 'gift' ? 'var(--ghrs-surface-success)' : 'var(--ghrs-bg-secondary)', border: `1px solid ${item.type === 'task' ? 'var(--ghrs-amber-200)' : item.type === 'gift' ? 'var(--ghrs-green-200)' : 'var(--ghrs-border-default'}` }}>
+                      {item.type === 'task' && <TasksIcon size={16} color="var(--ghrs-amber-600)" />}
+                      {item.type === 'gift' && <GiftsIcon size={16} color="var(--ghrs-green-600)" />}
+                      {item.type === 'withdrawal' && <CoinIcon size={16} color="var(--ghrs-blue-600)" />}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold truncate" style={{ color: 'var(--ghrs-text-primary)' }}>{item.item_name}</p>
+                      <p className="text-xs truncate" style={{ color: 'var(--ghrs-text-tertiary)' }}>{item.child_name}</p>
                     </div>
                   </div>
-                  <div className="text-right">
+                  <div className="text-right flex-shrink-0">
                     {item.xp_reward !== undefined && (
-                      <p className="text-sm font-bold" style={{ color: 'var(--ghrs-amber-600)' }}>
-                        <StarIcon size={14} className="inline" /> {item.xp_reward} XP
+                      <p className="text-xs font-bold tabular-nums" style={{ color: 'var(--ghrs-text-secondary)' }}>
+                        <StarIcon size={11} className="inline" /> +{item.xp_reward} XP
                       </p>
                     )}
                     {item.xp_cost !== undefined && (
-                      <p className="text-sm font-bold" style={{ color: 'var(--ghrs-amber-600)' }}>
-                        <StarIcon size={14} className="inline" /> {item.xp_cost} XP
+                      <p className="text-xs font-bold tabular-nums" style={{ color: 'var(--ghrs-text-secondary)' }}>
+                        <StarIcon size={11} className="inline" /> -{item.xp_cost} XP
                       </p>
                     )}
                     {item.amount !== undefined && (
-                      <p className="text-sm font-bold" style={{ color: 'var(--ghrs-blue-600)' }}>
-                        <CoinIcon size={14} className="inline" /> {item.amount}
+                      <p className="text-xs font-bold tabular-nums" style={{ color: 'var(--ghrs-text-secondary)' }}>
+                        <CoinIcon size={11} className="inline" /> {item.amount}
                       </p>
                     )}
-                    <p className="text-xs" style={{ color: 'var(--ghrs-text-tertiary)' }}>
+                    <p className="text-[10px] mt-1" style={{ color: 'var(--ghrs-text-tertiary)' }}>
                       {new Date(item.requested_at).toLocaleDateString('ar-SA')}
                     </p>
                   </div>
@@ -212,19 +218,17 @@ export default function ApprovalsPage() {
                 {item.status === 'pending' && (
                   <div className="flex gap-2">
                     <button onClick={() => handleApprove(item)} disabled={processingId === item.id}
-                      className="flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-xl text-sm font-bold transition-all"
-                      style={{ background: 'var(--ghrs-green-500)', color: 'white' }}>
-                      <CheckIcon size={14} /> موافقة
+                      className="flex-1 ghrs-btn-primary text-xs py-2 justify-center">
+                      <CheckIcon size={12} /> موافقة
                     </button>
                     <button onClick={() => handleReject(item)} disabled={processingId === item.id}
-                      className="flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-xl text-sm font-bold transition-all"
-                      style={{ background: 'var(--ghrs-red-500)', color: 'white' }}>
-                      <RejectIcon size={14} /> رفض
+                      className="flex-1 ghrs-btn-danger text-xs py-2 justify-center">
+                      <RejectIcon size={12} /> رفض
                     </button>
                   </div>
                 )}
                 {item.status !== 'pending' && (
-                  <p className="text-sm font-semibold" style={{ color: item.status === 'approved' || item.status === 'paid' ? 'var(--ghrs-green-600)' : 'var(--ghrs-red-600)' }}>
+                  <p className="text-xs font-semibold" style={{ color: item.status === 'approved' || item.status === 'paid' ? 'var(--ghrs-green-600)' : 'var(--ghrs-red-600)' }}>
                     {item.status === 'approved' || item.status === 'paid' ? 'تمت الموافقة' : 'تم الرفض'}
                   </p>
                 )}

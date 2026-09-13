@@ -405,27 +405,28 @@ export default function TasksPage() {
         <div className="p-4 md:p-8 max-w-4xl mx-auto">
           {/* Header */}
           <div className="mb-6">
-            <div className="flex items-center gap-2 mb-2">
-              <Link href="/dashboard" className="text-sm font-semibold" style={{ color: 'var(--ghrs-green-600)' }}>← العودة</Link>
-            </div>
-            <h1 className="text-2xl md:text-3xl font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>إدارة المهام</h1>
-            <p className="text-sm" style={{ color: 'var(--ghrs-text-secondary)' }}>إنشاء وتعديل وحذف المهام</p>
-            <div className="flex flex-wrap gap-2 mt-3">
-              <Link href="/presets" className="ghrs-btn-secondary text-sm flex-1 min-w-0 justify-center"><CopyIcon size={16} className="inline" /> بنك المهام</Link>
-              <Link href="/stories" className="ghrs-btn-secondary text-sm flex-1 min-w-0 justify-center"><BookIcon size={16} className="inline" /> القصص</Link>
+            <Link href="/dashboard" className="inline-flex items-center gap-1 text-xs font-semibold mb-3" style={{ color: 'var(--ghrs-text-secondary)' }}>
+              <span style={{ direction: 'ltr' }}>←</span>
+              <span>العودة</span>
+            </Link>
+            <h1 className="text-xl md:text-2xl font-bold tracking-tight" style={{ color: 'var(--ghrs-text-primary)' }}>إدارة المهام</h1>
+            <p className="text-sm mt-1" style={{ color: 'var(--ghrs-text-secondary)' }}>إنشاء وتعديل وحذف المهام</p>
+            <div className="flex flex-wrap gap-2 mt-4">
+              <Link href="/presets" className="ghrs-btn-secondary text-sm flex-1 min-w-0 justify-center"><CopyIcon size={14} /> بنك المهام</Link>
+              <Link href="/stories" className="ghrs-btn-secondary text-sm flex-1 min-w-0 justify-center"><BookIcon size={14} /> القصص</Link>
               <button onClick={openAdd} className="ghrs-btn-primary text-sm flex-1 min-w-0 justify-center">+ إضافة مهمة</button>
             </div>
           </div>
 
           {/* Tabs */}
-          <div className="flex gap-2 mb-4 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0">
+          <div className="flex gap-2 mb-4 border-b overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0" style={{ borderColor: 'var(--ghrs-border-default)' }}>
             {[
               { id: 'all', label: 'الكل', count: tasks.length },
               { id: 'pending', label: 'بانتظار', count: tasks.filter(t => t.pendingCount > 0).length },
               { id: 'completed', label: 'تمت', count: tasks.filter(t => t.pendingCount === 0 && !t.is_paused).length },
               { id: 'paused', label: 'موقوفة', count: tasks.filter(t => t.is_paused).length },
             ].map((tab) => (
-              <button key={tab.id} onClick={() => setActiveTab(tab.id as any)} className="px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap flex-shrink-0" style={{ background: activeTab === tab.id ? 'var(--ghrs-green-100)' : 'var(--ghrs-bg-tertiary)', color: activeTab === tab.id ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)' }}>
+              <button key={tab.id} onClick={() => setActiveTab(tab.id as any)} className="px-3 py-2 text-xs sm:text-sm font-bold transition-all border-b-2 whitespace-nowrap flex-shrink-0" style={{ borderColor: activeTab === tab.id ? 'var(--ghrs-green-600)' : 'transparent', color: activeTab === tab.id ? 'var(--ghrs-text-primary)' : 'var(--ghrs-text-tertiary)' }}>
                 {tab.label} ({tab.count})
               </button>
             ))}
@@ -436,22 +437,22 @@ export default function TasksPage() {
             <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="بحث في المهام..." className="ghrs-input w-full" />
           </div>
 
-          {error && <div className="mb-4 p-3 rounded-xl text-sm font-semibold" style={{ background: 'var(--ghrs-red-50)', color: 'var(--ghrs-red-600)' }}>{error}</div>}
+          {error && <div className="mb-4 p-3 rounded-lg text-sm" style={{ background: 'var(--ghrs-red-50)', color: 'var(--ghrs-red-600)', border: '1px solid var(--ghrs-red-200)' }}>{error}</div>}
 
           {/* Add Form - only for new tasks */}
           {showAdd && !editingTask && (
-            <div className="ghrs-card p-6 mb-6 ghrs-animate-scale-in">
-              <h2 className="text-lg font-bold mb-4" style={{ color: 'var(--ghrs-text-primary)' }}>مهمة جديدة</h2>
-              <form onSubmit={handleSaveTask} className="space-y-4">
+            <div className="ghrs-card p-5 mb-5 ghrs-animate-scale-in">
+              <h2 className="text-base font-bold mb-4" style={{ color: 'var(--ghrs-text-primary)' }}>مهمة جديدة</h2>
+              <form onSubmit={handleSaveTask} className="space-y-3">
 
                 {/* Task Type Selector */}
                 <div>
-                  <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--ghrs-text-secondary)' }}>نوع المهمة</label>
-                  <div className="flex gap-2">
+                  <label className="ghrs-label">نوع المهمة</label>
+                  <div className="grid grid-cols-3 gap-2">
                     {TASK_TYPES.map(tt => (
                       <button key={tt.value} type="button" onClick={() => setFormData({ ...formData, task_type: tt.value as any, surah_number: 0, from_ayah: 1, to_ayah: 1, custom_title: '', custom_content_text: '', quran_action_type: '' })}
-                        className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-bold transition-all border-2 flex-1"
-                        style={{ borderColor: formData.task_type === tt.value ? 'var(--ghrs-green-500)' : 'var(--ghrs-border-default)', background: formData.task_type === tt.value ? 'var(--ghrs-green-50)' : 'transparent', color: formData.task_type === tt.value ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)' }}>
+                        className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-xs font-bold transition-all"
+                        style={{ background: formData.task_type === tt.value ? 'var(--ghrs-green-50)' : 'var(--ghrs-bg-secondary)', color: formData.task_type === tt.value ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)', border: `1px solid ${formData.task_type === tt.value ? 'var(--ghrs-green-300)' : 'var(--ghrs-border-default)'}` }}>
                         {tt.icon} {tt.label}
                       </button>
                     ))}
@@ -461,12 +462,12 @@ export default function TasksPage() {
                 {/* Quran Action Type (only for quran tasks) */}
                 {formData.task_type === 'quran' && (
                   <div>
-                    <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--ghrs-text-secondary)' }}>الهدف</label>
-                    <div className="flex gap-2">
+                    <label className="ghrs-label">الهدف</label>
+                    <div className="grid grid-cols-2 gap-2">
                       {QURAN_ACTIONS.map(qa => (
                         <button key={qa.value} type="button" onClick={() => setFormData({ ...formData, quran_action_type: qa.value as any })}
-                          className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-bold transition-all border-2 flex-1"
-                          style={{ borderColor: formData.quran_action_type === qa.value ? 'var(--ghrs-green-500)' : 'var(--ghrs-border-default)', background: formData.quran_action_type === qa.value ? 'var(--ghrs-green-50)' : 'transparent', color: formData.quran_action_type === qa.value ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)' }}>
+                          className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-xs font-bold transition-all"
+                          style={{ background: formData.quran_action_type === qa.value ? 'var(--ghrs-green-50)' : 'var(--ghrs-bg-secondary)', color: formData.quran_action_type === qa.value ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)', border: `1px solid ${formData.quran_action_type === qa.value ? 'var(--ghrs-green-300)' : 'var(--ghrs-border-default)'}` }}>
                           {qa.icon} {qa.label}
                         </button>
                       ))}
@@ -477,56 +478,55 @@ export default function TasksPage() {
                 {/* Content Source Selector (only for quran/dua) */}
                 {formData.task_type !== 'standard' && (
                   <div>
-                    <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--ghrs-text-secondary)' }}>مصدر المحتوى</label>
-                    <div className="flex gap-2">
+                    <label className="ghrs-label">مصدر المحتوى</label>
+                    <div className="grid grid-cols-2 gap-2">
                       <button type="button" onClick={() => setFormData({ ...formData, surah_number: 0 })}
-                        className="flex-1 px-4 py-2 rounded-xl text-sm font-bold transition-all border-2"
-                        style={{ borderColor: !formData.surah_number ? 'var(--ghrs-green-500)' : 'var(--ghrs-border-default)', background: !formData.surah_number ? 'var(--ghrs-green-50)' : 'transparent', color: !formData.surah_number ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)' }}>
+                        className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-bold transition-all"
+                        style={{ background: !formData.surah_number ? 'var(--ghrs-green-50)' : 'var(--ghrs-bg-secondary)', color: !formData.surah_number ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)', border: `1px solid ${!formData.surah_number ? 'var(--ghrs-green-300)' : 'var(--ghrs-border-default)'}` }}>
                         ✏️ نص مخصص
                       </button>
                       {formData.task_type === 'quran' && (
                         <button type="button" onClick={() => setFormData({ ...formData, surah_number: 114 })}
-                          className="flex-1 px-4 py-2 rounded-xl text-sm font-bold transition-all border-2"
-                          style={{ borderColor: formData.surah_number ? 'var(--ghrs-green-500)' : 'var(--ghrs-border-default)', background: formData.surah_number ? 'var(--ghrs-green-50)' : 'transparent', color: formData.surah_number ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)' }}>
-                        <QuranIcon size={16} className="inline" /> سور جزء عمّ
-                      </button>
-                    )}
+                          className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-bold transition-all"
+                          style={{ background: formData.surah_number ? 'var(--ghrs-green-50)' : 'var(--ghrs-bg-secondary)', color: formData.surah_number ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)', border: `1px solid ${formData.surah_number ? 'var(--ghrs-green-300)' : 'var(--ghrs-border-default)'}` }}>
+                          <QuranIcon size={14} /> سور جزء عمّ
+                        </button>
+                      )}
                     </div>
                   </div>
                 )}
 
                 {/* Surah Picker (only for quran tasks with surah source) */}
                 {formData.task_type === 'quran' && formData.surah_number > 0 && (
-                  <div className="p-4 rounded-xl" style={{ background: 'var(--ghrs-green-50)', border: '1px solid var(--ghrs-green-200)' }}>
-                    <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--ghrs-green-700)' }}>اختر السورة</label>
+                  <div className="p-4 rounded-lg" style={{ background: 'var(--ghrs-bg-secondary)', border: '1px solid var(--ghrs-border-default)' }}>
+                    <label className="ghrs-label">اختر السورة</label>
                     <select value={formData.surah_number} onChange={e => setFormData({ ...formData, surah_number: parseInt(e.target.value) })} className="ghrs-input w-full mb-3">
                       {JUZ_AMMA.map(s => <option key={s.number} value={s.number}>{s.name} ({s.englishName}) - {s.numberOfAyahs} آية</option>)}
                     </select>
                     {selectedSurah && (
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <label className="block text-xs font-semibold mb-1" style={{ color: 'var(--ghrs-green-700)' }}>من الآية</label>
+                          <label className="ghrs-label">من الآية</label>
                           <input type="number" min="1" max={selectedSurah.numberOfAyahs} value={formData.from_ayah} onChange={e => setFormData({ ...formData, from_ayah: parseInt(e.target.value) || 1 })} className="ghrs-input w-full" />
                         </div>
                         <div>
-                          <label className="block text-xs font-semibold mb-1" style={{ color: 'var(--ghrs-green-700)' }}>إلى الآية</label>
+                          <label className="ghrs-label">إلى الآية</label>
                           <input type="number" min="1" max={selectedSurah.numberOfAyahs} value={formData.to_ayah} onChange={e => setFormData({ ...formData, to_ayah: parseInt(e.target.value) || 1 })} className="ghrs-input w-full" />
                         </div>
                       </div>
                     )}
                     {/* Quran Preview */}
-                    {fetchingQuran && <p className="text-sm mt-2" style={{ color: 'var(--ghrs-green-600)' }}>جاري تحميل النص القرآني...</p>}
+                    {fetchingQuran && <p className="text-xs mt-2" style={{ color: 'var(--ghrs-text-secondary)' }}>جاري تحميل النص القرآني...</p>}
                     {quranPreview && !fetchingQuran && (
-                      <div className="mt-3 p-5 rounded-2xl text-right" style={{ 
-                        background: 'linear-gradient(135deg, var(--ghrs-green-900), var(--ghrs-green-800))', 
-                        border: '2px solid var(--ghrs-green-600)', 
-                        fontFamily: "'Scheherazade New', 'Amiri', serif", 
-                        fontSize: '1.4rem', 
-                        lineHeight: '2.4', 
-                        color: '#f0fdf4',
-                        boxShadow: '0 4px 20px rgba(34, 197, 94, 0.2)'
+                      <div className="mt-3 p-5 rounded-lg text-right" style={{
+                        background: 'var(--ghrs-bg-secondary)',
+                        border: '1px solid var(--ghrs-border-default)',
+                        fontFamily: "'Scheherazade New', 'Amiri', serif",
+                        fontSize: '1.2rem',
+                        lineHeight: '2',
+                        color: 'var(--ghrs-text-primary)',
                       }}>
-                        <p className="text-xs font-bold mb-2" style={{ color: '#86efac' }}>النص القرآني:</p>
+                        <p className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: 'var(--ghrs-text-tertiary)' }}>النص القرآني</p>
                         {quranPreview}
                       </div>
                     )}
@@ -534,18 +534,18 @@ export default function TasksPage() {
                 )}
 
                 {/* Title */}
-                <div><label className="block text-sm font-semibold mb-1" style={{ color: 'var(--ghrs-text-secondary)' }}>{formData.task_type !== 'standard' ? 'عنوان المهمة / السورة' : 'اسم المهمة'} *</label><input type="text" value={formData.title} onChange={e => setFormData({ ...formData, title: e.target.value })} required className="ghrs-input w-full" placeholder={formData.task_type === 'quran' ? 'مثال: سورة النصر' : 'نظف الغرفة'} /></div>
+                <div><label className="ghrs-label">{formData.task_type !== 'standard' ? 'عنوان المهمة / السورة' : 'اسم المهمة'} *</label><input type="text" value={formData.title} onChange={e => setFormData({ ...formData, title: e.target.value })} required className="ghrs-input w-full" placeholder={formData.task_type === 'quran' ? 'مثال: سورة النصر' : 'نظف الغرفة'} /></div>
 
                 {/* Icon Picker */}
                 <div>
-                  <label className="block text-sm font-semibold mb-1" style={{ color: 'var(--ghrs-text-secondary)' }}>الأيقونة</label>
+                  <label className="ghrs-label">الأيقونة</label>
                   <button type="button" onClick={() => setShowIconPicker(true)}
-                    className="flex items-center gap-3 px-4 py-3 rounded-xl w-full transition-all border-2"
-                    style={{ borderColor: 'var(--ghrs-border-default)', background: 'var(--ghrs-bg-card)' }}>
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'var(--ghrs-bg-tertiary)' }}>
-                      {formData.icon ? (() => { const Icon = getIconByName(formData.icon); return <Icon size={20} color="var(--ghrs-green-600)" /> })() : <PlusIcon size={20} color="var(--ghrs-text-tertiary)" />}
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg w-full transition-all"
+                    style={{ background: 'var(--ghrs-bg-secondary)', border: '1px solid var(--ghrs-border-default)' }}>
+                    <div className="w-8 h-8 rounded-md flex items-center justify-center" style={{ background: 'var(--ghrs-bg-card)' }}>
+                      {formData.icon ? (() => { const Icon = getIconByName(formData.icon); return <Icon size={16} color="var(--ghrs-green-600)" /> })() : <PlusIcon size={16} color="var(--ghrs-text-tertiary)" />}
                     </div>
-                    <span className="text-sm font-semibold" style={{ color: formData.icon ? 'var(--ghrs-text-primary)' : 'var(--ghrs-text-tertiary)' }}>
+                    <span className="text-sm font-medium" style={{ color: formData.icon ? 'var(--ghrs-text-primary)' : 'var(--ghrs-text-tertiary)' }}>
                       {formData.icon ? 'تغيير الأيقونة' : 'اختر أيقونة (اختياري)'}
                     </span>
                   </button>
@@ -553,29 +553,29 @@ export default function TasksPage() {
 
                 {/* Custom Title (for quran/dua) */}
                 {formData.task_type !== 'standard' && !formData.surah_number && (
-                  <div><label className="block text-sm font-semibold mb-1" style={{ color: 'var(--ghrs-text-secondary)' }}>العنوان التفصيلي (السورة/الدعاء)</label><input type="text" value={formData.custom_title} onChange={e => setFormData({ ...formData, custom_title: e.target.value })} className="ghrs-input w-full" placeholder="مثال: أذكار النوم، الرقية الشرعية" /></div>
+                  <div><label className="ghrs-label">العنوان التفصيلي (السورة/الدعاء)</label><input type="text" value={formData.custom_title} onChange={e => setFormData({ ...formData, custom_title: e.target.value })} className="ghrs-input w-full" placeholder="مثال: أذكار النوم، الرقية الشرعية" /></div>
                 )}
 
                 {/* Custom Content (for quran/dua with custom source) */}
                 {formData.task_type !== 'standard' && !formData.surah_number && (
-                  <div><label className="block text-sm font-semibold mb-1" style={{ color: 'var(--ghrs-text-secondary)' }}>النص (يمكن لصق النص هنا)</label>
-                    <textarea value={formData.custom_content_text} onChange={e => setFormData({ ...formData, custom_content_text: e.target.value })} className="ghrs-input w-full" rows={5} placeholder="بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ&#10;الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ..." style={{ fontFamily: "'Scheherazade New', 'Amiri', serif", fontSize: '1.2rem', lineHeight: '2' }} />
+                  <div><label className="ghrs-label">النص (يمكن لصق النص هنا)</label>
+                    <textarea value={formData.custom_content_text} onChange={e => setFormData({ ...formData, custom_content_text: e.target.value })} className="ghrs-input w-full" rows={5} placeholder="بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ..." style={{ fontFamily: "'Scheherazade New', 'Amiri', serif", fontSize: '1.1rem', lineHeight: '2' }} />
                   </div>
                 )}
 
-                <div><label className="block text-sm font-semibold mb-1" style={{ color: 'var(--ghrs-text-secondary)' }}>الوصف</label><input type="text" value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} className="ghrs-input w-full" placeholder="اختياري" /></div>
+                <div><label className="ghrs-label">الوصف</label><input type="text" value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} className="ghrs-input w-full" placeholder="اختياري" /></div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div><label className="block text-sm font-semibold mb-1" style={{ color: 'var(--ghrs-text-secondary)' }}>مكافأة XP</label><input type="number" value={formData.xp_reward} onChange={e => setFormData({ ...formData, xp_reward: parseInt(e.target.value) || 0 })} min="1" className="ghrs-input w-full" /></div>
-                  <div><label className="block text-sm font-semibold mb-1" style={{ color: 'var(--ghrs-text-secondary)' }}>مكافأة مالية ({currencySymbol})</label><input type="number" step="0.001" value={formData.money_reward} onChange={e => setFormData({ ...formData, money_reward: parseFloat(e.target.value) || 0 })} min="0" className="ghrs-input w-full" /></div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div><label className="ghrs-label">مكافأة XP</label><input type="number" value={formData.xp_reward} onChange={e => setFormData({ ...formData, xp_reward: parseInt(e.target.value) || 0 })} min="1" className="ghrs-input w-full" /></div>
+                  <div><label className="ghrs-label">مكافأة ({currencySymbol})</label><input type="number" step="0.001" value={formData.money_reward} onChange={e => setFormData({ ...formData, money_reward: parseFloat(e.target.value) || 0 })} min="0" className="ghrs-input w-full" /></div>
                 </div>
 
                 {/* Priority */}
-                <div><label className="block text-sm font-semibold mb-1" style={{ color: 'var(--ghrs-text-secondary)' }}>الأولوية</label>
-                  <div className="flex gap-2">
+                <div><label className="ghrs-label">الأولوية</label>
+                  <div className="grid grid-cols-3 gap-2">
                     {PRIORITY_OPTIONS.map(p => (
                       <button key={p.value} type="button" onClick={() => setFormData({ ...formData, priority: p.value as any })}
-                        className="flex items-center gap-1 px-3 py-2 rounded-xl text-sm font-bold transition-all border-2"
+                        className="flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-xs font-bold transition-all"
                         style={{ borderColor: formData.priority === p.value ? p.color : 'var(--ghrs-border-default)', background: formData.priority === p.value ? `${p.color}15` : 'transparent' }}>
                         {p.label}
                       </button>
@@ -584,7 +584,7 @@ export default function TasksPage() {
                 </div>
 
                 {/* Frequency */}
-                <div><label className="block text-sm font-semibold mb-1" style={{ color: 'var(--ghrs-text-secondary)' }}>التكرار</label>
+                <div><label className="ghrs-label">التكرار</label>
                   <select value={formData.frequency} onChange={e => setFormData({ ...formData, frequency: e.target.value as any })} className="ghrs-input w-full">
                     <option value="daily">يومي</option>
                     <option value="weekly">أسبوعي</option>
@@ -596,12 +596,12 @@ export default function TasksPage() {
 
                 {/* Custom Days */}
                 {formData.frequency === 'custom' && (
-                  <div><label className="block text-sm font-semibold mb-1" style={{ color: 'var(--ghrs-text-secondary)' }}>اختر الأيام</label>
+                  <div><label className="ghrs-label">اختر الأيام</label>
                     <div className="flex flex-wrap gap-2">
                       {DAYS.map(d => (
                         <button key={d.value} type="button" onClick={() => toggleScheduleDay(d.value)}
-                          className="w-10 h-10 rounded-xl text-sm font-bold transition-all border-2"
-                          style={{ borderColor: formData.schedule_days.includes(d.value) ? 'var(--ghrs-green-500)' : 'var(--ghrs-border-default)', background: formData.schedule_days.includes(d.value) ? 'var(--ghrs-green-100)' : 'transparent', color: formData.schedule_days.includes(d.value) ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)' }}>
+                          className="w-10 h-10 rounded-lg text-sm font-bold transition-all"
+                          style={{ background: formData.schedule_days.includes(d.value) ? 'var(--ghrs-green-50)' : 'var(--ghrs-bg-secondary)', color: formData.schedule_days.includes(d.value) ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)', border: `1px solid ${formData.schedule_days.includes(d.value) ? 'var(--ghrs-green-300)' : 'var(--ghrs-border-default)'}` }}>
                           {d.short}
                         </button>
                       ))}
@@ -611,18 +611,18 @@ export default function TasksPage() {
 
                 {/* Child Assignment */}
                 {children.length > 0 && (
-                  <div><label className="block text-sm font-semibold mb-1" style={{ color: 'var(--ghrs-text-secondary)' }}>تعيين لـ</label>
+                  <div><label className="ghrs-label">تعيين لـ</label>
                     <div className="flex flex-wrap gap-2">
                       <button type="button" onClick={() => setFormData({ ...formData, assigned_to: [] })}
-                        className="px-3 py-2 rounded-xl text-sm font-bold transition-all border-2"
-                        style={{ borderColor: formData.assigned_to.length === 0 ? 'var(--ghrs-green-500)' : 'var(--ghrs-border-default)', background: formData.assigned_to.length === 0 ? 'var(--ghrs-green-100)' : 'transparent', color: formData.assigned_to.length === 0 ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)' }}>
-                        <FamilyIcon size={14} className="inline" /> الجميع
+                        className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-bold transition-all"
+                        style={{ background: formData.assigned_to.length === 0 ? 'var(--ghrs-green-50)' : 'var(--ghrs-bg-secondary)', color: formData.assigned_to.length === 0 ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)', border: `1px solid ${formData.assigned_to.length === 0 ? 'var(--ghrs-green-300)' : 'var(--ghrs-border-default)'}` }}>
+                        <FamilyIcon size={12} /> الجميع
                       </button>
                       {children.map(child => (
                         <button key={child.id} type="button" onClick={() => toggleAssignedChild(child.id)}
-                          className="px-3 py-2 rounded-xl text-sm font-bold transition-all border-2"
-                          style={{ borderColor: formData.assigned_to.includes(child.id) ? 'var(--ghrs-green-500)' : 'var(--ghrs-border-default)', background: formData.assigned_to.includes(child.id) ? 'var(--ghrs-green-100)' : 'transparent', color: formData.assigned_to.includes(child.id) ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)' }}>
-                          <ChildIcon size={14} className="inline" /> {child.name}
+                          className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-bold transition-all"
+                          style={{ background: formData.assigned_to.includes(child.id) ? 'var(--ghrs-green-50)' : 'var(--ghrs-bg-secondary)', color: formData.assigned_to.includes(child.id) ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)', border: `1px solid ${formData.assigned_to.includes(child.id) ? 'var(--ghrs-green-300)' : 'var(--ghrs-border-default)'}` }}>
+                          <ChildIcon size={12} /> {child.name}
                         </button>
                       ))}
                     </div>
@@ -635,7 +635,7 @@ export default function TasksPage() {
                   <span className="text-sm font-semibold" style={{ color: 'var(--ghrs-text-secondary)' }}>تتطلب موافقة الوالد</span>
                 </label>
 
-                <div className="flex gap-2">
+                <div className="flex gap-2 pt-1">
                   <button type="submit" className="ghrs-btn-primary">{editingTask ? 'حفظ التعديلات' : 'إضافة'}</button>
                   <button type="button" onClick={() => { setShowAdd(false); setEditingTask(null); setQuranPreview('') }} className="ghrs-btn-secondary">إلغاء</button>
                 </div>
@@ -653,72 +653,79 @@ export default function TasksPage() {
           )}
 
           {/* Task Cards */}
-          <div className="space-y-3 sm:space-y-4">
+          <div className="space-y-3">
             {sortedTasks.map((task) => {
               const priority = PRIORITY_OPTIONS.find(p => p.value === task.priority) || PRIORITY_OPTIONS[1]
               const isQuran = task.task_type === 'quran'
               const isDua = task.task_type === 'dua'
               return (
-                <div key={task.id} className="ghrs-card p-3 sm:p-5 transition-all" style={{ opacity: task.is_paused ? 0.6 : 1 }}>
+                <div key={task.id} className="ghrs-card p-4 transition-all" style={{ opacity: task.is_paused ? 0.6 : 1 }}>
                   {/* Card Header */}
                   <div className="flex items-start gap-3 mb-3">
-                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex-shrink-0 flex items-center justify-center" style={{ background: isQuran ? 'var(--ghrs-green-50)' : isDua ? 'var(--ghrs-amber-50)' : 'var(--ghrs-bg-tertiary)' }}>
+                    <div className="w-10 h-10 rounded-lg flex-shrink-0 flex items-center justify-center" style={{ background: isQuran ? 'var(--ghrs-green-50)' : isDua ? 'var(--ghrs-amber-50)' : 'var(--ghrs-bg-tertiary)' }}>
                       {task.icon ? (() => { const Icon = getIconByName(task.icon); return <Icon size={20} color="var(--ghrs-green-600)" /> })() : isQuran ? <QuranIcon size={20} color="var(--ghrs-green-600)" /> : isDua ? <SparkleIcon size={20} color="var(--ghrs-amber-600)" /> : <TasksIcon size={20} color="var(--ghrs-text-secondary)" />}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <h3 className="font-bold text-sm sm:text-base truncate" style={{ color: 'var(--ghrs-text-primary)' }}>{task.title}</h3>
-                        {task.is_paused && <span className="px-2 py-0.5 rounded-full text-xs font-bold flex-shrink-0" style={{ background: 'var(--ghrs-bg-tertiary)', color: 'var(--ghrs-text-tertiary)' }}>موقوفة</span>}
+                        <h3 className="font-bold text-sm truncate" style={{ color: 'var(--ghrs-text-primary)' }}>{task.title}</h3>
+                        {task.is_paused && <span className="px-1.5 py-0.5 rounded text-[10px] font-bold flex-shrink-0 ghrs-badge ghrs-badge-neutral">موقوفة</span>}
                         {isQuran && task.quran_action_type && (
-                          <span className="px-2 py-0.5 rounded-full text-xs font-bold flex-shrink-0" style={{ background: 'var(--ghrs-green-50)', color: 'var(--ghrs-green-700)' }}>
+                          <span className="px-1.5 py-0.5 rounded text-[10px] font-bold flex-shrink-0 ghrs-badge ghrs-badge-success">
                             {task.quran_action_type === 'memorize' ? 'حفظ' : 'قراءة'}
                           </span>
                         )}
                       </div>
-                      {task.description && <p className="text-xs sm:text-sm mt-1 line-clamp-2" style={{ color: 'var(--ghrs-text-secondary)' }}>{task.description}</p>}
+                      {task.description && <p className="text-xs mt-1 line-clamp-2" style={{ color: 'var(--ghrs-text-secondary)' }}>{task.description}</p>}
                     </div>
                   </div>
 
                   {/* Price & Info */}
-                  <div className="flex flex-wrap gap-2 sm:gap-3 text-xs sm:text-sm mb-3">
-                    <span className="font-semibold" style={{ color: 'var(--ghrs-amber-600)' }}><StarIcon size={14} className="inline" /> {task.xp_reward} XP</span>
-                    {task.money_reward != null && task.money_reward > 0 && <span className="font-semibold" style={{ color: 'var(--ghrs-green-600)' }}><CoinIcon size={14} className="inline" /> {fmtMoney(task.money_reward)}</span>}
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs mb-3 pb-3 border-t pt-3" style={{ borderColor: 'var(--ghrs-border-default)' }}>
+                    <span className="inline-flex items-center gap-1 font-semibold tabular-nums" style={{ color: 'var(--ghrs-text-secondary)' }}>
+                      <StarIcon size={12} /> {task.xp_reward} XP
+                    </span>
+                    {task.money_reward != null && task.money_reward > 0 && (
+                      <span className="inline-flex items-center gap-1 font-semibold tabular-nums" style={{ color: 'var(--ghrs-text-secondary)' }}>
+                        <CoinIcon size={12} /> {fmtMoney(task.money_reward)}
+                      </span>
+                    )}
                     <span style={{ color: 'var(--ghrs-text-tertiary)' }}>
                       {task.frequency === 'daily' ? 'يومي' : task.frequency === 'weekly' ? 'أسبوعي' : task.frequency === 'monthly' ? 'شهري' : task.frequency === 'once' ? 'مرة واحدة' : 'مخصص'}
                     </span>
                     {task.assigned_to && task.assigned_to.length > 0 && (
-                      <span style={{ color: 'var(--ghrs-text-tertiary)' }}><ChildIcon size={14} className="inline" /> {task.assigned_to.map(getChildName).join(', ')}</span>
+                      <span className="inline-flex items-center gap-1" style={{ color: 'var(--ghrs-text-tertiary)' }}><ChildIcon size={12} /> {task.assigned_to.map(getChildName).join(', ')}</span>
                     )}
                   </div>
 
                   {/* Action Buttons - Grid on mobile */}
-                  <div className="grid grid-cols-3 gap-2">
-                    <button onClick={() => openEdit(task)} className="flex items-center justify-center gap-1 px-2 py-2.5 rounded-xl text-xs font-bold transition-all" style={{ background: 'var(--ghrs-blue-50)', color: 'var(--ghrs-blue-600)' }}>
-                      <EditIcon size={14} /> <span className="hidden sm:inline">تعديل</span><span className="sm:hidden">تعديل</span>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    <button onClick={() => openEdit(task)} className="flex items-center justify-center gap-1 px-2 py-2 rounded-md text-[11px] font-bold transition-all" style={{ background: 'var(--ghrs-bg-secondary)', color: 'var(--ghrs-text-secondary)' }}>
+                      <EditIcon size={12} /> تعديل
                     </button>
-                    <button onClick={() => handleTogglePause(task)} className="flex items-center justify-center gap-1 px-2 py-2.5 rounded-xl text-xs font-bold transition-all"
-                      style={{ background: task.is_paused ? 'var(--ghrs-green-50)' : 'var(--ghrs-amber-50)', color: task.is_paused ? 'var(--ghrs-green-600)' : 'var(--ghrs-amber-600)' }}>
-                      {task.is_paused ? <><PlayIcon size={14} /> <span>تفعيل</span></> : <><PauseIcon size={14} /> <span>إيقاف</span></>}
+                    <button onClick={() => handleTogglePause(task)} className="flex items-center justify-center gap-1 px-2 py-2 rounded-md text-[11px] font-bold transition-all"
+                      style={{ background: task.is_paused ? 'var(--ghrs-green-50)' : 'var(--ghrs-amber-50)', color: task.is_paused ? 'var(--ghrs-green-700)' : 'var(--ghrs-amber-700)' }}>
+                      {task.is_paused ? <><PlayIcon size={12} /> تفعيل</> : <><PauseIcon size={12} /> إيقاف</>}
                     </button>
-                    <button onClick={() => setDeleteConfirm(task)} className="flex items-center justify-center gap-1 px-2 py-2.5 rounded-xl text-xs font-bold transition-all" style={{ background: 'var(--ghrs-red-50)', color: 'var(--ghrs-red-500)' }}>
-                      <DeleteIcon size={14} /> <span>حذف</span>
+                    <button onClick={() => setDeleteConfirm(task)} className="flex items-center justify-center gap-1 px-2 py-2 rounded-md text-[11px] font-bold transition-all" style={{ background: 'var(--ghrs-red-50)', color: 'var(--ghrs-red-600)' }}>
+                      <DeleteIcon size={12} /> حذف
                     </button>
                   </div>
 
                   {/* Pending/Approved Completions */}
                   {task.completions && task.completions.length > 0 && (
-                    <div className="mt-3 p-4 rounded-xl" style={{ background: 'var(--ghrs-amber-50)', border: '1px solid var(--ghrs-amber-200)' }}>
-                      <p className="text-sm font-bold mb-3" style={{ color: 'var(--ghrs-amber-700)' }}><ClockIcon size={14} className="inline" /> إنجازات ({task.completions.length})</p>
-                      <div className="space-y-2">
+                    <div className="mt-3 p-3 rounded-lg" style={{ background: 'var(--ghrs-bg-secondary)', border: '1px solid var(--ghrs-border-default)' }}>
+                      <p className="text-xs font-bold mb-2" style={{ color: 'var(--ghrs-text-secondary)' }}>الإنجازات ({task.completions.length})</p>
+                      <div className="space-y-1.5">
                         {task.completions.map((completion: any) => (
-                          <div key={completion.id} className="p-3 rounded-lg" style={{ background: 'var(--ghrs-bg-card)' }}>
+                          <div key={completion.id} className="p-2 rounded" style={{ background: 'var(--ghrs-bg-card)' }}>
                             <div className="flex items-center justify-between">
-                              <p className="text-sm font-semibold" style={{ color: 'var(--ghrs-text-primary)' }}>{new Date(completion.completed_at).toLocaleDateString('ar')}</p>
-                              <span className="px-2 py-0.5 rounded-full text-xs font-bold" style={{ 
-                                background: completion.approved === true ? 'var(--ghrs-green-100)' : completion.approved === false ? 'var(--ghrs-red-100)' : 'var(--ghrs-amber-100)', 
-                                color: completion.approved === true ? 'var(--ghrs-green-700)' : completion.approved === false ? 'var(--ghrs-red-700)' : 'var(--ghrs-amber-700)' 
-                              }}>
-                                {completion.approved === true ? '✅ معتمدة' : completion.approved === false ? '❌ مرفوضة' : '⏳ بانتظار'}
+                              <p className="text-xs font-semibold tabular-nums" style={{ color: 'var(--ghrs-text-secondary)' }}>{new Date(completion.completed_at).toLocaleDateString('ar')}</p>
+                              <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ghrs-badge ${
+                                completion.approved === true ? 'ghrs-badge-success'
+                                : completion.approved === false ? 'ghrs-badge-error'
+                                : 'ghrs-badge-warning'
+                              }`}>
+                                {completion.approved === true ? 'معتمد' : completion.approved === false ? 'مرفوض' : 'بانتظار'}
                               </span>
                             </div>
                           </div>
@@ -729,17 +736,17 @@ export default function TasksPage() {
 
                   {/* Edit Form - Rendered inline when editing this task */}
                   {editingTask?.id === task.id && showAdd && (
-                    <div className="mt-4 ghrs-card p-6 ghrs-animate-scale-in">
-                      <h2 className="text-lg font-bold mb-4" style={{ color: 'var(--ghrs-text-primary)' }}>تعديل المهمة</h2>
-                      <form onSubmit={handleSaveTask} className="space-y-4">
+                    <div className="mt-4 ghrs-card p-5 ghrs-animate-scale-in">
+                      <h2 className="text-base font-bold mb-4" style={{ color: 'var(--ghrs-text-primary)' }}>تعديل المهمة</h2>
+                      <form onSubmit={handleSaveTask} className="space-y-3">
                         {/* Task Type Selector */}
                         <div>
-                          <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--ghrs-text-secondary)' }}>نوع المهمة</label>
-                          <div className="flex gap-2">
+                          <label className="ghrs-label">نوع المهمة</label>
+                          <div className="grid grid-cols-3 gap-2">
                             {TASK_TYPES.map(tt => (
                               <button key={tt.value} type="button" onClick={() => setFormData({ ...formData, task_type: tt.value as any, surah_number: 0, from_ayah: 1, to_ayah: 1, custom_title: '', custom_content_text: '', quran_action_type: '' })}
-                                className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-bold transition-all border-2 flex-1"
-                                style={{ borderColor: formData.task_type === tt.value ? 'var(--ghrs-green-500)' : 'var(--ghrs-border-default)', background: formData.task_type === tt.value ? 'var(--ghrs-green-50)' : 'transparent', color: formData.task_type === tt.value ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)' }}>
+                                className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-xs font-bold transition-all"
+                                style={{ background: formData.task_type === tt.value ? 'var(--ghrs-green-50)' : 'var(--ghrs-bg-secondary)', color: formData.task_type === tt.value ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)', border: `1px solid ${formData.task_type === tt.value ? 'var(--ghrs-green-300)' : 'var(--ghrs-border-default)'}` }}>
                                 {tt.icon} {tt.label}
                               </button>
                             ))}
@@ -747,28 +754,28 @@ export default function TasksPage() {
                         </div>
                         {/* Title */}
                         <div>
-                          <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--ghrs-text-secondary)' }}>اسم المهمة</label>
+                          <label className="ghrs-label">اسم المهمة</label>
                           <input type="text" value={formData.title} onChange={e => setFormData({ ...formData, title: e.target.value })} className="ghrs-input w-full" placeholder="مثال: قراءة القرآن" />
                         </div>
                         {/* Description */}
                         <div>
-                          <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--ghrs-text-secondary)' }}>الوصف</label>
+                          <label className="ghrs-label">الوصف</label>
                           <textarea value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} className="ghrs-input w-full" rows={2} placeholder="وصف المهمة (اختياري)" />
                         </div>
                         {/* XP & Money */}
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-2 gap-3">
                           <div>
-                            <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--ghrs-text-secondary)' }}>نقاط XP</label>
+                            <label className="ghrs-label">نقاط XP</label>
                             <input type="number" min="1" value={formData.xp_reward} onChange={e => setFormData({ ...formData, xp_reward: parseInt(e.target.value) || 1 })} className="ghrs-input w-full" />
                           </div>
                           <div>
-                            <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--ghrs-text-secondary)' }}>المكافأة المالية</label>
+                            <label className="ghrs-label">المكافأة المالية</label>
                             <input type="number" step="0.001" min="0" value={formData.money_reward} onChange={e => setFormData({ ...formData, money_reward: parseFloat(e.target.value) || 0 })} className="ghrs-input w-full" />
                           </div>
                         </div>
                         {/* Frequency */}
                         <div>
-                          <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--ghrs-text-secondary)' }}>التكرار</label>
+                          <label className="ghrs-label">التكرار</label>
                           <select value={formData.frequency} onChange={e => setFormData({ ...formData, frequency: e.target.value as any })} className="ghrs-input w-full">
                             <option value="daily">يومي</option>
                             <option value="weekly">أسبوعي</option>
@@ -779,12 +786,12 @@ export default function TasksPage() {
                         </div>
                         {/* Custom Days */}
                         {formData.frequency === 'custom' && (
-                          <div><label className="block text-sm font-semibold mb-1" style={{ color: 'var(--ghrs-text-secondary)' }}>اختر الأيام</label>
+                          <div><label className="ghrs-label">اختر الأيام</label>
                             <div className="flex flex-wrap gap-2">
                               {DAYS.map(d => (
                                 <button key={d.value} type="button" onClick={() => toggleScheduleDay(d.value)}
-                                  className="w-10 h-10 rounded-xl text-sm font-bold transition-all border-2"
-                                  style={{ borderColor: formData.schedule_days.includes(d.value) ? 'var(--ghrs-green-500)' : 'var(--ghrs-border-default)', background: formData.schedule_days.includes(d.value) ? 'var(--ghrs-green-100)' : 'transparent', color: formData.schedule_days.includes(d.value) ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)' }}>
+                                  className="w-10 h-10 rounded-lg text-sm font-bold transition-all"
+                                  style={{ background: formData.schedule_days.includes(d.value) ? 'var(--ghrs-green-50)' : 'var(--ghrs-bg-secondary)', color: formData.schedule_days.includes(d.value) ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)', border: `1px solid ${formData.schedule_days.includes(d.value) ? 'var(--ghrs-green-300)' : 'var(--ghrs-border-default)'}` }}>
                                   {d.short}
                                 </button>
                               ))}
@@ -793,18 +800,18 @@ export default function TasksPage() {
                         )}
                         {/* Child Assignment */}
                         {children.length > 0 && (
-                          <div><label className="block text-sm font-semibold mb-1" style={{ color: 'var(--ghrs-text-secondary)' }}>تعيين لـ</label>
+                          <div><label className="ghrs-label">تعيين لـ</label>
                             <div className="flex flex-wrap gap-2">
                               <button type="button" onClick={() => setFormData({ ...formData, assigned_to: [] })}
-                                className="px-3 py-2 rounded-xl text-sm font-bold transition-all border-2"
-                                style={{ borderColor: formData.assigned_to.length === 0 ? 'var(--ghrs-green-500)' : 'var(--ghrs-border-default)', background: formData.assigned_to.length === 0 ? 'var(--ghrs-green-100)' : 'transparent', color: formData.assigned_to.length === 0 ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)' }}>
-                                <FamilyIcon size={14} className="inline" /> الجميع
-                              </button>
+                                className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-bold transition-all"
+                                style={{ background: formData.assigned_to.length === 0 ? 'var(--ghrs-green-50)' : 'var(--ghrs-bg-secondary)', color: formData.assigned_to.length === 0 ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)', border: `1px solid ${formData.assigned_to.length === 0 ? 'var(--ghrs-green-300)' : 'var(--ghrs-border-default)'}` }}>
+                                  <FamilyIcon size={12} /> الجميع
+                                </button>
                               {children.map(child => (
                                 <button key={child.id} type="button" onClick={() => toggleAssignedChild(child.id)}
-                                  className="px-3 py-2 rounded-xl text-sm font-bold transition-all border-2"
-                                  style={{ borderColor: formData.assigned_to.includes(child.id) ? 'var(--ghrs-green-500)' : 'var(--ghrs-border-default)', background: formData.assigned_to.includes(child.id) ? 'var(--ghrs-green-100)' : 'transparent', color: formData.assigned_to.includes(child.id) ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)' }}>
-                                  <ChildIcon size={14} className="inline" /> {child.name}
+                                  className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-bold transition-all"
+                                  style={{ background: formData.assigned_to.includes(child.id) ? 'var(--ghrs-green-50)' : 'var(--ghrs-bg-secondary)', color: formData.assigned_to.includes(child.id) ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)', border: `1px solid ${formData.assigned_to.includes(child.id) ? 'var(--ghrs-green-300)' : 'var(--ghrs-border-default)'}` }}>
+                                  <ChildIcon size={12} /> {child.name}
                                 </button>
                               ))}
                             </div>
@@ -815,7 +822,7 @@ export default function TasksPage() {
                           <input type="checkbox" checked={formData.requires_approval} onChange={e => setFormData({ ...formData, requires_approval: e.target.checked })} className="w-4 h-4 accent-green-600" />
                           <span className="text-sm font-semibold" style={{ color: 'var(--ghrs-text-secondary)' }}>تتطلب موافقة الوالد</span>
                         </label>
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 pt-1">
                           <button type="submit" className="ghrs-btn-primary">حفظ التعديلات</button>
                           <button type="button" onClick={() => { setShowAdd(false); setEditingTask(null); setQuranPreview('') }} className="ghrs-btn-secondary">إلغاء</button>
                         </div>
@@ -827,7 +834,7 @@ export default function TasksPage() {
             })}
           </div>
 
-          {sortedTasks.length === 0 && <EmptyState icon={<CopyIcon size={48} />} title="لا توجد مهام" description="أضف مهاماً جديدة" action={<button onClick={openAdd} className="ghrs-btn-primary">+ إضافة مهمة</button>} />}
+          {sortedTasks.length === 0 && <EmptyState icon={<CopyIcon size={32} />} title="لا توجد مهام" description="أضف مهاماً جديدة" action={<button onClick={openAdd} className="ghrs-btn-primary">+ إضافة مهمة</button>} />}
         </div>
       </div>
       <ParentBottomNav />

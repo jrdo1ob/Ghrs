@@ -88,46 +88,54 @@ export default function LedgerPage() {
           <PageHeader title="سجل المعاملات" subtitle="حركة النقاط والرصيد المالي لكل طفل" backHref="/dashboard" />
 
           {/* Child Selector */}
-          <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
+          <div className="flex gap-1.5 mb-4 overflow-x-auto pb-2 border-b" style={{ borderColor: 'var(--ghrs-border-default)' }}>
             <button onClick={() => handleChildChange('all')}
-              className="px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap"
-              style={{ background: selectedChild === 'all' ? 'var(--ghrs-green-100)' : 'var(--ghrs-bg-tertiary)', color: selectedChild === 'all' ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)' }}>
+              className="px-3 py-2 text-xs font-bold transition-all border-b-2 whitespace-nowrap"
+              style={{ borderColor: selectedChild === 'all' ? 'var(--ghrs-green-600)' : 'transparent', color: selectedChild === 'all' ? 'var(--ghrs-text-primary)' : 'var(--ghrs-text-tertiary)' }}>
               الجميع
             </button>
             {children.filter(c => c.role === 'child').map(child => (
               <button key={child.id} onClick={() => handleChildChange(child.id)}
-                className="px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap"
-                style={{ background: selectedChild === child.id ? 'var(--ghrs-green-100)' : 'var(--ghrs-bg-tertiary)', color: selectedChild === child.id ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)' }}>
+                className="px-3 py-2 text-xs font-bold transition-all border-b-2 whitespace-nowrap"
+                style={{ borderColor: selectedChild === child.id ? 'var(--ghrs-green-600)' : 'transparent', color: selectedChild === child.id ? 'var(--ghrs-text-primary)' : 'var(--ghrs-text-tertiary)' }}>
                 {child.name}
               </button>
             ))}
           </div>
 
           {/* Summary Cards */}
-          <div className="grid grid-cols-2 gap-4 mb-6">
-            <div className="ghrs-card p-4 text-center">
-              <StarIcon size={24} color="var(--ghrs-amber-500)" className="mx-auto mb-2" />
-              <div className="text-2xl font-bold" style={{ color: 'var(--ghrs-amber-600)' }}>{getXpTotal()}</div>
-              <div className="text-xs font-semibold" style={{ color: 'var(--ghrs-text-secondary)' }}>إجمالي النقاط</div>
+          <div className="grid grid-cols-2 gap-3 mb-5">
+            <div className="ghrs-card p-4 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'var(--ghrs-surface-pending)', border: '1px solid var(--ghrs-amber-200)' }}>
+                <StarIcon size={18} color="var(--ghrs-amber-600)" />
+              </div>
+              <div className="min-w-0">
+                <div className="text-xl font-extrabold tabular-nums leading-none" style={{ color: 'var(--ghrs-text-primary)' }}>{getXpTotal()}</div>
+                <div className="text-xs mt-1" style={{ color: 'var(--ghrs-text-tertiary)' }}>إجمالي النقاط</div>
+              </div>
             </div>
-            <div className="ghrs-card p-4 text-center">
-              <CoinIcon size={24} color="var(--ghrs-green-500)" className="mx-auto mb-2" />
-              <div className="text-2xl font-bold" style={{ color: 'var(--ghrs-green-600)' }}>{fmtMoney(getMoneyTotal())}</div>
-              <div className="text-xs font-semibold" style={{ color: 'var(--ghrs-text-secondary)' }}>إجمالي الرصيد</div>
+            <div className="ghrs-card p-4 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'var(--ghrs-surface-success)', border: '1px solid var(--ghrs-green-200)' }}>
+                <CoinIcon size={18} color="var(--ghrs-green-600)" />
+              </div>
+              <div className="min-w-0">
+                <div className="text-xl font-extrabold tabular-nums leading-none" style={{ color: 'var(--ghrs-text-primary)' }}>{fmtMoney(getMoneyTotal())}</div>
+                <div className="text-xs mt-1" style={{ color: 'var(--ghrs-text-tertiary)' }}>إجمالي الرصيد</div>
+              </div>
             </div>
           </div>
 
           {/* Tabs */}
-          <div className="flex gap-2 mb-4">
+          <div className="flex gap-1.5 mb-4 border-b" style={{ borderColor: 'var(--ghrs-border-default)' }}>
             <button onClick={() => setActiveTab('xp')}
-              className="flex items-center gap-1 px-4 py-2 rounded-xl text-sm font-bold transition-all"
-              style={{ background: activeTab === 'xp' ? 'var(--ghrs-amber-50)' : 'var(--ghrs-bg-tertiary)', color: activeTab === 'xp' ? 'var(--ghrs-amber-700)' : 'var(--ghrs-text-secondary)' }}>
-              <StarIcon size={16} /> النقاط ({xpTransactions.length})
+              className="px-3 py-2 text-xs font-bold transition-all border-b-2 flex items-center gap-1"
+              style={{ borderColor: activeTab === 'xp' ? 'var(--ghrs-green-600)' : 'transparent', color: activeTab === 'xp' ? 'var(--ghrs-text-primary)' : 'var(--ghrs-text-tertiary)' }}>
+              <StarIcon size={12} /> النقاط ({xpTransactions.length})
             </button>
             <button onClick={() => setActiveTab('money')}
-              className="flex items-center gap-1 px-4 py-2 rounded-xl text-sm font-bold transition-all"
-              style={{ background: activeTab === 'money' ? 'var(--ghrs-green-50)' : 'var(--ghrs-bg-tertiary)', color: activeTab === 'money' ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)' }}>
-              <CoinIcon size={16} /> الأموال ({moneyTransactions.length})
+              className="px-3 py-2 text-xs font-bold transition-all border-b-2 flex items-center gap-1"
+              style={{ borderColor: activeTab === 'money' ? 'var(--ghrs-green-600)' : 'transparent', color: activeTab === 'money' ? 'var(--ghrs-text-primary)' : 'var(--ghrs-text-tertiary)' }}>
+              <CoinIcon size={12} /> الأموال ({moneyTransactions.length})
             </button>
           </div>
 
@@ -135,46 +143,46 @@ export default function LedgerPage() {
           <div className="space-y-2">
             {activeTab === 'xp' ? (
               xpTransactions.length === 0 ? (
-                <EmptyState icon={<StarIcon size={48} />} title="لا توجد معاملات" description="لم تُسجل أي نقاط بعد" />
+                <EmptyState icon={<StarIcon size={32} />} title="لا توجد معاملات" description="لم تُسجل أي نقاط بعد" />
               ) : xpTransactions.map(tx => (
-                <div key={tx.id} className="ghrs-card p-4 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full flex items-center justify-center"
+                <div key={tx.id} className="ghrs-card p-3 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
                       style={{ background: tx.amount > 0 ? 'var(--ghrs-green-50)' : 'var(--ghrs-red-50)' }}>
-                      {tx.amount > 0 ? <StarIcon size={20} color="var(--ghrs-green-600)" /> : <span className="text-red-500 font-bold">-</span>}
+                      {tx.amount > 0 ? <StarIcon size={16} color="var(--ghrs-green-600)" /> : <span className="text-red-500 font-bold text-lg">-</span>}
                     </div>
-                    <div>
-                      <p className="text-sm font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold truncate" style={{ color: 'var(--ghrs-text-primary)' }}>
                         {getChildName(tx.member_id)}
                       </p>
-                      <p className="text-xs" style={{ color: 'var(--ghrs-text-secondary)' }}>{tx.description || tx.source}</p>
-                      <p className="text-xs" style={{ color: 'var(--ghrs-text-tertiary)' }}>{new Date(tx.created_at).toLocaleString('ar')}</p>
+                      <p className="text-xs truncate" style={{ color: 'var(--ghrs-text-secondary)' }}>{tx.description || tx.source}</p>
+                      <p className="text-[10px]" style={{ color: 'var(--ghrs-text-tertiary)' }}>{new Date(tx.created_at).toLocaleString('ar')}</p>
                     </div>
                   </div>
-                  <span className="text-lg font-bold" style={{ color: tx.amount > 0 ? 'var(--ghrs-green-600)' : 'var(--ghrs-red-600)' }}>
+                  <span className="text-base font-extrabold tabular-nums flex-shrink-0" style={{ color: tx.amount > 0 ? 'var(--ghrs-green-600)' : 'var(--ghrs-red-600)' }}>
                     {tx.amount > 0 ? '+' : ''}{tx.amount}
                   </span>
                 </div>
               ))
             ) : (
               moneyTransactions.length === 0 ? (
-                <EmptyState icon={<CoinIcon size={48} />} title="لا توجد معاملات" description="لم يُسجل أي رصيد مالي بعد" />
+                <EmptyState icon={<CoinIcon size={32} />} title="لا توجد معاملات" description="لم يُسجل أي رصيد مالي بعد" />
               ) : moneyTransactions.map(tx => (
-                <div key={tx.id} className="ghrs-card p-4 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full flex items-center justify-center"
+                <div key={tx.id} className="ghrs-card p-3 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
                       style={{ background: tx.type === 'earned' ? 'var(--ghrs-green-50)' : 'var(--ghrs-red-50)' }}>
-                      {tx.type === 'earned' ? <CoinIcon size={20} color="var(--ghrs-green-600)" /> : <span className="text-red-500 font-bold">-</span>}
+                      {tx.type === 'earned' ? <CoinIcon size={16} color="var(--ghrs-green-600)" /> : <span className="text-red-500 font-bold text-lg">-</span>}
                     </div>
-                    <div>
-                      <p className="text-sm font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold truncate" style={{ color: 'var(--ghrs-text-primary)' }}>
                         {getChildName(tx.member_id)}
                       </p>
-                      <p className="text-xs" style={{ color: 'var(--ghrs-text-secondary)' }}>{tx.description || tx.source}</p>
-                      <p className="text-xs" style={{ color: 'var(--ghrs-text-tertiary)' }}>{new Date(tx.created_at).toLocaleString('ar')}</p>
+                      <p className="text-xs truncate" style={{ color: 'var(--ghrs-text-secondary)' }}>{tx.description || tx.source}</p>
+                      <p className="text-[10px]" style={{ color: 'var(--ghrs-text-tertiary)' }}>{new Date(tx.created_at).toLocaleString('ar')}</p>
                     </div>
                   </div>
-                  <span className="text-lg font-bold" style={{ color: tx.type === 'earned' ? 'var(--ghrs-green-600)' : 'var(--ghrs-red-600)' }}>
+                  <span className="text-base font-extrabold tabular-nums flex-shrink-0" style={{ color: tx.type === 'earned' ? 'var(--ghrs-green-600)' : 'var(--ghrs-red-600)' }}>
                     {tx.type === 'earned' ? '+' : '-'}{fmtMoney(tx.amount)}
                   </span>
                 </div>

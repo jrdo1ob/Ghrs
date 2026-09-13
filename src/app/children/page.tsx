@@ -193,42 +193,42 @@ export default function ChildrenPage() {
             <div className="space-y-3">
               {/* Reason */}
               <div>
-                <label className="block text-sm font-semibold mb-1" style={{ color: 'var(--ghrs-text-secondary)' }}>السبب / الوصف</label>
+                <label className="ghrs-label">السبب / الوصف</label>
                 <input type="text" value={manualForm.reason} onChange={e => setManualForm({ ...manualForm, reason: e.target.value })}
                   className="ghrs-input w-full" placeholder={manualModal.type === 'reward' ? 'مساعدة الجدة، خلق حسن، تميز في الاختبار' : 'عدم الالتزام، سلوك غير لائق، صراخ'} />
               </div>
 
               {/* Currency Type */}
               <div>
-                <label className="block text-sm font-semibold mb-1" style={{ color: 'var(--ghrs-text-secondary)' }}>نوع العملة</label>
-                <div className="flex gap-2">
+                <label className="ghrs-label">نوع العملة</label>
+                <div className="grid grid-cols-2 gap-2">
                   <button type="button" onClick={() => setManualForm({ ...manualForm, currencyType: 'xp' })}
-                    className="flex-1 flex items-center justify-center gap-1 px-3 py-2.5 rounded-xl text-sm font-bold transition-all border-2"
-                    style={{ borderColor: manualForm.currencyType === 'xp' ? 'var(--ghrs-green-500)' : 'var(--ghrs-border-default)', background: manualForm.currencyType === 'xp' ? 'var(--ghrs-green-50)' : 'transparent', color: manualForm.currencyType === 'xp' ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)' }}>
-                    <StarIcon size={16} /> نقاط XP
+                    className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg text-sm font-bold transition-all"
+                    style={{ background: manualForm.currencyType === 'xp' ? 'var(--ghrs-green-50)' : 'var(--ghrs-bg-secondary)', color: manualForm.currencyType === 'xp' ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)', border: `1px solid ${manualForm.currencyType === 'xp' ? 'var(--ghrs-green-300)' : 'var(--ghrs-border-default)'}` }}>
+                    <StarIcon size={14} /> XP
                   </button>
                   <button type="button" onClick={() => setManualForm({ ...manualForm, currencyType: 'money' })}
-                    className="flex-1 flex items-center justify-center gap-1 px-3 py-2.5 rounded-xl text-sm font-bold transition-all border-2"
-                    style={{ borderColor: manualForm.currencyType === 'money' ? 'var(--ghrs-amber-500)' : 'var(--ghrs-border-default)', background: manualForm.currencyType === 'money' ? 'var(--ghrs-amber-50)' : 'transparent', color: manualForm.currencyType === 'money' ? 'var(--ghrs-amber-700)' : 'var(--ghrs-text-secondary)' }}>
-                    <CoinIcon size={16} /> رصيد مالي
+                    className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg text-sm font-bold transition-all"
+                    style={{ background: manualForm.currencyType === 'money' ? 'var(--ghrs-amber-50)' : 'var(--ghrs-bg-secondary)', color: manualForm.currencyType === 'money' ? 'var(--ghrs-amber-700)' : 'var(--ghrs-text-secondary)', border: `1px solid ${manualForm.currencyType === 'money' ? 'var(--ghrs-amber-300)' : 'var(--ghrs-border-default)'}` }}>
+                    <CoinIcon size={14} /> مالي
                   </button>
                 </div>
               </div>
 
               {/* Amount */}
               <div>
-                <label className="block text-sm font-semibold mb-1" style={{ color: 'var(--ghrs-text-secondary)' }}>القيمة</label>
-                <input type="number" step="0.001" min="0.001" value={manualForm.amount} onChange={e => setManualForm({ ...manualForm, amount: parseFloat(e.target.value) || 0 })} className="ghrs-input w-full text-center text-xl font-bold" />
+                <label className="ghrs-label">القيمة</label>
+                <input type="number" step="0.001" min="0.001" value={manualForm.amount} onChange={e => setManualForm({ ...manualForm, amount: parseFloat(e.target.value) || 0 })} className="ghrs-input w-full text-center text-lg font-bold tabular-nums" />
               </div>
             </div>
 
             <div className="flex gap-2 mt-5">
               <button onClick={handleManualAdjustment} disabled={!manualForm.reason.trim() || manualForm.amount <= 0 || processingId === manualModal.child.id}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-bold transition-all"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold transition-all"
                 style={{ background: manualModal.type === 'reward' ? 'var(--ghrs-green-500)' : 'var(--ghrs-red-500)', color: 'white', opacity: (!manualForm.reason.trim() || manualForm.amount <= 0 || processingId === manualModal.child.id) ? 0.6 : 1 }}>
-                {manualModal.type === 'reward' ? <><SparkleIcon size={16} /> منح المكافأة</> : <><ShieldIcon size={16} /> تطبيق الخصم</>}
+                {manualModal.type === 'reward' ? <><SparkleIcon size={14} /> منح المكافأة</> : <><ShieldIcon size={14} /> تطبيق الخصم</>}
               </button>
-              <button onClick={() => setManualModal(null)} className="px-4 py-3 rounded-xl text-sm font-bold" style={{ background: 'var(--ghrs-bg-tertiary)', color: 'var(--ghrs-text-secondary)' }}>إلغاء</button>
+              <button onClick={() => setManualModal(null)} className="ghrs-btn-secondary">إلغاء</button>
             </div>
           </div>
         </div>
@@ -241,35 +241,35 @@ export default function ChildrenPage() {
             action={<button onClick={() => { setShowAdd(true); setNewName(''); setNewPin('') }} className="ghrs-btn-primary">+ {addLabel}</button>} />
 
           {/* Tabs */}
-          <div className="flex gap-2 mb-6">
+          <div className="flex gap-2 mb-6 border-b" style={{ borderColor: 'var(--ghrs-border-default)' }}>
             <button onClick={() => { setActiveTab('children'); setShowAdd(false); setEditingId(null) }}
-              className="px-6 py-3 rounded-xl text-sm font-bold transition-all"
-              style={{ background: activeTab === 'children' ? 'var(--ghrs-green-100)' : 'var(--ghrs-bg-tertiary)', color: activeTab === 'children' ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-secondary)', border: `2px solid ${activeTab === 'children' ? 'var(--ghrs-green-300)' : 'transparent'}` }}>
-              <ChildIcon size={16} className="inline" /> الأطفال ({children.length})
+              className="px-4 py-2.5 text-sm font-bold transition-all border-b-2"
+              style={{ borderColor: activeTab === 'children' ? 'var(--ghrs-green-600)' : 'transparent', color: activeTab === 'children' ? 'var(--ghrs-text-primary)' : 'var(--ghrs-text-tertiary)' }}>
+              الأطفال ({children.length})
             </button>
             <button onClick={() => { setActiveTab('parents'); setShowAdd(false); setEditingId(null) }}
-              className="px-6 py-3 rounded-xl text-sm font-bold transition-all"
-              style={{ background: activeTab === 'parents' ? 'var(--ghrs-blue-50)' : 'var(--ghrs-bg-tertiary)', color: activeTab === 'parents' ? 'var(--ghrs-blue-600)' : 'var(--ghrs-text-secondary)', border: `2px solid ${activeTab === 'parents' ? 'var(--ghrs-blue-200)' : 'transparent'}` }}>
-              <UserIcon size={16} className="inline" /> أهل العائلة ({parents.length})
+              className="px-4 py-2.5 text-sm font-bold transition-all border-b-2"
+              style={{ borderColor: activeTab === 'parents' ? 'var(--ghrs-green-600)' : 'transparent', color: activeTab === 'parents' ? 'var(--ghrs-text-primary)' : 'var(--ghrs-text-tertiary)' }}>
+              أهل العائلة ({parents.length})
             </button>
           </div>
 
-          {error && <div className="mb-4 p-3 rounded-xl text-sm font-semibold" style={{ background: 'var(--ghrs-red-50)', color: 'var(--ghrs-red-600)' }}>{error}</div>}
+          {error && <div className="mb-4 p-3 rounded-lg text-sm" style={{ background: 'var(--ghrs-red-50)', color: 'var(--ghrs-red-600)', border: '1px solid var(--ghrs-red-200)' }}>{error}</div>}
 
           {/* Add Form */}
           {showAdd && (
-            <div className="ghrs-card p-6 mb-6 ghrs-animate-scale-in">
-              <h2 className="text-lg font-bold mb-4" style={{ color: 'var(--ghrs-text-primary)' }}>{addLabel}</h2>
-              <form onSubmit={handleAdd} className="space-y-4">
+            <div className="ghrs-card p-5 mb-5 ghrs-animate-scale-in">
+              <h2 className="text-base font-bold mb-4" style={{ color: 'var(--ghrs-text-primary)' }}>{addLabel}</h2>
+              <form onSubmit={handleAdd} className="space-y-3">
                 <div>
-                  <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--ghrs-text-secondary)' }}>الاسم</label>
+                  <label className="ghrs-label">الاسم</label>
                   <input type="text" value={newName} onChange={e => setNewName(e.target.value)} required className="ghrs-input" placeholder={activeTab === 'children' ? 'سارة' : 'شمه'} />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--ghrs-text-secondary)' }}>رمز PIN (4-6 أرقام)</label>
-                  <input type="password" inputMode="numeric" pattern="[0-9]*" value={newPin} onChange={e => setNewPin(e.target.value)} required className="ghrs-input text-center text-xl tracking-widest font-mono" placeholder="1234" maxLength={6} dir="ltr" autoComplete="one-time-code" />
+                  <label className="ghrs-label">رمز PIN (4-6 أرقام)</label>
+                  <input type="password" inputMode="numeric" pattern="[0-9]*" value={newPin} onChange={e => setNewPin(e.target.value)} required className="ghrs-input text-center text-lg tracking-widest font-mono" placeholder="1234" maxLength={6} dir="ltr" autoComplete="one-time-code" />
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 pt-1">
                   <button type="submit" className="ghrs-btn-primary">إضافة</button>
                   <button type="button" onClick={() => setShowAdd(false)} className="ghrs-btn-secondary">إلغاء</button>
                 </div>
@@ -278,45 +278,61 @@ export default function ChildrenPage() {
           )}
 
           {/* Members List */}
-          <div className="space-y-4">
+          <div className="space-y-3">
             {currentList.map(member => (
-              <div key={member.id} className="ghrs-card p-5">
+              <div key={member.id} className="ghrs-card p-4">
                 {editingId === member.id ? (
-                  <div className="space-y-4">
-                    <h3 className="font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>تعديل {member.name}</h3>
+                  <div className="space-y-3">
+                    <h3 className="text-sm font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>تعديل {member.name}</h3>
                     <div>
-                      <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--ghrs-text-secondary)' }}>الاسم</label>
+                      <label className="ghrs-label">الاسم</label>
                       <div className="flex gap-2">
                         <input type="text" value={editName} onChange={e => setEditName(e.target.value)} className="ghrs-input flex-1" />
-                        <button onClick={() => handleUpdateName(member.id)} className="ghrs-btn-primary">حفظ</button>
+                        <button onClick={() => handleUpdateName(member.id)} className="ghrs-btn-primary flex-shrink-0">حفظ</button>
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--ghrs-text-secondary)' }}>رمز PIN الجديد</label>
+                      <label className="ghrs-label">رمز PIN الجديد</label>
                       <div className="flex gap-2">
                         <input type="password" inputMode="numeric" pattern="[0-9]*" value={editPin} onChange={e => setEditPin(e.target.value)} className="ghrs-input flex-1 text-center tracking-widest font-mono" placeholder="1234" maxLength={6} dir="ltr" autoComplete="one-time-code" />
-                        <button onClick={() => handleUpdatePin(member.id)} className="ghrs-btn-primary" style={{ background: 'var(--ghrs-amber-500)' }}>حفظ الرمز</button>
+                        <button onClick={() => handleUpdatePin(member.id)} className="ghrs-btn-primary flex-shrink-0">حفظ الرمز</button>
                       </div>
                     </div>
-                    <button onClick={() => { setEditingId(null); setError(''); setEditName(''); setEditPin('') }} className="text-sm font-semibold" style={{ color: 'var(--ghrs-text-tertiary)' }}>إلغاء</button>
+                    <button onClick={() => { setEditingId(null); setError(''); setEditName(''); setEditPin('') }} className="text-xs font-semibold" style={{ color: 'var(--ghrs-text-tertiary)' }}>إلغاء</button>
                   </div>
                 ) : (
                   <div>
-                    <div className="flex justify-between items-start mb-4">
-                      <div className="flex items-center gap-3">
-                        <span className="text-4xl">{member.role === 'child' ? <LeafIcon size={32} /> : member.role === 'owner' ? <CrownIcon size={32} /> : <MotherIcon size={32} />}</span>
-                        <div>
-                          <h3 className="text-lg font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>{member.name}</h3>
-                          <p className="text-xs" style={{ color: 'var(--ghrs-text-tertiary)' }}>{member.login_code}</p>
-                          <span className="inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: member.role === 'owner' ? 'var(--ghrs-amber-50)' : member.role === 'parent' ? 'var(--ghrs-blue-50)' : 'var(--ghrs-green-50)', color: member.role === 'owner' ? 'var(--ghrs-amber-700)' : member.role === 'parent' ? 'var(--ghrs-blue-600)' : 'var(--ghrs-green-700)' }}>
-                            {member.role === 'owner' ? <><CrownIcon size={12} className="inline" /> مالك</> : member.role === 'parent' ? <><MotherIcon size={12} className="inline" /> ولي أمر</> : <><LeafIcon size={12} className="inline" /> طفل</>}
+                    <div className="flex justify-between items-start mb-3 gap-2">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div
+                          className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
+                          style={{
+                            background: member.role === 'owner' ? 'var(--ghrs-amber-50)'
+                              : member.role === 'parent' ? 'var(--ghrs-blue-50)'
+                              : 'var(--ghrs-green-50)',
+                          }}
+                        >
+                          {member.role === 'child' ? <LeafIcon size={20} color="var(--ghrs-green-600)" /> : member.role === 'owner' ? <CrownIcon size={20} color="var(--ghrs-amber-600)" /> : <MotherIcon size={20} color="var(--ghrs-blue-600)" />}
+                        </div>
+                        <div className="min-w-0">
+                          <h3 className="text-sm font-bold truncate" style={{ color: 'var(--ghrs-text-primary)' }}>{member.name}</h3>
+                          <p className="text-[10px] font-mono mt-0.5" style={{ color: 'var(--ghrs-text-tertiary)' }}>{member.login_code}</p>
+                          <span className="inline-block mt-1 px-1.5 py-0.5 rounded text-[10px] font-bold" style={{
+                            background: member.role === 'owner' ? 'var(--ghrs-amber-50)'
+                              : member.role === 'parent' ? 'var(--ghrs-blue-50)'
+                              : 'var(--ghrs-green-50)',
+                            color: member.role === 'owner' ? 'var(--ghrs-amber-700)'
+                              : member.role === 'parent' ? 'var(--ghrs-blue-600)'
+                              : 'var(--ghrs-green-700)',
+                          }}>
+                            {member.role === 'owner' ? 'مالك' : member.role === 'parent' ? 'ولي أمر' : 'طفل'}
                           </span>
                         </div>
                       </div>
-                      <div className="flex gap-2">
-                        <button onClick={() => { setEditingId(member.id); setEditName(member.name); setEditPin(''); setError('') }} className="p-2 rounded-lg" style={{ background: 'var(--ghrs-blue-50)', color: 'var(--ghrs-blue-600)' }}><EditIcon size={16} /></button>
+                      <div className="flex gap-1.5 flex-shrink-0">
+                        <button onClick={() => { setEditingId(member.id); setEditName(member.name); setEditPin(''); setError('') }} className="p-2 rounded-lg" style={{ background: 'var(--ghrs-bg-secondary)', color: 'var(--ghrs-text-secondary)' }}><EditIcon size={14} /></button>
                         {member.role !== 'owner' && (
-                          <button onClick={() => handleDelete(member.id, member.name)} className="p-2 rounded-lg" style={{ background: 'var(--ghrs-red-50)', color: 'var(--ghrs-red-500)' }}><DeleteIcon size={16} /></button>
+                          <button onClick={() => handleDelete(member.id, member.name)} className="p-2 rounded-lg" style={{ background: 'var(--ghrs-red-50)', color: 'var(--ghrs-red-600)' }}><DeleteIcon size={14} /></button>
                         )}
                       </div>
                     </div>
@@ -325,36 +341,38 @@ export default function ChildrenPage() {
                     {member.role === 'child' && (
                       <div className="flex gap-2 mb-3">
                         <button onClick={() => { setManualModal({ child: member, type: 'reward' }); setManualForm({ reason: '', currencyType: 'xp', amount: 10 }) }}
-                          className="flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-xl text-sm font-bold transition-all"
-                          style={{ background: 'var(--ghrs-green-100)', color: 'var(--ghrs-green-700)', border: '2px solid var(--ghrs-green-200)' }}>
-                          <SparkleIcon size={14} /> مكافأة فورية
+                          className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all"
+                          style={{ background: 'var(--ghrs-green-50)', color: 'var(--ghrs-green-700)', border: '1px solid var(--ghrs-green-200)' }}>
+                          <SparkleIcon size={12} /> مكافأة فورية
                         </button>
                         <button onClick={() => { setManualModal({ child: member, type: 'penalty' }); setManualForm({ reason: '', currencyType: 'xp', amount: 10 }) }}
-                          className="flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-xl text-sm font-bold transition-all"
-                          style={{ background: 'var(--ghrs-red-50)', color: 'var(--ghrs-red-600)', border: '2px solid var(--ghrs-red-200)' }}>
-                          <ShieldIcon size={14} /> خصم / عقاب
+                          className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all"
+                          style={{ background: 'var(--ghrs-red-50)', color: 'var(--ghrs-red-600)', border: '1px solid var(--ghrs-red-200)' }}>
+                          <ShieldIcon size={12} /> خصم / عقاب
                         </button>
                       </div>
                     )}
 
-                    <div className="rounded-xl p-4 mb-3" style={{ background: 'var(--ghrs-bg-tertiary)', border: '1px solid var(--ghrs-border-default)' }}>
-                      <p className="text-sm font-semibold mb-2" style={{ color: 'var(--ghrs-text-secondary)' }}><UserIcon size={14} className="inline" /> كود الدخول:</p>
-                      <div className="flex items-center gap-3">
-                        <span className="text-2xl font-bold font-mono tracking-widest px-4 py-2 rounded-xl" style={{ background: 'var(--ghrs-bg-card)', border: '2px solid var(--ghrs-border-default)', color: 'var(--ghrs-green-600)' }}>{member.login_code}</span>
-                        <button onClick={() => copyLoginCode(member.login_code)} className="px-3 py-2 rounded-lg text-sm font-bold transition-colors" style={{ background: copiedId === member.login_code ? 'var(--ghrs-green-500)' : 'var(--ghrs-bg-card)', color: copiedId === member.login_code ? 'white' : 'var(--ghrs-green-600)', border: `1px solid ${copiedId === member.login_code ? 'var(--ghrs-green-500)' : 'var(--ghrs-border-default)'}` }}>
-                          {copiedId === member.login_code ? <><CheckIcon size={12} className="inline" /> تم</> : <><CopyIcon size={12} className="inline" /> نسخ</>}
+                    <div className="rounded-lg p-3 mb-3" style={{ background: 'var(--ghrs-bg-secondary)', border: '1px solid var(--ghrs-border-default)' }}>
+                      <p className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: 'var(--ghrs-text-tertiary)' }}>كود الدخول</p>
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg font-bold font-mono tracking-widest px-3 py-1.5 rounded-lg flex-1" style={{ background: 'var(--ghrs-bg-card)', border: '1px solid var(--ghrs-border-default)', color: 'var(--ghrs-text-primary)' }}>{member.login_code}</span>
+                        <button onClick={() => copyLoginCode(member.login_code)} className="px-3 py-1.5 rounded-lg text-xs font-bold transition-colors" style={{ background: copiedId === member.login_code ? 'var(--ghrs-green-500)' : 'var(--ghrs-bg-card)', color: copiedId === member.login_code ? 'white' : 'var(--ghrs-text-secondary)', border: `1px solid ${copiedId === member.login_code ? 'var(--ghrs-green-500)' : 'var(--ghrs-border-default)'}` }}>
+                          {copiedId === member.login_code ? '✓ تم' : 'نسخ'}
                         </button>
                       </div>
                     </div>
-                    <button onClick={() => copyLoginLink(member.login_code)} className="w-full py-2 px-4 rounded-xl text-sm font-bold transition-colors" style={{ background: 'var(--ghrs-amber-500)', color: 'white' }}>
-                      <CopyIcon size={14} className="inline" /> نسخ رابط الدخول
-                    </button>
-                    {member.role === 'child' && (
-                      <button onClick={() => { const link = `${window.location.origin}/family-login?code=${member.login_code}`; window.open(`https://wa.me/?text=${encodeURIComponent(`بطلنا المبدع!\nحديقتك في منصة غرس بانتظارك اليوم!\n\nرابط دخولك المباشر:\n${link}`)}`, '_blank') }}
-                        className="w-full py-2 px-4 rounded-xl text-sm font-bold transition-colors mt-2" style={{ background: '#25D366', color: 'white' }}>
-                        مشاركة رابط الدخول على الواتساب
+                    <div className="flex gap-2">
+                      <button onClick={() => copyLoginLink(member.login_code)} className="flex-1 px-3 py-2 rounded-lg text-xs font-bold transition-colors" style={{ background: 'var(--ghrs-bg-secondary)', color: 'var(--ghrs-text-secondary)', border: '1px solid var(--ghrs-border-default)' }}>
+                        نسخ رابط الدخول
                       </button>
-                    )}
+                      {member.role === 'child' && (
+                        <button onClick={() => { const link = `${window.location.origin}/family-login?code=${member.login_code}`; window.open(`https://wa.me/?text=${encodeURIComponent(`بطلنا المبدع!\nحديقتك في منصة غرس بانتظارك اليوم!\n\nرابط دخولك المباشر:\n${link}`)}`, '_blank') }}
+                          className="flex-1 px-3 py-2 rounded-lg text-xs font-bold transition-colors" style={{ background: '#25D366', color: 'white' }}>
+                          واتساب
+                        </button>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
@@ -362,9 +380,9 @@ export default function ChildrenPage() {
           </div>
 
           {currentList.length === 0 && !showAdd && (
-            <EmptyState icon={activeTab === 'children' ? <ChildIcon size={48} /> : <UserIcon size={48} />}
+            <EmptyState icon={activeTab === 'children' ? <ChildIcon size={32} /> : <UserIcon size={32} />}
               title={`لم تتم إضافة أي ${emptyLabel} بعد`}
-              description={activeTab === 'children' ? 'أضف أطفالك لبدء مغامرة النمو' : 'أضف أهل العائلة ل给他们 صلاحيات الإدارة'}
+              description={activeTab === 'children' ? 'أضف أطفالك لبدء مغامرة النمو' : 'أضف أهل العائلة لإعطائهم صلاحيات الإدارة'}
               action={<button onClick={() => setShowAdd(true)} className="ghrs-btn-primary">+ {addLabel}</button>} />
           )}
         </div>

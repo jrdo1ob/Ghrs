@@ -81,9 +81,9 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--ghrs-bg-primary)' }}>
-        <div className="text-center">
-          <LeafIcon size={48} color="var(--ghrs-green-500)" className="mx-auto mb-4 ghrs-animate-float" />
-          <p style={{ color: 'var(--ghrs-text-secondary)' }}>جاري التحميل...</p>
+        <div className="flex flex-col items-center gap-3">
+          <LeafIcon size={40} color="var(--ghrs-green-500)" className="ghrs-animate-float" />
+          <p className="text-sm font-semibold" style={{ color: 'var(--ghrs-text-secondary)' }}>جاري التحميل...</p>
         </div>
       </div>
     )
@@ -94,181 +94,212 @@ export default function DashboardPage() {
       <ParentSidebar />
       <div className="md:mr-[var(--ghrs-sidebar-width)] pb-24 md:pb-8">
         <div className="p-4 md:p-8 max-w-6xl mx-auto">
-          <PageHeader title={`مرحباً ${authUser?.name}`} subtitle={family?.name} />
+          <PageHeader
+            title={`مرحباً ${authUser?.name}`}
+            subtitle={family?.name}
+          />
 
-          {/* Summary Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+          {/* Stats grid */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
             <div className="ghrs-card p-4">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: 'var(--ghrs-green-50)' }}>
-                  <ChildIcon size={24} color="var(--ghrs-green-600)" />
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'var(--ghrs-green-50)' }}>
+                  <ChildIcon size={20} color="var(--ghrs-green-600)" />
                 </div>
-                <div>
-                  <p className="text-2xl font-bold" style={{ color: 'var(--ghrs-green-600)' }}>{children.length}</p>
-                  <p className="text-xs font-semibold" style={{ color: 'var(--ghrs-text-secondary)' }}>الأبناء</p>
+                <div className="min-w-0">
+                  <p className="text-xl font-bold tabular-nums leading-none" style={{ color: 'var(--ghrs-text-primary)' }}>{children.length}</p>
+                  <p className="text-xs mt-1" style={{ color: 'var(--ghrs-text-tertiary)' }}>الأبناء</p>
                 </div>
               </div>
             </div>
 
             <div className="ghrs-card p-4">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: 'var(--ghrs-amber-50)' }}>
-                  <TasksIcon size={24} color="var(--ghrs-amber-600)" />
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'var(--ghrs-amber-50)' }}>
+                  <TasksIcon size={20} color="var(--ghrs-amber-600)" />
                 </div>
-                <div>
-                  <p className="text-2xl font-bold" style={{ color: 'var(--ghrs-amber-600)' }}>{tasks.length}</p>
-                  <p className="text-xs font-semibold" style={{ color: 'var(--ghrs-text-secondary)' }}>المهام النشطة</p>
+                <div className="min-w-0">
+                  <p className="text-xl font-bold tabular-nums leading-none" style={{ color: 'var(--ghrs-text-primary)' }}>{tasks.length}</p>
+                  <p className="text-xs mt-1" style={{ color: 'var(--ghrs-text-tertiary)' }}>المهام النشطة</p>
                 </div>
               </div>
             </div>
 
             <Link href="/approvals" className="ghrs-card p-4 ghrs-card-interactive">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: pendingApprovals > 0 ? 'var(--ghrs-amber-100)' : 'var(--ghrs-blue-50)' }}>
-                  <ClockIcon size={24} color={pendingApprovals > 0 ? 'var(--ghrs-amber-600)' : 'var(--ghrs-blue-600)'} />
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: pendingApprovals > 0 ? 'var(--ghrs-amber-50)' : 'var(--ghrs-bg-secondary)' }}>
+                  <ClockIcon size={20} color={pendingApprovals > 0 ? 'var(--ghrs-amber-600)' : 'var(--ghrs-text-tertiary)'} />
                 </div>
-                <div>
-                  <p className="text-2xl font-bold" style={{ color: pendingApprovals > 0 ? 'var(--ghrs-amber-600)' : 'var(--ghrs-blue-600)' }}>{pendingApprovals}</p>
-                  <p className="text-xs font-semibold" style={{ color: 'var(--ghrs-text-secondary)' }}>بانتظار الموافقة</p>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-baseline gap-2">
+                    <p className="text-xl font-bold tabular-nums leading-none" style={{ color: pendingApprovals > 0 ? 'var(--ghrs-amber-600)' : 'var(--ghrs-text-primary)' }}>{pendingApprovals}</p>
+                    {pendingApprovals > 0 && (
+                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded ghrs-badge ghrs-badge-warning">جديد</span>
+                    )}
+                  </div>
+                  <p className="text-xs mt-1" style={{ color: 'var(--ghrs-text-tertiary)' }}>بانتظار الموافقة</p>
                 </div>
-                {pendingApprovals > 0 && (
-                  <span className="px-2 py-1 rounded-full text-xs font-bold animate-pulse" style={{ background: 'var(--ghrs-amber-100)', color: 'var(--ghrs-amber-700)' }}>
-                    جديد
-                  </span>
-                )}
               </div>
             </Link>
 
             <div className="ghrs-card p-4">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: 'var(--ghrs-purple-50)' }}>
-                  <CopyIcon size={24} color="var(--ghrs-purple-600)" />
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'var(--ghrs-bg-secondary)' }}>
+                  <CopyIcon size={20} color="var(--ghrs-text-secondary)" />
                 </div>
-                <div>
-                  <p className="text-lg font-bold font-mono" style={{ color: 'var(--ghrs-purple-600)' }}>{family?.code}</p>
-                  <p className="text-xs font-semibold" style={{ color: 'var(--ghrs-text-secondary)' }}>كود العائلة</p>
+                <div className="min-w-0">
+                  <p className="text-sm font-bold font-mono leading-none truncate" style={{ color: 'var(--ghrs-text-primary)' }}>{family?.code}</p>
+                  <p className="text-xs mt-1" style={{ color: 'var(--ghrs-text-tertiary)' }}>كود العائلة</p>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Children Section */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>أبنائي</h2>
-              <Link href="/children" className="text-sm font-semibold" style={{ color: 'var(--ghrs-green-600)' }}>عرض الكل ←</Link>
+          {/* Children */}
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-base font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>أبنائي</h2>
+              {children.length > 0 && (
+                <Link href="/children" className="text-xs font-semibold" style={{ color: 'var(--ghrs-text-secondary)' }}>عرض الكل →</Link>
+              )}
             </div>
             {children.length > 0 ? (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                 {children.slice(0, 4).map(child => (
-                  <Link key={child.id} href="/children" className="ghrs-card p-5 ghrs-card-interactive">
+                  <Link key={child.id} href="/children" className="ghrs-card p-4 ghrs-card-interactive">
                     <div className="text-center">
-                      <div className="w-16 h-16 rounded-full mx-auto mb-2 flex items-center justify-center" style={{ background: 'var(--ghrs-green-50)' }}>
-                        <LeafIcon size={32} color="var(--ghrs-green-500)" />
+                      <div className="w-12 h-12 rounded-full mx-auto mb-2 flex items-center justify-center" style={{ background: 'var(--ghrs-bg-secondary)' }}>
+                        <LeafIcon size={22} color="var(--ghrs-green-600)" />
                       </div>
-                      <p className="font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>{child.name}</p>
-                      <p className="text-xs" style={{ color: 'var(--ghrs-text-tertiary)' }}>{child.login_code}</p>
+                      <p className="text-sm font-bold truncate" style={{ color: 'var(--ghrs-text-primary)' }}>{child.name}</p>
+                      <p className="text-[10px] font-mono mt-0.5" style={{ color: 'var(--ghrs-text-tertiary)' }}>{child.login_code}</p>
                     </div>
                   </Link>
                 ))}
               </div>
             ) : (
-              <EmptyState icon={<ChildIcon size={48} />} title="لم تتم إضافة أي أطفال بعد" description="أضف أطفالك لبدء مغامرة النمو معاً"
+              <EmptyState icon={<ChildIcon size={32} />} title="لم تتم إضافة أي أطفال بعد" description="أضف أطفالك لبدء مغامرة النمو معاً"
                 action={<Link href="/children" className="ghrs-btn-primary">+ أضف أول طفل</Link>} />
             )}
           </div>
 
-          {/* Quick Actions */}
-          <div>
-            <h2 className="text-lg font-bold mb-4" style={{ color: 'var(--ghrs-text-primary)' }}>الوصول السريع</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <Link href="/tasks" className="ghrs-card p-4 ghrs-card-interactive">
-                <div className="text-center">
-                  <div className="w-12 h-12 rounded-xl mx-auto mb-2 flex items-center justify-center" style={{ background: 'var(--ghrs-amber-50)' }}>
-                    <TasksIcon size={24} color="var(--ghrs-amber-600)" />
+          {/* Quick actions */}
+          <div className="mb-6">
+            <h2 className="text-base font-bold mb-3" style={{ color: 'var(--ghrs-text-primary)' }}>الوصول السريع</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+              <Link href="/tasks" className="ghrs-card p-3 ghrs-card-interactive">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'var(--ghrs-amber-50)' }}>
+                    <TasksIcon size={20} color="var(--ghrs-amber-600)" />
                   </div>
-                  <p className="font-bold text-sm" style={{ color: 'var(--ghrs-text-primary)' }}>إدارة المهام</p>
+                  <p className="text-sm font-semibold truncate" style={{ color: 'var(--ghrs-text-primary)' }}>المهام</p>
                 </div>
               </Link>
 
-              <Link href="/rewards" className="ghrs-card p-4 ghrs-card-interactive">
-                <div className="text-center">
-                  <div className="w-12 h-12 rounded-xl mx-auto mb-2 flex items-center justify-center" style={{ background: 'var(--ghrs-green-50)' }}>
-                    <GiftsIcon size={24} color="var(--ghrs-green-600)" />
+              <Link href="/rewards" className="ghrs-card p-3 ghrs-card-interactive">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'var(--ghrs-green-50)' }}>
+                    <GiftsIcon size={20} color="var(--ghrs-green-600)" />
                   </div>
-                  <p className="font-bold text-sm" style={{ color: 'var(--ghrs-text-primary)' }}>المكافآت</p>
+                  <p className="text-sm font-semibold truncate" style={{ color: 'var(--ghrs-text-primary)' }}>المكافآت</p>
                 </div>
               </Link>
 
-              <Link href="/children" className="ghrs-card p-4 ghrs-card-interactive">
-                <div className="text-center">
-                  <div className="w-12 h-12 rounded-xl mx-auto mb-2 flex items-center justify-center" style={{ background: 'var(--ghrs-blue-50)' }}>
-                    <ChildIcon size={24} color="var(--ghrs-blue-600)" />
+              <Link href="/approvals" className="ghrs-card p-3 ghrs-card-interactive">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'var(--ghrs-amber-50)' }}>
+                    <ClockIcon size={20} color="var(--ghrs-amber-600)" />
                   </div>
-                  <p className="font-bold text-sm" style={{ color: 'var(--ghrs-text-primary)' }}>الأبناء</p>
+                  <p className="text-sm font-semibold truncate" style={{ color: 'var(--ghrs-text-primary)' }}>الموافقات</p>
                 </div>
               </Link>
 
-              <Link href="/stories" className="ghrs-card p-4 ghrs-card-interactive">
-                <div className="text-center">
-                  <div className="w-12 h-12 rounded-xl mx-auto mb-2 flex items-center justify-center" style={{ background: 'var(--ghrs-purple-50)' }}>
-                    <BookIcon size={24} color="var(--ghrs-purple-600)" />
+              <Link href="/ledger" className="ghrs-card p-3 ghrs-card-interactive">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'var(--ghrs-green-50)' }}>
+                    <CoinIcon size={20} color="var(--ghrs-green-600)" />
                   </div>
-                  <p className="font-bold text-sm" style={{ color: 'var(--ghrs-text-primary)' }}>القصص</p>
+                  <p className="text-sm font-semibold truncate" style={{ color: 'var(--ghrs-text-primary)' }}>المعاملات</p>
                 </div>
               </Link>
 
-              <Link href="/reward-bank" className="ghrs-card p-4 ghrs-card-interactive">
-                <div className="text-center">
-                  <div className="w-12 h-12 rounded-xl mx-auto mb-2 flex items-center justify-center" style={{ background: 'var(--ghrs-amber-50)' }}>
-                    <CoinIcon size={24} color="var(--ghrs-amber-600)" />
+              <Link href="/activity" className="ghrs-card p-3 ghrs-card-interactive">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'var(--ghrs-bg-secondary)' }}>
+                    <ClockIcon size={20} color="var(--ghrs-text-secondary)" />
                   </div>
-                  <p className="font-bold text-sm" style={{ color: 'var(--ghrs-text-primary)' }}>بنك المكافآت</p>
+                  <p className="text-sm font-semibold truncate" style={{ color: 'var(--ghrs-text-primary)' }}>النشاط</p>
                 </div>
               </Link>
 
-              <Link href="/ledger" className="ghrs-card p-4 ghrs-card-interactive">
-                <div className="text-center">
-                  <div className="w-12 h-12 rounded-xl mx-auto mb-2 flex items-center justify-center" style={{ background: 'var(--ghrs-green-50)' }}>
-                    <CoinIcon size={24} color="var(--ghrs-green-600)" />
+              <Link href="/stories" className="ghrs-card p-3 ghrs-card-interactive">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'var(--ghrs-purple-50)' }}>
+                    <BookIcon size={20} color="var(--ghrs-purple-600)" />
                   </div>
-                  <p className="font-bold text-sm" style={{ color: 'var(--ghrs-text-primary)' }}>سجل المعاملات</p>
+                  <p className="text-sm font-semibold truncate" style={{ color: 'var(--ghrs-text-primary)' }}>القصص</p>
                 </div>
               </Link>
 
-              <Link href="/activity" className="ghrs-card p-4 ghrs-card-interactive">
-                <div className="text-center">
-                  <div className="w-12 h-12 rounded-xl mx-auto mb-2 flex items-center justify-center" style={{ background: 'var(--ghrs-amber-50)' }}>
-                    <ClockIcon size={24} color="var(--ghrs-amber-600)" />
+              <Link href="/reward-bank" className="ghrs-card p-3 ghrs-card-interactive">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'var(--ghrs-amber-50)' }}>
+                    <GiftsIcon size={20} color="var(--ghrs-amber-600)" />
                   </div>
-                  <p className="font-bold text-sm" style={{ color: 'var(--ghrs-text-primary)' }}>سجل النشاط</p>
+                  <p className="text-sm font-semibold truncate" style={{ color: 'var(--ghrs-text-primary)' }}>بنك المكافآت</p>
                 </div>
               </Link>
 
-              <Link href="/quran" className="ghrs-card p-4 ghrs-card-interactive">
-                <div className="text-center">
-                  <div className="w-12 h-12 rounded-xl mx-auto mb-2 flex items-center justify-center" style={{ background: 'var(--ghrs-green-50)' }}>
-                    <BookIcon size={24} color="var(--ghrs-green-600)" />
+              <Link href="/presets" className="ghrs-card p-3 ghrs-card-interactive">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'var(--ghrs-bg-secondary)' }}>
+                    <CopyIcon size={20} color="var(--ghrs-text-secondary)" />
                   </div>
-                  <p className="font-bold text-sm" style={{ color: 'var(--ghrs-text-primary)' }}>القرآن</p>
+                  <p className="text-sm font-semibold truncate" style={{ color: 'var(--ghrs-text-primary)' }}>بنك المهام</p>
                 </div>
               </Link>
 
-              <Link href="/settings" className="ghrs-card p-4 ghrs-card-interactive">
-                <div className="text-center">
-                  <div className="w-12 h-12 rounded-xl mx-auto mb-2 flex items-center justify-center" style={{ background: 'var(--ghrs-bg-tertiary)' }}>
-                    <SettingsIcon size={24} color="var(--ghrs-text-secondary)" />
+              <Link href="/achievements" className="ghrs-card p-3 ghrs-card-interactive">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'var(--ghrs-amber-50)' }}>
+                    <TrophyIcon size={20} color="var(--ghrs-amber-600)" />
                   </div>
-                  <p className="font-bold text-sm" style={{ color: 'var(--ghrs-text-primary)' }}>الإعدادات</p>
+                  <p className="text-sm font-semibold truncate" style={{ color: 'var(--ghrs-text-primary)' }}>الإنجازات</p>
+                </div>
+              </Link>
+
+              <Link href="/quran" className="ghrs-card p-3 ghrs-card-interactive">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'var(--ghrs-green-50)' }}>
+                    <BookIcon size={20} color="var(--ghrs-green-600)" />
+                  </div>
+                  <p className="text-sm font-semibold truncate" style={{ color: 'var(--ghrs-text-primary)' }}>القرآن</p>
+                </div>
+              </Link>
+
+              <Link href="/payments" className="ghrs-card p-3 ghrs-card-interactive">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'var(--ghrs-green-50)' }}>
+                    <CoinIcon size={20} color="var(--ghrs-green-600)" />
+                  </div>
+                  <p className="text-sm font-semibold truncate" style={{ color: 'var(--ghrs-text-primary)' }}>الأموال</p>
+                </div>
+              </Link>
+
+              <Link href="/settings" className="ghrs-card p-3 ghrs-card-interactive">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'var(--ghrs-bg-secondary)' }}>
+                    <SettingsIcon size={20} color="var(--ghrs-text-secondary)" />
+                  </div>
+                  <p className="text-sm font-semibold truncate" style={{ color: 'var(--ghrs-text-primary)' }}>الإعدادات</p>
                 </div>
               </Link>
             </div>
           </div>
 
           {/* Logout */}
-          <div className="mt-8 text-center">
-            <button onClick={handleLogout} className="px-6 py-3 rounded-xl text-sm font-bold transition-all"
-              style={{ background: 'var(--ghrs-red-50)', color: 'var(--ghrs-red-600)', border: '2px solid var(--ghrs-red-200)' }}>
+          <div className="mt-4 flex justify-center">
+            <button onClick={handleLogout} className="ghrs-btn-secondary text-ghrs-red-600" style={{ color: 'var(--ghrs-red-600)' }}>
               تسجيل الخروج
             </button>
           </div>

@@ -117,13 +117,13 @@ export default function PresetTasksPage() {
           />
 
           {/* Category Filter */}
-          <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
+          <div className="flex gap-1.5 mb-5 border-b overflow-x-auto pb-1" style={{ borderColor: 'var(--ghrs-border-default)' }}>
             <button
               onClick={() => setSelectedCategory('all')}
-              className="px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition-colors"
+              className="px-3 py-2 text-xs font-bold whitespace-nowrap transition-all border-b-2"
               style={{
-                background: selectedCategory === 'all' ? 'var(--ghrs-green-500)' : 'var(--ghrs-bg-tertiary)',
-                color: selectedCategory === 'all' ? 'white' : 'var(--ghrs-text-secondary)'
+                borderColor: selectedCategory === 'all' ? 'var(--ghrs-green-600)' : 'transparent',
+                color: selectedCategory === 'all' ? 'var(--ghrs-text-primary)' : 'var(--ghrs-text-tertiary)',
               }}
             >
               الكل
@@ -132,10 +132,10 @@ export default function PresetTasksPage() {
               <button
                 key={key}
                 onClick={() => setSelectedCategory(key)}
-                className="px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition-colors"
+                className="px-3 py-2 text-xs font-bold whitespace-nowrap transition-all border-b-2"
                 style={{
-                  background: selectedCategory === key ? 'var(--ghrs-green-500)' : 'var(--ghrs-bg-tertiary)',
-                  color: selectedCategory === key ? 'white' : 'var(--ghrs-text-secondary)'
+                  borderColor: selectedCategory === key ? 'var(--ghrs-green-600)' : 'transparent',
+                  color: selectedCategory === key ? 'var(--ghrs-text-primary)' : 'var(--ghrs-text-tertiary)',
                 }}
               >
                 {cat.emoji} {cat.label}
@@ -144,48 +144,40 @@ export default function PresetTasksPage() {
           </div>
 
           {/* Preset Tasks Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {filtered.map((preset) => (
-              <div key={preset.id} className="ghrs-card p-5">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex items-center gap-3">
-                    <span className="text-3xl">{preset.icon}</span>
-                    <div>
-                      <h3 className="font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>{preset.title}</h3>
-                      <p className="text-sm" style={{ color: 'var(--ghrs-text-secondary)' }}>{preset.description}</p>
-                    </div>
+              <div key={preset.id} className="ghrs-card p-4">
+                <div className="flex items-start gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'var(--ghrs-bg-secondary)' }}>
+                    <span className="text-lg">{preset.icon}</span>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-sm font-bold truncate" style={{ color: 'var(--ghrs-text-primary)' }}>{preset.title}</h3>
+                    <p className="text-xs mt-0.5 line-clamp-2" style={{ color: 'var(--ghrs-text-secondary)' }}>{preset.description}</p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 mb-3 text-sm">
-                  <span className="font-semibold" style={{ color: 'var(--ghrs-amber-600)' }}>
-                    <StarIcon size={14} className="inline" /> {preset.xp_reward} XP
+                <div className="flex items-center gap-2 mb-3 pb-3 border-t pt-3 text-xs" style={{ borderColor: 'var(--ghrs-border-default)' }}>
+                  <span className="inline-flex items-center gap-1 font-semibold tabular-nums" style={{ color: 'var(--ghrs-text-secondary)' }}>
+                    <StarIcon size={12} /> {preset.xp_reward} XP
                   </span>
                   {preset.money_reward > 0 && (
-                    <span className="font-semibold" style={{ color: 'var(--ghrs-green-600)' }}>
-                      <CoinIcon size={14} className="inline" /> {preset.money_reward}
+                    <span className="inline-flex items-center gap-1 font-semibold tabular-nums" style={{ color: 'var(--ghrs-text-secondary)' }}>
+                      <CoinIcon size={12} /> {preset.money_reward}
                     </span>
                   )}
-                  <span className="px-2 py-0.5 rounded-full text-xs font-bold"
-                    style={{ 
-                      background: preset.requires_approval ? 'var(--ghrs-amber-50)' : 'var(--ghrs-green-50)',
-                      color: preset.requires_approval ? 'var(--ghrs-amber-700)' : 'var(--ghrs-green-700)'
-                    }}>
-                    {preset.requires_approval ? 'تطلب موافقة' : 'auto'}
+                  <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ghrs-badge ${preset.requires_approval ? 'ghrs-badge-warning' : 'ghrs-badge-success'}`}>
+                    {preset.requires_approval ? 'تطلب موافقة' : 'تلقائي'}
                   </span>
                 </div>
 
                 <button
                   onClick={() => handleAddPreset(preset)}
                   disabled={adding === preset.id}
-                  className="w-full py-2 rounded-xl text-sm font-bold transition-all"
-                  style={{
-                    background: 'var(--ghrs-green-500)',
-                    color: 'white',
-                    opacity: adding === preset.id ? 0.7 : 1
-                  }}
+                  className="w-full ghrs-btn-primary text-xs py-2 justify-center"
+                  style={{ opacity: adding === preset.id ? 0.7 : 1 }}
                 >
-                  {adding === preset.id ? <><ClockIcon size={14} className="inline" /> جاري...</> : '+ اضافة للعائلة'}
+                  {adding === preset.id ? <><ClockIcon size={12} className="inline" /> جاري...</> : '+ اضافة للعائلة'}
                 </button>
               </div>
             ))}

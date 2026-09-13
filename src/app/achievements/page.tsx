@@ -69,45 +69,44 @@ export default function AchievementsPage() {
           />
 
           {/* Stats */}
-          <div className="ghrs-card p-5 mb-6 text-center">
-            <div className="flex items-center justify-center gap-4">
-              <div>
-                <p className="text-3xl font-bold" style={{ color: 'var(--ghrs-amber-600)' }}>
+          <div className="ghrs-card p-4 mb-5">
+            <div className="flex items-center justify-center gap-6">
+              <div className="text-center">
+                <p className="text-2xl font-extrabold tabular-nums leading-none" style={{ color: 'var(--ghrs-text-primary)' }}>
                   {memberAchievements.length}
                 </p>
-                <p className="text-sm" style={{ color: 'var(--ghrs-text-secondary)' }}>إنجازات مكتسبة</p>
+                <p className="text-xs mt-1" style={{ color: 'var(--ghrs-text-tertiary)' }}>مكتسبة</p>
               </div>
-              <div className="w-px h-12" style={{ background: 'var(--ghrs-border-default)' }} />
-              <div>
-                <p className="text-3xl font-bold" style={{ color: 'var(--ghrs-text-tertiary)' }}>
+              <div className="w-px h-8" style={{ background: 'var(--ghrs-border-default)' }} />
+              <div className="text-center">
+                <p className="text-2xl font-extrabold tabular-nums leading-none" style={{ color: 'var(--ghrs-text-primary)' }}>
                   {achievements.length - memberAchievements.length}
                 </p>
-                <p className="text-sm" style={{ color: 'var(--ghrs-text-secondary)' }}>إنجازات متبقية</p>
+                <p className="text-xs mt-1" style={{ color: 'var(--ghrs-text-tertiary)' }}>متبقية</p>
               </div>
             </div>
           </div>
 
           {/* Achievements Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             {achievements.map((achievement) => {
               const earned = memberAchievements.some(ma => ma.achievement_id === achievement.id)
               return (
-                <div 
-                  key={achievement.id} 
-                  className="ghrs-card p-5 text-center transition-all"
-                  style={{ 
-                    opacity: earned ? 1 : 0.6,
-                    border: earned ? '2px solid var(--ghrs-amber-400)' : '1px solid var(--ghrs-border-default)'
+                <div
+                  key={achievement.id}
+                  className="ghrs-card p-4 text-center transition-all"
+                  style={{
+                    opacity: earned ? 1 : 0.55,
+                    border: `1px solid ${earned ? 'var(--ghrs-amber-300)' : 'var(--ghrs-border-default)'}`,
                   }}
                 >
-                  <div className="text-4xl mb-3">{achievement.icon}</div>
-                  <h3 className="font-bold mb-1" style={{ color: 'var(--ghrs-text-primary)' }}>{achievement.title}</h3>
+                  <div className="w-12 h-12 mx-auto mb-3 rounded-xl flex items-center justify-center text-2xl" style={{ background: earned ? 'var(--ghrs-surface-pending)' : 'var(--ghrs-bg-secondary)' }}>
+                    {achievement.icon}
+                  </div>
+                  <h3 className="text-sm font-bold mb-1" style={{ color: 'var(--ghrs-text-primary)' }}>{achievement.title}</h3>
                   <p className="text-xs" style={{ color: 'var(--ghrs-text-secondary)' }}>{achievement.description}</p>
                   {earned && (
-                    <span 
-                      className="inline-block mt-3 px-3 py-1 rounded-full text-xs font-bold"
-                      style={{ background: 'var(--ghrs-green-50)', color: 'var(--ghrs-green-700)' }}
-                    >
+                    <span className="inline-block mt-3 px-2 py-0.5 rounded text-[10px] font-bold ghrs-badge ghrs-badge-success">
                       ✓ مكتسب
                     </span>
                   )}
