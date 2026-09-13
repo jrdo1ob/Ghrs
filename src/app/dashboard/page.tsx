@@ -6,7 +6,8 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ParentBottomNav, ParentSidebar, PageHeader, EmptyState } from '@/components/layout'
 import { getCurrentUser, clearAuth, AuthUser } from '@/lib/auth/helper'
-import { ChildIcon, TasksIcon, ClockIcon, CopyIcon, GiftsIcon, CoinIcon, TrophyIcon, BookIcon, LeafIcon, GardenIcon, SettingsIcon } from '@/components/icons'
+import { useFamilyCurrency } from '@/hooks/useFamilyCurrency'
+import { ChildIcon, TasksIcon, ClockIcon, CopyIcon, GiftsIcon, CoinIcon, TrophyIcon, BookIcon, LeafIcon, GardenIcon, SettingsIcon, StarIcon, CheckIcon } from '@/components/icons'
 
 export default function DashboardPage() {
   const [authUser, setAuthUser] = useState<AuthUser | null>(null)
@@ -17,6 +18,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const router = useRouter()
   const supabase = createClient()
+  const { format: fmtMoney } = useFamilyCurrency()
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
@@ -164,17 +166,56 @@ export default function DashboardPage() {
               )}
             </div>
             {children.length > 0 ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+              <div className="space-y-3">
                 {children.slice(0, 4).map(child => (
-                  <Link key={child.id} href="/children" className="ghrs-card p-4 ghrs-card-interactive">
-                    <div className="text-center">
-                      <div className="w-12 h-12 rounded-full mx-auto mb-2 flex items-center justify-center" style={{ background: 'var(--ghrs-bg-secondary)' }}>
-                        <LeafIcon size={22} color="var(--ghrs-green-600)" />
+                  <div key={child.id} className="ghrs-card p-4">
+                    {/* Child name + avatar */}
+                    <div className="flex items-center gap-3 mb-3 pb-3 border-b" style={{ borderColor: 'var(--ghrs-border-default)' }}>
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'var(--ghrs-bg-secondary)' }}>
+                        <ChildIcon size={20} color="var(--ghrs-green-600)" />
                       </div>
-                      <p className="text-sm font-bold truncate" style={{ color: 'var(--ghrs-text-primary)' }}>{child.name}</p>
-                      <p className="text-[10px] font-mono mt-0.5" style={{ color: 'var(--ghrs-text-tertiary)' }}>{child.login_code}</p>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-base font-bold truncate" style={{ color: 'var(--ghrs-text-primary)' }}>{child.name}</p>
+                        <p className="text-[10px] font-mono" style={{ color: 'var(--ghrs-text-tertiary)' }}>{child.login_code}</p>
+                      </div>
                     </div>
-                  </Link>
+
+                    {/* XP + Money */}
+                    <div className="grid grid-cols-2 gap-3 mb-3">
+                      <div className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ background: 'var(--ghrs-surface-pending)', border: '1px solid var(--ghrs-amber-200)' }}>
+                        <StarIcon size={16} color="var(--ghrs-amber-600)" />
+                        <div className="min-w-0">
+                          <p className="text-[10px]" style={{ color: 'var(--ghrs-text-tertiary)' }}>XP</p>
+                          <p className="text-sm font-extrabold tabular-nums leading-none" style={{ color: 'var(--ghrs-text-primary)' }}>{child.xp ?? 0}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ background: 'var(--ghrs-surface-success)', border: '1px solid var(--ghrs-green-200)' }}>
+                        <CoinIcon size={16} color="var(--ghrs-green-600)" />
+                        <div className="min-w-0">
+                          <p className="text-[10px]" style={{ color: 'var(--ghrs-text-tertiary)' }}>د.ب</p>
+                          <p className="text-sm font-extrabold tabular-nums leading-none truncate" style={{ color: 'var(--ghrs-text-primary)' }}>{fmtMoney(child.money ?? 0)}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Pending approvals */}
+                    {child.pendingApprovals > 0 ? (
+                      <Link href="/approvals" className="flex items-center justify-between gap-2 px-3 py-2 rounded-lg transition-all" style={{ background: 'var(--ghrs-amber-50)', border: '1px solid var(--ghrs-amber-200)' }}>
+                        <div className="flex items-center gap-2">
+                          <ClockIcon size={14} color="var(--ghrs-amber-600)" />
+                          <span className="text-xs font-bold" style={{ color: 'var(--ghrs-amber-700)' }}>
+                            {child.pendingApprovals} {child.pendingApprovals === 1 ? 'طلب بانتظار الموافقة' : child.pendingApprovals === 2 ? 'طلبان بانتظار الموافقة' : 'طلبات بانتظار الموافقة'}
+                          </span>
+                        </div>
+                        <span className="text-[10px] font-bold" style={{ color: 'var(--ghrs-text-tertiary)' }}>←</span>
+                      </Link>
+                    ) : (
+                      <div className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ background: 'var(--ghrs-bg-secondary)', border: '1px solid var(--ghrs-border-default)' }}>
+                        <CheckIcon size={14} color="var(--ghrs-text-tertiary)" />
+                        <span className="text-xs font-semibold" style={{ color: 'var(--ghrs-text-tertiary)' }}>لا توجد طلبات معلقة</span>
+                      </div>
+                    )}
+                  </div>
                 ))}
               </div>
             ) : (

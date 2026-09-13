@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Toast } from '@/components/layout'
+import { Toast, ParentBottomNav, ParentSidebar, PageHeader } from '@/components/layout'
 import { useFamilyCurrency } from '@/hooks/useFamilyCurrency'
 import { getCurrentUser } from '@/lib/auth/helper'
 import { CheckIcon, RejectIcon, ClockIcon, StarIcon, GiftsIcon, CoinIcon, ChildIcon, ShieldIcon, TasksIcon } from '@/components/icons'
@@ -142,14 +142,15 @@ export default function ApprovalsPage() {
   return (
     <div className="min-h-screen" style={{ background: 'var(--ghrs-bg-primary)' }}>
       {toast && <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />}
+      <ParentSidebar />
 
-      <div className="p-4 md:p-8 max-w-2xl mx-auto pb-24">
-        <div className="mb-5">
-          <h1 className="text-xl md:text-2xl font-bold tracking-tight" style={{ color: 'var(--ghrs-text-primary)' }}>
-            <ClockIcon size={20} className="inline" /> مركز الموافقات
-          </h1>
-          <p className="text-sm mt-1" style={{ color: 'var(--ghrs-text-secondary)' }}>مراجعة واعتماد طلبات الأطفال</p>
-        </div>
+      <div className="md:mr-[var(--ghrs-sidebar-width)] pb-24 md:pb-8">
+        <div className="p-4 md:p-8 max-w-2xl mx-auto">
+          <PageHeader
+            title="مركز الموافقات"
+            subtitle="مراجعة واعتماد طلبات الأطفال"
+            backHref="/dashboard"
+          />
 
         {/* Tabs */}
         <div className="flex gap-1.5 mb-5 border-b overflow-x-auto pb-1" style={{ borderColor: 'var(--ghrs-border-default)' }}>
@@ -177,66 +178,68 @@ export default function ApprovalsPage() {
             <ClockIcon size={32} className="mx-auto mb-3" color="var(--ghrs-text-tertiary)" />
             <p className="text-sm" style={{ color: 'var(--ghrs-text-secondary)' }}>لا توجد طلبات معلقة</p>
           </div>
-        ) : (
-          <div className="space-y-2.5">
-            {filteredApprovals.map(item => (
-              <div key={item.id} className="ghrs-card p-3.5">
-                <div className="flex items-start justify-between mb-3 gap-2">
-                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                    <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
-                      style={{ background: item.type === 'task' ? 'var(--ghrs-surface-pending)' : item.type === 'gift' ? 'var(--ghrs-surface-success)' : 'var(--ghrs-bg-secondary)', border: `1px solid ${item.type === 'task' ? 'var(--ghrs-amber-200)' : item.type === 'gift' ? 'var(--ghrs-green-200)' : 'var(--ghrs-border-default'}` }}>
-                      {item.type === 'task' && <TasksIcon size={16} color="var(--ghrs-amber-600)" />}
-                      {item.type === 'gift' && <GiftsIcon size={16} color="var(--ghrs-green-600)" />}
-                      {item.type === 'withdrawal' && <CoinIcon size={16} color="var(--ghrs-blue-600)" />}
+          ) : (
+            <div className="space-y-2.5">
+              {filteredApprovals.map(item => (
+                <div key={item.id} className="ghrs-card p-3.5">
+                  <div className="flex items-start justify-between mb-3 gap-2">
+                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                      <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
+                        style={{ background: item.type === 'task' ? 'var(--ghrs-surface-pending)' : item.type === 'gift' ? 'var(--ghrs-surface-success)' : 'var(--ghrs-bg-secondary)', border: `1px solid ${item.type === 'task' ? 'var(--ghrs-amber-200)' : item.type === 'gift' ? 'var(--ghrs-green-200)' : 'var(--ghrs-border-default'}` }}>
+                        {item.type === 'task' && <TasksIcon size={16} color="var(--ghrs-amber-600)" />}
+                        {item.type === 'gift' && <GiftsIcon size={16} color="var(--ghrs-green-600)" />}
+                        {item.type === 'withdrawal' && <CoinIcon size={16} color="var(--ghrs-blue-600)" />}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-bold truncate" style={{ color: 'var(--ghrs-text-primary)' }}>{item.item_name}</p>
+                        <p className="text-xs truncate" style={{ color: 'var(--ghrs-text-tertiary)' }}>{item.child_name}</p>
+                      </div>
                     </div>
-                    <div className="min-w-0">
-                      <p className="text-sm font-bold truncate" style={{ color: 'var(--ghrs-text-primary)' }}>{item.item_name}</p>
-                      <p className="text-xs truncate" style={{ color: 'var(--ghrs-text-tertiary)' }}>{item.child_name}</p>
+                    <div className="text-right flex-shrink-0">
+                      {item.xp_reward !== undefined && (
+                        <p className="text-xs font-bold tabular-nums" style={{ color: 'var(--ghrs-text-secondary)' }}>
+                          <StarIcon size={11} className="inline" /> +{item.xp_reward} XP
+                        </p>
+                      )}
+                      {item.xp_cost !== undefined && (
+                        <p className="text-xs font-bold tabular-nums" style={{ color: 'var(--ghrs-text-secondary)' }}>
+                          <StarIcon size={11} className="inline" /> -{item.xp_cost} XP
+                        </p>
+                      )}
+                      {item.amount !== undefined && (
+                        <p className="text-xs font-bold tabular-nums" style={{ color: 'var(--ghrs-text-secondary)' }}>
+                          <CoinIcon size={11} className="inline" /> {item.amount}
+                        </p>
+                      )}
+                      <p className="text-[10px] mt-1" style={{ color: 'var(--ghrs-text-tertiary)' }}>
+                        {new Date(item.requested_at).toLocaleDateString('ar-SA')}
+                      </p>
                     </div>
                   </div>
-                  <div className="text-right flex-shrink-0">
-                    {item.xp_reward !== undefined && (
-                      <p className="text-xs font-bold tabular-nums" style={{ color: 'var(--ghrs-text-secondary)' }}>
-                        <StarIcon size={11} className="inline" /> +{item.xp_reward} XP
-                      </p>
-                    )}
-                    {item.xp_cost !== undefined && (
-                      <p className="text-xs font-bold tabular-nums" style={{ color: 'var(--ghrs-text-secondary)' }}>
-                        <StarIcon size={11} className="inline" /> -{item.xp_cost} XP
-                      </p>
-                    )}
-                    {item.amount !== undefined && (
-                      <p className="text-xs font-bold tabular-nums" style={{ color: 'var(--ghrs-text-secondary)' }}>
-                        <CoinIcon size={11} className="inline" /> {item.amount}
-                      </p>
-                    )}
-                    <p className="text-[10px] mt-1" style={{ color: 'var(--ghrs-text-tertiary)' }}>
-                      {new Date(item.requested_at).toLocaleDateString('ar-SA')}
+                  {item.status === 'pending' && (
+                    <div className="flex gap-2">
+                      <button onClick={() => handleApprove(item)} disabled={processingId === item.id}
+                        className="flex-1 ghrs-btn-primary text-xs py-2 justify-center">
+                        <CheckIcon size={12} /> موافقة
+                      </button>
+                      <button onClick={() => handleReject(item)} disabled={processingId === item.id}
+                        className="flex-1 ghrs-btn-danger text-xs py-2 justify-center">
+                        <RejectIcon size={12} /> رفض
+                      </button>
+                    </div>
+                  )}
+                  {item.status !== 'pending' && (
+                    <p className="text-xs font-semibold" style={{ color: item.status === 'approved' || item.status === 'paid' ? 'var(--ghrs-green-600)' : 'var(--ghrs-red-600)' }}>
+                      {item.status === 'approved' || item.status === 'paid' ? 'تمت الموافقة' : 'تم الرفض'}
                     </p>
-                  </div>
+                  )}
                 </div>
-                {item.status === 'pending' && (
-                  <div className="flex gap-2">
-                    <button onClick={() => handleApprove(item)} disabled={processingId === item.id}
-                      className="flex-1 ghrs-btn-primary text-xs py-2 justify-center">
-                      <CheckIcon size={12} /> موافقة
-                    </button>
-                    <button onClick={() => handleReject(item)} disabled={processingId === item.id}
-                      className="flex-1 ghrs-btn-danger text-xs py-2 justify-center">
-                      <RejectIcon size={12} /> رفض
-                    </button>
-                  </div>
-                )}
-                {item.status !== 'pending' && (
-                  <p className="text-xs font-semibold" style={{ color: item.status === 'approved' || item.status === 'paid' ? 'var(--ghrs-green-600)' : 'var(--ghrs-red-600)' }}>
-                    {item.status === 'approved' || item.status === 'paid' ? 'تمت الموافقة' : 'تم الرفض'}
-                  </p>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
+              ))}
+            </div>
+          )}
+        </div>
       </div>
+      <ParentBottomNav />
     </div>
   )
 }
