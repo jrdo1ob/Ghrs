@@ -290,25 +290,34 @@ export default function ChildGardenPage() {
           {/* XP Progress */}
           {nextLevel ? (
             <>
-              <div className="ghrs-garden-xp-bar mb-2">
+              <div className="ghrs-garden-xp-bar mb-2.5">
                 <div
                   className="ghrs-garden-xp-fill"
                   style={{ width: `${progressToNext}%` }}
                 />
               </div>
               <div className="flex items-center justify-between">
-                <p className="text-[11px] font-semibold" style={{ color: 'var(--ghrs-text-secondary)' }}>
-                  ⭐ {xp} / {nextLevel.minXp} XP
+                <p
+                  className="text-[11px] font-semibold tabular-nums"
+                  style={{ color: 'var(--ghrs-text-secondary)' }}
+                >
+                  {xp} / {nextLevel.minXp} XP
                 </p>
-                <p className="text-[11px] font-bold" style={{ color: 'var(--ghrs-green-600)' }}>
+                <p
+                  className="text-[11px] font-bold tabular-nums"
+                  style={{ color: 'var(--ghrs-green-600)' }}
+                >
                   باقي {nextLevel.minXp - xp} XP
                 </p>
               </div>
             </>
           ) : (
             <div className="text-center py-2">
-              <p className="text-sm font-bold" style={{ color: 'var(--ghrs-green-600)' }}>
-                🎉 وصلت لأعلى مستوى! حديقتك مزهرة!
+              <p
+                className="text-[14px] font-bold"
+                style={{ color: 'var(--ghrs-green-600)' }}
+              >
+                وصلت لأعلى مستوى — حديقتك مزهرة
               </p>
             </div>
           )}
@@ -316,84 +325,99 @@ export default function ChildGardenPage() {
 
         {/* ===== SECTION D: Watering Motivation ===== */}
         <div
-          className="rounded-3xl p-5 mb-4 text-center"
+          className="rounded-2xl p-4 mb-4"
           style={{
-            background: isThirsty
-              ? 'linear-gradient(135deg, var(--ghrs-blue-50), var(--ghrs-bg-card))'
-              : 'var(--ghrs-bg-card)',
-            border: `1.5px solid ${isThirsty ? 'var(--ghrs-blue-200)' : 'var(--ghrs-border-default)'}`,
+            background: 'var(--ghrs-bg-card)',
+            border: `1px solid ${isThirsty ? 'var(--ghrs-blue-200)' : 'var(--ghrs-border-default)'}`,
             boxShadow: 'var(--ghrs-shadow-sm)',
           }}
         >
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <WaterIcon size={22} color={isThirsty ? 'var(--ghrs-blue-500)' : 'var(--ghrs-green-500)'} />
-            <p className="text-sm font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>
-              {isThirsty ? '💧 اسقِ حديقتك!' : '🌱 حديقتك تنمو!'}
-            </p>
-          </div>
-          <p className="text-xs font-semibold" style={{ color: 'var(--ghrs-text-secondary)' }}>
-            أنجز مهامك اليوم واجمع XP لتنمو حديقتك
-          </p>
-          <div
-            className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold"
-            style={{
-              background: 'var(--ghrs-green-50)',
-              color: 'var(--ghrs-green-700)',
-              border: '1px solid var(--ghrs-green-200)',
-            }}
-          >
-            <SparkleIcon size={14} color="var(--ghrs-green-600)" />
-            إنجاز المهام = XP = نمو الحديقة
+          <div className="flex items-center gap-3">
+            <div
+              className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+              style={{
+                background: isThirsty ? 'var(--ghrs-blue-50)' : 'var(--ghrs-surface-success)',
+                border: `1px solid ${isThirsty ? 'var(--ghrs-blue-200)' : 'var(--ghrs-green-200)'}`,
+              }}
+            >
+              <WaterIcon size={18} color={isThirsty ? 'var(--ghrs-blue-500)' : 'var(--ghrs-green-600)'} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p
+                className="text-[14px] font-bold leading-tight"
+                style={{ color: 'var(--ghrs-text-primary)' }}
+              >
+                {isThirsty ? 'اسقِ حديقتك' : 'حديقتك تنمو'}
+              </p>
+              <p
+                className="text-[12px] mt-0.5"
+                style={{ color: 'var(--ghrs-text-secondary)' }}
+              >
+                أنجز مهامك واجمع XP لتنمو
+              </p>
+            </div>
           </div>
         </div>
 
         {/* ===== SECTION E: Secondary Stats ===== */}
         <div
-          className="rounded-3xl p-4 mb-4"
+          className="rounded-2xl p-4 mb-4"
           style={{
             background: 'var(--ghrs-bg-card)',
-            border: '1.5px solid var(--ghrs-border-default)',
+            border: '1px solid var(--ghrs-border-default)',
             boxShadow: 'var(--ghrs-shadow-sm)',
           }}
         >
-          <div className="grid grid-cols-3 gap-3 text-center">
-            <div className="p-2">
+          <div className="grid grid-cols-3 gap-3">
+            <div className="text-center">
               <div
-                className="w-9 h-9 rounded-xl mx-auto mb-1.5 flex items-center justify-center"
+                className="w-10 h-10 rounded-xl mx-auto mb-2 flex items-center justify-center"
                 style={{
-                  background: 'var(--ghrs-amber-50)',
+                  background: 'var(--ghrs-surface-pending)',
                   border: '1px solid var(--ghrs-amber-200)',
                 }}
               >
                 <FireIcon size={16} color="var(--ghrs-amber-600)" />
               </div>
-              <p className="text-base font-extrabold" style={{ color: 'var(--ghrs-amber-600)' }}>
+              <p
+                className="text-base font-extrabold tabular-nums"
+                style={{ color: 'var(--ghrs-text-primary)' }}
+              >
                 {member?.current_streak || 0}
               </p>
-              <p className="text-[10px] font-semibold" style={{ color: 'var(--ghrs-text-tertiary)' }}>
+              <p
+                className="text-[10px] font-semibold"
+                style={{ color: 'var(--ghrs-text-tertiary)' }}
+              >
                 السلسلة
               </p>
             </div>
-            <div className="p-2">
+            <div className="text-center">
               <div
-                className="w-9 h-9 rounded-xl mx-auto mb-1.5 flex items-center justify-center"
+                className="w-10 h-10 rounded-xl mx-auto mb-2 flex items-center justify-center"
                 style={{
-                  background: 'var(--ghrs-purple-50)',
+                  background: 'var(--ghrs-surface-purple)',
                   border: '1px solid var(--ghrs-purple-200)',
                 }}
               >
                 <TrophyIcon size={16} color="var(--ghrs-purple-600)" />
               </div>
-              <p className="text-base font-extrabold" style={{ color: 'var(--ghrs-purple-600)' }}>
+              <p
+                className="text-base font-extrabold tabular-nums"
+                style={{ color: 'var(--ghrs-text-primary)' }}
+              >
                 {member?.longest_streak || 0}
               </p>
-              <p className="text-[10px] font-semibold" style={{ color: 'var(--ghrs-text-tertiary)' }}>
+              <p
+                className="text-[10px] font-semibold"
+                style={{ color: 'var(--ghrs-text-tertiary)' }}
+              >
                 أطول سلسلة
               </p>
             </div>
-            <div className="p-2">
+            <div className="text-center">
               <div
-                className="w-9 h-9 rounded-xl mx-auto mb-1.5 flex items-center justify-center"
+                className="w-10 h-10 rounded-xl mx-auto mb-2 flex items-center justify-center"
                 style={{
                   background: 'var(--ghrs-blue-50)',
                   border: '1px solid var(--ghrs-blue-200)',
@@ -401,10 +425,16 @@ export default function ChildGardenPage() {
               >
                 <ShieldIcon size={16} color="var(--ghrs-blue-600)" />
               </div>
-              <p className="text-base font-extrabold" style={{ color: 'var(--ghrs-blue-600)' }}>
+              <p
+                className="text-base font-extrabold tabular-nums"
+                style={{ color: 'var(--ghrs-text-primary)' }}
+              >
                 {member?.grace_shields || 0}
               </p>
-              <p className="text-[10px] font-semibold" style={{ color: 'var(--ghrs-text-tertiary)' }}>
+              <p
+                className="text-[10px] font-semibold"
+                style={{ color: 'var(--ghrs-text-tertiary)' }}
+              >
                 الدروع
               </p>
             </div>
@@ -413,24 +443,27 @@ export default function ChildGardenPage() {
 
         {/* ===== SECTION F: Growth Stages ===== */}
         <div
-          className="rounded-3xl overflow-hidden"
+          className="rounded-2xl overflow-hidden"
           style={{
             background: 'var(--ghrs-bg-card)',
-            border: '1.5px solid var(--ghrs-border-default)',
+            border: '1px solid var(--ghrs-border-default)',
             boxShadow: 'var(--ghrs-shadow-sm)',
           }}
         >
           {/* Toggle Header */}
           <button
             onClick={() => setShowAllStages(!showAllStages)}
-            className="w-full p-4 flex items-center justify-between text-right"
+            className="w-full px-4 py-3.5 flex items-center justify-between text-right transition-colors"
             style={{ background: 'transparent' }}
             aria-expanded={showAllStages}
             aria-label="مراحل نمو حديقتي"
           >
-            <div className="flex items-center gap-2">
-              <span className="text-base">🌳</span>
-              <p className="text-sm font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>
+            <div className="flex items-center gap-2.5">
+              <span className="text-base leading-none">🌳</span>
+              <p
+                className="text-[14px] font-bold"
+                style={{ color: 'var(--ghrs-text-primary)' }}
+              >
                 مراحل نمو حديقتي
               </p>
             </div>
@@ -456,36 +489,44 @@ export default function ChildGardenPage() {
               transition: 'max-height 0.3s ease, opacity 0.2s ease',
             }}
           >
-            <div className="space-y-2">
+            <div
+              className="border-t pt-3 space-y-2"
+              style={{ borderColor: 'var(--ghrs-border-default)' }}
+            >
               {LEVELS.map((l) => {
                 const isCurrent = l.level === level.level
                 const isUnlocked = xp >= l.minXp
                 return (
                   <div
                     key={l.level}
-                    className="flex items-center gap-3 p-3 rounded-xl transition-all"
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all"
                     style={{
-                      background: isCurrent ? 'var(--ghrs-green-50)' : 'var(--ghrs-bg-secondary)',
-                      border: `1.5px solid ${isCurrent ? 'var(--ghrs-green-300)' : 'transparent'}`,
-                      opacity: isUnlocked ? 1 : 0.5,
+                      background: isCurrent ? 'var(--ghrs-surface-success)' : 'transparent',
+                      border: `1px solid ${isCurrent ? 'var(--ghrs-green-300)' : 'transparent'}`,
+                      opacity: isUnlocked ? 1 : 0.45,
                     }}
                   >
-                    <span className="text-xl flex-shrink-0">{l.emoji}</span>
+                    <span className="text-lg leading-none flex-shrink-0">{l.emoji}</span>
                     <div className="flex-1 min-w-0">
                       <p
-                        className="font-bold text-xs"
-                        style={{ color: 'var(--ghrs-text-primary)' }}
+                        className="font-bold text-[12px]"
+                        style={{
+                          color: isCurrent ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-primary)',
+                        }}
                       >
                         {l.name}
                       </p>
-                      <p className="text-[10px]" style={{ color: 'var(--ghrs-text-tertiary)' }}>
+                      <p
+                        className="text-[10px] tabular-nums"
+                        style={{ color: 'var(--ghrs-text-tertiary)' }}
+                      >
                         {l.minXp} XP
                       </p>
                     </div>
                     {isUnlocked ? (
-                      <CheckIcon size={16} color="var(--ghrs-green-600)" />
+                      <CheckIcon size={14} color="var(--ghrs-green-600)" />
                     ) : (
-                      <LockIcon size={16} color="var(--ghrs-text-tertiary)" />
+                      <LockIcon size={14} color="var(--ghrs-text-tertiary)" />
                     )}
                   </div>
                 )

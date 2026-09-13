@@ -208,28 +208,36 @@ export default function ChildModePage() {
         style={{ paddingBottom: 'var(--ghrs-nav-total)' }}
       >
         {/* Top bar */}
-        <div className="flex justify-end mb-3">
+        <div className="flex justify-end mb-4">
           <ThemeToggle />
         </div>
 
         {/* === SECTION 1: Greeting / Hero === */}
-        <div className="mb-4">
-          <div className="flex items-center gap-3 mb-1">
-            <span className="text-2xl">{level.emoji}</span>
-            <div>
+        <div className="mb-5">
+          <div className="flex items-center gap-3.5">
+            <div
+              className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
+              style={{
+                background: 'var(--ghrs-surface-warm)',
+                border: '1px solid var(--ghrs-border-default)',
+              }}
+            >
+              <span className="text-2xl leading-none">{level.emoji}</span>
+            </div>
+            <div className="min-w-0 flex-1">
               <h1
-                className="text-lg font-extrabold"
+                className="text-xl font-extrabold leading-tight tracking-tight"
                 style={{ color: 'var(--ghrs-text-primary)' }}
               >
-                مرحباً {member?.name}! 👋
+                مرحباً {member?.name}
               </h1>
               <p
-                className="text-xs font-semibold"
+                className="text-[13px] font-medium mt-0.5"
                 style={{ color: 'var(--ghrs-text-secondary)' }}
               >
                 {isMaxLevel
-                  ? 'حديقتك مزهرة! كمّل إنجازك 🌸'
-                  : 'مستعد تكبر حديقتك اليوم؟ 🌱'}
+                  ? 'حديقتك مزهرة — كمّل إنجازك'
+                  : 'مستعد تكبر حديقتك اليوم؟'}
               </p>
             </div>
           </div>
@@ -237,142 +245,164 @@ export default function ChildModePage() {
 
         {/* === SECTION 2: Growth Goal (Main Focus) === */}
         <div
-          className="mb-5 rounded-3xl p-5 relative overflow-hidden"
+          className="mb-4 rounded-2xl p-5 relative overflow-hidden"
           style={{
-            background:
-              'linear-gradient(170deg, var(--ghrs-green-50) 0%, var(--ghrs-bg-card) 70%)',
-            border: '1.5px solid var(--ghrs-green-200)',
+            background: 'var(--ghrs-bg-card)',
+            border: '1px solid var(--ghrs-border-default)',
             boxShadow: 'var(--ghrs-shadow-md)',
           }}
         >
-          <div className="absolute top-3 right-5 opacity-10">
-            <SparkleIcon size={18} />
-          </div>
-          <div className="absolute top-6 left-6 opacity-[0.07]">
-            <LeafIcon size={14} />
+          {/* Label */}
+          <div className="flex items-center gap-1.5 mb-4">
+            <span
+              className="text-[10px] font-bold uppercase tracking-widest"
+              style={{ color: 'var(--ghrs-text-tertiary)' }}
+            >
+              هدفك القادم
+            </span>
           </div>
 
-          <div className="relative">
-            {/* Current → Next */}
-            <div className="flex items-center justify-between mb-3">
-              {/* Current */}
-              <div className="flex items-center gap-2">
-                <span className="text-2xl">{level.emoji}</span>
-                <div>
-                  <p
-                    className="text-[10px] font-semibold"
-                    style={{ color: 'var(--ghrs-text-tertiary)' }}
-                  >
-                    مستواك الآن
-                  </p>
-                  <p
-                    className="text-sm font-bold"
-                    style={{ color: 'var(--ghrs-text-primary)' }}
-                  >
-                    {level.name}
-                  </p>
-                </div>
+          {/* Current → Next */}
+          <div className="flex items-center justify-between mb-4">
+            {/* Current */}
+            <div className="flex items-center gap-2.5">
+              <div
+                className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                style={{
+                  background: 'var(--ghrs-bg-secondary)',
+                  border: '1px solid var(--ghrs-border-default)',
+                }}
+              >
+                <span className="text-xl leading-none">{level.emoji}</span>
               </div>
+              <div className="min-w-0">
+                <p
+                  className="text-[10px] font-semibold"
+                  style={{ color: 'var(--ghrs-text-tertiary)' }}
+                >
+                  مستواك الآن
+                </p>
+                <p
+                  className="text-sm font-bold truncate"
+                  style={{ color: 'var(--ghrs-text-primary)' }}
+                >
+                  {level.name}
+                </p>
+              </div>
+            </div>
 
-              {nextLevel && (
-                <div className="flex items-center gap-2 text-left">
-                  <div className="text-left">
+            {nextLevel && (
+              <>
+                {/* Arrow */}
+                <div
+                  className="flex items-center px-1"
+                  style={{ color: 'var(--ghrs-text-tertiary)' }}
+                >
+                  <span className="text-base leading-none" style={{ direction: 'ltr' }}>←</span>
+                </div>
+
+                <div className="flex items-center gap-2.5">
+                  <div className="min-w-0 text-left">
                     <p
                       className="text-[10px] font-semibold"
                       style={{ color: 'var(--ghrs-text-tertiary)' }}
                     >
-                      هدفك القادم
+                      التالي
                     </p>
                     <p
-                      className="text-sm font-bold"
-                      style={{ color: 'var(--ghrs-green-600)' }}
+                      className="text-sm font-bold truncate"
+                      style={{ color: 'var(--ghrs-text-primary)' }}
                     >
                       {nextLevel.name}
                     </p>
                   </div>
-                  <span className="text-2xl">{nextLevel.emoji}</span>
-                </div>
-              )}
-            </div>
-
-            {/* XP Progress */}
-            {nextLevel ? (
-              <>
-                <div className="ghrs-garden-xp-bar mb-2">
                   <div
-                    className="ghrs-garden-xp-fill"
-                    style={{ width: `${Math.min(100, progressToNext)}%` }}
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <p
-                    className="text-[11px] font-semibold"
-                    style={{ color: 'var(--ghrs-text-secondary)' }}
+                    className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                    style={{
+                      background: 'var(--ghrs-surface-success)',
+                      border: '1px solid var(--ghrs-green-200)',
+                    }}
                   >
-                    ⭐ {xp} / {nextLevel.minXp} XP
-                  </p>
-                  <p
-                    className="text-[11px] font-bold"
-                    style={{ color: 'var(--ghrs-green-600)' }}
-                  >
-                    باقي {nextLevel.minXp - xp} XP
-                  </p>
+                    <span className="text-xl leading-none">{nextLevel.emoji}</span>
+                  </div>
                 </div>
               </>
-            ) : (
-              <div className="text-center py-1">
-                <p
-                  className="text-sm font-bold"
-                  style={{ color: 'var(--ghrs-green-600)' }}
-                >
-                  🎉 وصلت لأعلى مستوى!
-                </p>
-              </div>
-            )}
-
-            {/* Small money balance */}
-            {moneyBalance > 0 && (
-              <div
-                className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full"
-                style={{
-                  background: 'var(--ghrs-green-50)',
-                  border: '1px solid var(--ghrs-green-200)',
-                }}
-              >
-                <CoinIcon size={14} color="var(--ghrs-green-600)" />
-                <span
-                  className="text-[11px] font-bold"
-                  style={{ color: 'var(--ghrs-green-700)' }}
-                >
-                  {fmtMoney(moneyBalance)} د.ب
-                </span>
-              </div>
             )}
           </div>
+
+          {/* XP Progress */}
+          {nextLevel ? (
+            <>
+              <div className="ghrs-garden-xp-bar mb-2">
+                <div
+                  className="ghrs-garden-xp-fill"
+                  style={{ width: `${Math.min(100, progressToNext)}%` }}
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <p
+                  className="text-[11px] font-semibold tabular-nums"
+                  style={{ color: 'var(--ghrs-text-secondary)' }}
+                >
+                  {xp} / {nextLevel.minXp} XP
+                </p>
+                <p
+                  className="text-[11px] font-bold tabular-nums"
+                  style={{ color: 'var(--ghrs-green-600)' }}
+                >
+                  باقي {nextLevel.minXp - xp} XP
+                </p>
+              </div>
+            </>
+          ) : (
+            <div className="text-center py-1">
+              <p
+                className="text-sm font-bold"
+                style={{ color: 'var(--ghrs-green-600)' }}
+              >
+                وصلت لأعلى مستوى!
+              </p>
+            </div>
+          )}
         </div>
 
         {/* === SECTION 3: Today's Tasks (Primary Action) === */}
         <div
-          className="mb-5 rounded-3xl p-5"
+          className="mb-4 rounded-2xl p-5"
           style={{
             background: 'var(--ghrs-bg-card)',
-            border: '1.5px solid var(--ghrs-border-default)',
+            border: '1px solid var(--ghrs-border-default)',
             boxShadow: 'var(--ghrs-shadow-sm)',
           }}
         >
           <div className="flex items-center justify-between mb-4">
             <h2
-              className="text-sm font-bold"
+              className="text-[15px] font-extrabold tracking-tight"
               style={{ color: 'var(--ghrs-text-primary)' }}
             >
               مهام اليوم
             </h2>
             {totalTasks > 0 && (
-              <div className="flex items-center gap-1.5">
-                <CheckIcon size={12} color="var(--ghrs-green-600)" />
+              <div
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md"
+                style={{
+                  background: completedCount === totalTasks
+                    ? 'var(--ghrs-surface-success)'
+                    : 'var(--ghrs-bg-secondary)',
+                  border: '1px solid var(--ghrs-border-default)',
+                }}
+              >
+                <CheckIcon
+                  size={11}
+                  color={completedCount === totalTasks ? 'var(--ghrs-green-600)' : 'var(--ghrs-text-secondary)'}
+                />
                 <span
-                  className="text-[10px] font-bold"
-                  style={{ color: 'var(--ghrs-green-600)' }}
+                  className="text-[11px] font-bold tabular-nums"
+                  style={{
+                    color: completedCount === totalTasks
+                      ? 'var(--ghrs-green-700)'
+                      : 'var(--ghrs-text-secondary)',
+                  }}
                 >
                   {completedCount}/{totalTasks}
                 </span>
@@ -382,28 +412,34 @@ export default function ChildModePage() {
 
           {totalTasks === 0 ? (
             /* Empty state */
-            <div className="text-center py-6">
-              <div className="text-3xl mb-2 ghrs-animate-float">
-                🎉
+            <div className="text-center py-8">
+              <div
+                className="w-14 h-14 mx-auto mb-3 rounded-2xl flex items-center justify-center"
+                style={{
+                  background: 'var(--ghrs-surface-success)',
+                  border: '1px solid var(--ghrs-green-200)',
+                }}
+              >
+                <span className="text-3xl leading-none">🎉</span>
               </div>
               <p
                 className="text-sm font-bold"
                 style={{ color: 'var(--ghrs-text-primary)' }}
               >
-                خلصت مهامك اليوم!
+                ما في مهام اليوم
               </p>
               <p
-                className="text-xs mt-0.5"
+                className="text-xs mt-1"
                 style={{ color: 'var(--ghrs-text-tertiary)' }}
               >
-                حديقتك فخورة فيك 🌱
+                استرح وتمتّع بيومك
               </p>
             </div>
           ) : (
             <>
               {/* Task progress */}
               {totalTasks > 0 && (
-                <div className="mb-3">
+                <div className="mb-4">
                   <div className="ghrs-garden-xp-bar" style={{ height: '6px' }}>
                     <div
                       className="ghrs-garden-xp-fill"
@@ -426,13 +462,13 @@ export default function ChildModePage() {
                   return (
                     <div
                       key={task.id}
-                      className="flex items-center gap-3 rounded-xl p-3 transition-all"
+                      className="flex items-center gap-3 rounded-xl px-3 py-3 transition-all"
                       style={{
                         background: isCompleted
-                          ? 'var(--ghrs-green-50)'
+                          ? 'var(--ghrs-surface-success)'
                           : isPending
-                            ? 'var(--ghrs-amber-50)'
-                            : 'var(--ghrs-bg-secondary)',
+                            ? 'var(--ghrs-surface-pending)'
+                            : 'var(--ghrs-bg-card)',
                         border: `1px solid ${
                           isCompleted
                             ? 'var(--ghrs-green-200)'
@@ -440,23 +476,23 @@ export default function ChildModePage() {
                               ? 'var(--ghrs-amber-200)'
                               : 'var(--ghrs-border-default)'
                         }`,
-                        opacity: isCompleted ? 0.8 : 1,
+                        opacity: isCompleted ? 0.7 : 1,
                       }}
                     >
                       {/* Category icon */}
                       <div
-                        className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
+                        className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
                         style={{
                           background: isCompleted
-                            ? 'var(--ghrs-green-200)'
+                            ? 'var(--ghrs-green-100)'
                             : isPending
-                              ? 'var(--ghrs-amber-200)'
-                              : 'var(--ghrs-bg-card)',
+                              ? 'var(--ghrs-amber-100)'
+                              : 'var(--ghrs-bg-secondary)',
                           border: `1px solid ${
                             isCompleted
-                              ? 'var(--ghrs-green-300)'
+                              ? 'var(--ghrs-green-200)'
                               : isPending
-                                ? 'var(--ghrs-amber-300)'
+                                ? 'var(--ghrs-amber-200)'
                                 : 'var(--ghrs-border-default)'
                           }`,
                         }}
@@ -477,7 +513,7 @@ export default function ChildModePage() {
                       {/* Title + rewards */}
                       <div className="flex-1 min-w-0">
                         <h3
-                          className="text-xs font-bold truncate leading-tight"
+                          className="text-[13px] font-bold truncate leading-tight"
                           style={{
                             color: isCompleted
                               ? 'var(--ghrs-green-700)'
@@ -489,18 +525,24 @@ export default function ChildModePage() {
                         </h3>
                         <div className="flex items-center gap-2 mt-1">
                           <span
-                            className="text-[10px] font-bold"
+                            className="inline-flex items-center gap-0.5 text-[10px] font-bold tabular-nums"
                             style={{ color: 'var(--ghrs-amber-600)' }}
                           >
                             {task.xp_reward} XP
                           </span>
                           {task.money_reward > 0 && (
-                            <span
-                              className="text-[10px] font-bold"
-                              style={{ color: 'var(--ghrs-green-600)' }}
-                            >
-                              {fmtMoney(task.money_reward)}
-                            </span>
+                            <>
+                              <span
+                                className="w-1 h-1 rounded-full"
+                                style={{ background: 'var(--ghrs-border-strong)' }}
+                              />
+                              <span
+                                className="inline-flex items-center gap-0.5 text-[10px] font-bold tabular-nums"
+                                style={{ color: 'var(--ghrs-green-600)' }}
+                              >
+                                {fmtMoney(task.money_reward)}
+                              </span>
+                            </>
                           )}
                         </div>
                       </div>
@@ -511,7 +553,7 @@ export default function ChildModePage() {
                         disabled={
                           isCompleted || isPending || completingTask === task.id
                         }
-                        className="px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all active:scale-95 flex-shrink-0"
+                        className="px-3.5 py-2 rounded-lg text-[11px] font-bold transition-all active:scale-95 flex-shrink-0"
                         style={{
                           background: isCompleted
                             ? 'var(--ghrs-green-500)'
@@ -521,7 +563,7 @@ export default function ChildModePage() {
                           color: 'white',
                           opacity:
                             isCompleted || isPending || completingTask === task.id
-                              ? 0.7
+                              ? 0.6
                               : 1,
                         }}
                       >
@@ -541,15 +583,15 @@ export default function ChildModePage() {
                 {tasks.length > 4 && (
                   <Link
                     href="/child-mode/tasks"
-                    className="flex items-center justify-center gap-1.5 text-[11px] font-bold py-2.5 rounded-xl transition-all active:scale-[0.97]"
+                    className="flex items-center justify-center gap-1.5 text-[12px] font-bold py-3 rounded-xl transition-all active:scale-[0.97]"
                     style={{
-                      color: 'var(--ghrs-green-600)',
-                      background: 'var(--ghrs-green-50)',
-                      border: '1px solid var(--ghrs-green-200)',
+                      color: 'var(--ghrs-text-secondary)',
+                      background: 'var(--ghrs-bg-secondary)',
+                      border: '1px solid var(--ghrs-border-default)',
                     }}
                   >
                     عرض باقي المهام
-                    <span style={{ direction: 'ltr' }}>←</span>
+                    <span style={{ direction: 'ltr', fontSize: '10px' }}>←</span>
                   </Link>
                 )}
               </div>
@@ -560,19 +602,27 @@ export default function ChildModePage() {
         {/* === SECTION 4: Streak (Compact) === */}
         {streak > 0 && (
           <div
-            className="mb-4 rounded-2xl px-4 py-3 flex items-center gap-2.5"
+            className="rounded-xl px-4 py-3 flex items-center gap-3"
             style={{
-              background:
-                'linear-gradient(135deg, var(--ghrs-amber-50), var(--ghrs-bg-card))',
-              border: '1px solid var(--ghrs-amber-200)',
+              background: 'var(--ghrs-bg-card)',
+              border: '1px solid var(--ghrs-border-default)',
+              boxShadow: 'var(--ghrs-shadow-sm)',
             }}
           >
-            <FireIcon size={18} color="var(--ghrs-amber-600)" />
+            <div
+              className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+              style={{
+                background: 'var(--ghrs-surface-pending)',
+                border: '1px solid var(--ghrs-amber-200)',
+              }}
+            >
+              <FireIcon size={14} color="var(--ghrs-amber-600)" />
+            </div>
             <p
-              className="text-xs font-bold"
+              className="text-[13px] font-bold"
               style={{ color: 'var(--ghrs-text-primary)' }}
             >
-              🔥 يوم {streak} متواصل! كمّل╱ي
+              يوم {streak} متواصل — كمّل على نفس الإيقاع
             </p>
           </div>
         )}

@@ -12,10 +12,22 @@ export default function ChildLoading({ text = 'جاري التحميل...', icon
   return (
     <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--ghrs-bg-primary)' }}>
       <div className="text-center">
-        <div className="mb-4 ghrs-animate-float" style={{ lineHeight: 1 }}>
-          {icon || <LeafIcon size={48} color="var(--ghrs-green-500)" />}
+        <div
+          className="mb-5 mx-auto w-16 h-16 rounded-2xl flex items-center justify-center ghrs-animate-float"
+          style={{
+            background: 'var(--ghrs-surface-success)',
+            border: '1px solid var(--ghrs-green-200)',
+            lineHeight: 1,
+          }}
+        >
+          {icon || <LeafIcon size={32} color="var(--ghrs-green-600)" />}
         </div>
-        <p className="text-sm font-semibold" style={{ color: 'var(--ghrs-text-secondary)' }}>{text}</p>
+        <p
+          className="text-[13px] font-bold"
+          style={{ color: 'var(--ghrs-text-secondary)' }}
+        >
+          {text}
+        </p>
       </div>
     </div>
   )

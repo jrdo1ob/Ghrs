@@ -120,20 +120,34 @@ export default function ChildProfilePage() {
         className="p-4 md:p-8 max-w-2xl mx-auto"
         style={{ paddingBottom: 'var(--ghrs-nav-total)' }}
       >
-        <div className="flex justify-end mb-3">
+        <div className="flex justify-end mb-4">
           <ThemeToggle />
         </div>
 
         {/* === SECTION 1: Profile Header === */}
         <div className="mb-5">
-          <div className="flex items-center gap-3 mb-1">
-            <span className="text-3xl">{level.emoji}</span>
-            <div>
-              <h1 className="text-xl font-extrabold" style={{ color: 'var(--ghrs-text-primary)' }}>
+          <div className="flex items-center gap-3.5">
+            <div
+              className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
+              style={{
+                background: 'var(--ghrs-surface-warm)',
+                border: '1px solid var(--ghrs-border-default)',
+              }}
+            >
+              <span className="text-2xl leading-none">{level.emoji}</span>
+            </div>
+            <div className="min-w-0 flex-1">
+              <h1
+                className="text-2xl font-extrabold tracking-tight leading-tight"
+                style={{ color: 'var(--ghrs-text-primary)' }}
+              >
                 {member?.name}
               </h1>
-              <p className="text-xs font-semibold" style={{ color: 'var(--ghrs-text-secondary)' }}>
-                المستوى {level.level}: {level.name}
+              <p
+                className="text-[13px] font-medium mt-0.5"
+                style={{ color: 'var(--ghrs-text-secondary)' }}
+              >
+                المستوى {level.level} · {level.name}
               </p>
             </div>
           </div>
@@ -141,187 +155,297 @@ export default function ChildProfilePage() {
 
         {/* === SECTION 2: Achievements (Primary) === */}
         <div
-          className="mb-5 rounded-3xl p-5 relative overflow-hidden"
+          className="mb-4 rounded-2xl p-5"
           style={{
-            background: 'linear-gradient(170deg, var(--ghrs-amber-50) 0%, var(--ghrs-bg-card) 70%)',
-            border: '1.5px solid var(--ghrs-amber-200)',
+            background: 'var(--ghrs-bg-card)',
+            border: '1px solid var(--ghrs-border-default)',
             boxShadow: 'var(--ghrs-shadow-md)',
           }}
         >
-          <div className="absolute top-3 right-5 opacity-10">
-            <SparkleIcon size={18} />
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2.5">
+              <TrophyIcon size={18} color="var(--ghrs-amber-600)" />
+              <h2
+                className="text-[15px] font-extrabold tracking-tight"
+                style={{ color: 'var(--ghrs-text-primary)' }}
+              >
+                إنجازاتي
+              </h2>
+            </div>
+            <span
+              className="text-[11px] font-bold px-2.5 py-1 rounded-full tabular-nums"
+              style={{
+                background: 'var(--ghrs-surface-pending)',
+                color: 'var(--ghrs-amber-700)',
+                border: '1px solid var(--ghrs-amber-200)',
+              }}
+            >
+              {unlockedCount}/{totalAchievements}
+            </span>
           </div>
 
-          <div className="relative">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <TrophyIcon size={18} color="var(--ghrs-amber-600)" />
-                <h2 className="text-sm font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>إنجازاتي</h2>
-              </div>
-              <span className="text-[11px] font-bold px-2.5 py-1 rounded-full" style={{ background: 'var(--ghrs-amber-100)', color: 'var(--ghrs-amber-700)' }}>
-                {unlockedCount}/{totalAchievements}
-              </span>
-            </div>
-
-            <div className="space-y-2">
-              {achievements.map((achievement, i) => (
-                <AchievementBadge
-                  key={i}
-                  title={achievement.title}
-                  description={achievement.description}
-                  icon={achievement.icon}
-                  unlocked={achievement.unlocked}
-                  progress={achievement.progress}
-                />
-              ))}
-            </div>
+          <div className="space-y-2">
+            {achievements.map((achievement, i) => (
+              <AchievementBadge
+                key={i}
+                title={achievement.title}
+                description={achievement.description}
+                icon={achievement.icon}
+                unlocked={achievement.unlocked}
+                progress={achievement.progress}
+              />
+            ))}
           </div>
         </div>
 
         {/* === SECTION 3: Level / Growth === */}
         <div
-          className="mb-5 rounded-3xl p-5 relative overflow-hidden"
+          className="mb-4 rounded-2xl p-5"
           style={{
-            background: 'linear-gradient(170deg, var(--ghrs-green-50) 0%, var(--ghrs-bg-card) 70%)',
-            border: '1.5px solid var(--ghrs-green-200)',
-            boxShadow: 'var(--ghrs-shadow-md)',
+            background: 'var(--ghrs-bg-card)',
+            border: '1px solid var(--ghrs-border-default)',
+            boxShadow: 'var(--ghrs-shadow-sm)',
           }}
         >
-          <div className="absolute top-3 right-5 opacity-10">
-            <SparkleIcon size={18} />
+          <div className="flex items-center gap-2.5 mb-4">
+            <span className="text-base leading-none">{level.emoji}</span>
+            <h2
+              className="text-[15px] font-extrabold tracking-tight"
+              style={{ color: 'var(--ghrs-text-primary)' }}
+            >
+              نمو حديقتي
+            </h2>
           </div>
 
-          <div className="relative">
-            <div className="flex items-center gap-2 mb-4">
-              <span className="text-lg">{level.emoji}</span>
-              <h2 className="text-sm font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>نمو حديقتي</h2>
-            </div>
-
-            {/* Current → Next */}
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <span className="text-xl">{level.emoji}</span>
-                <div>
-                  <p className="text-[10px] font-semibold" style={{ color: 'var(--ghrs-text-tertiary)' }}>مستواك الآن</p>
-                  <p className="text-sm font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>{level.name}</p>
-                </div>
+          {/* Current → Next */}
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2.5">
+              <div
+                className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                style={{
+                  background: 'var(--ghrs-bg-secondary)',
+                  border: '1px solid var(--ghrs-border-default)',
+                }}
+              >
+                <span className="text-xl leading-none">{level.emoji}</span>
               </div>
-
-              {nextLevel && (
-                <div className="flex items-center gap-2 text-left">
-                  <div className="text-left">
-                    <p className="text-[10px] font-semibold" style={{ color: 'var(--ghrs-text-tertiary)' }}>هدفك القادم</p>
-                    <p className="text-sm font-bold" style={{ color: 'var(--ghrs-green-600)' }}>{nextLevel.name}</p>
-                  </div>
-                  <span className="text-xl">{nextLevel.emoji}</span>
-                </div>
-              )}
-            </div>
-
-            {/* XP Progress */}
-            {nextLevel ? (
-              <>
-                <div className="ghrs-garden-xp-bar mb-2">
-                  <div className="ghrs-garden-xp-fill" style={{ width: `${progressToNext}%` }} />
-                </div>
-                <div className="flex items-center justify-between">
-                  <p className="text-[11px] font-semibold" style={{ color: 'var(--ghrs-text-secondary)' }}>
-                    ⭐ {xp} / {nextLevel.minXp} XP
-                  </p>
-                  <p className="text-[11px] font-bold" style={{ color: 'var(--ghrs-green-600)' }}>
-                    باقي {nextLevel.minXp - xp} XP
-                  </p>
-                </div>
-              </>
-            ) : (
-              <div className="text-center py-1">
-                <p className="text-sm font-bold" style={{ color: 'var(--ghrs-green-600)' }}>
-                  🎉 وصلت لأعلى مستوى!
+              <div className="min-w-0">
+                <p
+                  className="text-[10px] font-semibold"
+                  style={{ color: 'var(--ghrs-text-tertiary)' }}
+                >
+                  مستواك الآن
+                </p>
+                <p
+                  className="text-sm font-bold truncate"
+                  style={{ color: 'var(--ghrs-text-primary)' }}
+                >
+                  {level.name}
                 </p>
               </div>
+            </div>
+
+            {nextLevel && (
+              <>
+                <span
+                  className="text-base leading-none px-1"
+                  style={{ color: 'var(--ghrs-text-tertiary)', direction: 'ltr' }}
+                >
+                  ←
+                </span>
+                <div className="flex items-center gap-2.5">
+                  <div className="min-w-0 text-left">
+                    <p
+                      className="text-[10px] font-semibold"
+                      style={{ color: 'var(--ghrs-text-tertiary)' }}
+                    >
+                      التالي
+                    </p>
+                    <p
+                      className="text-sm font-bold truncate"
+                      style={{ color: 'var(--ghrs-text-primary)' }}
+                    >
+                      {nextLevel.name}
+                    </p>
+                  </div>
+                  <div
+                    className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                    style={{
+                      background: 'var(--ghrs-surface-success)',
+                      border: '1px solid var(--ghrs-green-200)',
+                    }}
+                  >
+                    <span className="text-xl leading-none">{nextLevel.emoji}</span>
+                  </div>
+                </div>
+              </>
             )}
           </div>
+
+          {/* XP Progress */}
+          {nextLevel ? (
+            <>
+              <div className="ghrs-garden-xp-bar mb-2.5">
+                <div className="ghrs-garden-xp-fill" style={{ width: `${progressToNext}%` }} />
+              </div>
+              <div className="flex items-center justify-between">
+                <p
+                  className="text-[11px] font-semibold tabular-nums"
+                  style={{ color: 'var(--ghrs-text-secondary)' }}
+                >
+                  {xp} / {nextLevel.minXp} XP
+                </p>
+                <p
+                  className="text-[11px] font-bold tabular-nums"
+                  style={{ color: 'var(--ghrs-green-600)' }}
+                >
+                  باقي {nextLevel.minXp - xp} XP
+                </p>
+              </div>
+            </>
+          ) : (
+            <div className="text-center py-1">
+              <p
+                className="text-[14px] font-bold"
+                style={{ color: 'var(--ghrs-green-600)' }}
+              >
+                وصلت لأعلى مستوى
+              </p>
+            </div>
+          )}
         </div>
 
         {/* === SECTION 4: Stats (Compact) === */}
-        <div className="grid grid-cols-2 gap-3 mb-5">
+        <div className="grid grid-cols-2 gap-2.5 mb-5">
           <div
-            className="rounded-2xl p-3.5 flex items-center gap-3"
+            className="rounded-xl px-3 py-2.5 flex items-center gap-3"
             style={{
               background: 'var(--ghrs-bg-card)',
-              border: '1.5px solid var(--ghrs-border-default)',
+              border: '1px solid var(--ghrs-border-default)',
               boxShadow: 'var(--ghrs-shadow-sm)',
             }}
           >
             <div
-              className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-              style={{ background: 'var(--ghrs-amber-50)', border: '1px solid var(--ghrs-amber-200)' }}
+              className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
+              style={{
+                background: 'var(--ghrs-surface-pending)',
+                border: '1px solid var(--ghrs-amber-200)',
+              }}
             >
-              <StarIcon size={16} color="var(--ghrs-amber-600)" />
+              <StarIcon size={14} color="var(--ghrs-amber-600)" />
             </div>
-            <div>
-              <p className="text-base font-extrabold leading-tight" style={{ color: 'var(--ghrs-amber-600)' }}>{xp}</p>
-              <p className="text-[10px] font-semibold" style={{ color: 'var(--ghrs-text-tertiary)' }}>XP</p>
+            <div className="min-w-0">
+              <p
+                className="text-base font-extrabold leading-tight tabular-nums"
+                style={{ color: 'var(--ghrs-text-primary)' }}
+              >
+                {xp}
+              </p>
+              <p
+                className="text-[10px] font-semibold"
+                style={{ color: 'var(--ghrs-text-tertiary)' }}
+              >
+                XP
+              </p>
             </div>
           </div>
 
           <div
-            className="rounded-2xl p-3.5 flex items-center gap-3"
+            className="rounded-xl px-3 py-2.5 flex items-center gap-3"
             style={{
               background: 'var(--ghrs-bg-card)',
-              border: '1.5px solid var(--ghrs-border-default)',
+              border: '1px solid var(--ghrs-border-default)',
               boxShadow: 'var(--ghrs-shadow-sm)',
             }}
           >
             <div
-              className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-              style={{ background: 'var(--ghrs-amber-50)', border: '1px solid var(--ghrs-amber-200)' }}
+              className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
+              style={{
+                background: 'var(--ghrs-surface-pending)',
+                border: '1px solid var(--ghrs-amber-200)',
+              }}
             >
-              <FireIcon size={16} color="var(--ghrs-amber-600)" />
+              <FireIcon size={14} color="var(--ghrs-amber-600)" />
             </div>
-            <div>
-              <p className="text-base font-extrabold leading-tight" style={{ color: 'var(--ghrs-amber-600)' }}>{streak}</p>
-              <p className="text-[10px] font-semibold" style={{ color: 'var(--ghrs-text-tertiary)' }}>أيام متتالية</p>
+            <div className="min-w-0">
+              <p
+                className="text-base font-extrabold leading-tight tabular-nums"
+                style={{ color: 'var(--ghrs-text-primary)' }}
+              >
+                {streak}
+              </p>
+              <p
+                className="text-[10px] font-semibold"
+                style={{ color: 'var(--ghrs-text-tertiary)' }}
+              >
+                أيام متتالية
+              </p>
             </div>
           </div>
 
           <div
-            className="rounded-2xl p-3.5 flex items-center gap-3"
+            className="rounded-xl px-3 py-2.5 flex items-center gap-3"
             style={{
               background: 'var(--ghrs-bg-card)',
-              border: '1.5px solid var(--ghrs-border-default)',
+              border: '1px solid var(--ghrs-border-default)',
               boxShadow: 'var(--ghrs-shadow-sm)',
             }}
           >
             <div
-              className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-              style={{ background: 'var(--ghrs-green-50)', border: '1px solid var(--ghrs-green-200)' }}
+              className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
+              style={{
+                background: 'var(--ghrs-surface-success)',
+                border: '1px solid var(--ghrs-green-200)',
+              }}
             >
-              <CheckIcon size={16} color="var(--ghrs-green-600)" />
+              <CheckIcon size={14} color="var(--ghrs-green-600)" />
             </div>
-            <div>
-              <p className="text-base font-extrabold leading-tight" style={{ color: 'var(--ghrs-green-600)' }}>{completedTasks}</p>
-              <p className="text-[10px] font-semibold" style={{ color: 'var(--ghrs-text-tertiary)' }}>مهام مكتملة</p>
+            <div className="min-w-0">
+              <p
+                className="text-base font-extrabold leading-tight tabular-nums"
+                style={{ color: 'var(--ghrs-text-primary)' }}
+              >
+                {completedTasks}
+              </p>
+              <p
+                className="text-[10px] font-semibold"
+                style={{ color: 'var(--ghrs-text-tertiary)' }}
+              >
+                مهام مكتملة
+              </p>
             </div>
           </div>
 
           <div
-            className="rounded-2xl p-3.5 flex items-center gap-3"
+            className="rounded-xl px-3 py-2.5 flex items-center gap-3"
             style={{
               background: 'var(--ghrs-bg-card)',
-              border: '1.5px solid var(--ghrs-border-default)',
+              border: '1px solid var(--ghrs-border-default)',
               boxShadow: 'var(--ghrs-shadow-sm)',
             }}
           >
             <div
-              className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-              style={{ background: 'var(--ghrs-blue-50)', border: '1px solid var(--ghrs-blue-200)' }}
+              className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
+              style={{
+                background: 'var(--ghrs-blue-50)',
+                border: '1px solid var(--ghrs-blue-200)',
+              }}
             >
-              <TasksIcon size={16} color="var(--ghrs-blue-600)" />
+              <TasksIcon size={14} color="var(--ghrs-blue-600)" />
             </div>
-            <div>
-              <p className="text-base font-extrabold leading-tight" style={{ color: 'var(--ghrs-blue-600)' }}>{totalTasks}</p>
-              <p className="text-[10px] font-semibold" style={{ color: 'var(--ghrs-text-tertiary)' }}>مهام نشطة</p>
+            <div className="min-w-0">
+              <p
+                className="text-base font-extrabold leading-tight tabular-nums"
+                style={{ color: 'var(--ghrs-text-primary)' }}
+              >
+                {totalTasks}
+              </p>
+              <p
+                className="text-[10px] font-semibold"
+                style={{ color: 'var(--ghrs-text-tertiary)' }}
+              >
+                مهام نشطة
+              </p>
             </div>
           </div>
         </div>

@@ -22,7 +22,7 @@ export default function ThemeToggle() {
       className="w-10 h-10 rounded-xl flex items-center justify-center transition-all active:scale-95"
       style={{
         background: 'var(--ghrs-bg-card)',
-        border: '1.5px solid var(--ghrs-border-default)',
+        border: '1px solid var(--ghrs-border-default)',
         boxShadow: 'var(--ghrs-shadow-sm)',
         color: 'var(--ghrs-text-secondary)',
       }}

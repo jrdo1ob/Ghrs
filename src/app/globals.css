@@ -678,37 +678,57 @@ body {
 
 /* ===== Child Mode Soft Palette ===== */
 .child-mode {
-  --ghrs-bg-primary: #fefcf7;
-  --ghrs-bg-secondary: #f6f2ea;
-  --ghrs-bg-tertiary: #ece7db;
+  --ghrs-bg-primary: #faf7f0;
+  --ghrs-bg-secondary: #f3eedf;
+  --ghrs-bg-tertiary: #e8e2d0;
   --ghrs-bg-card: #ffffff;
   --ghrs-bg-card-hover: #faf7f0;
-  --ghrs-text-primary: #2a3a2c;
-  --ghrs-text-secondary: #5c6d5e;
-  --ghrs-text-tertiary: #8d9c8f;
-  --ghrs-border-default: #e3ded2;
-  --ghrs-border-strong: #cdc5b5;
-  --ghrs-shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
-  --ghrs-shadow-md: 0 4px 12px rgba(0,0,0,0.06);
-  --ghrs-shadow-lg: 0 8px 24px rgba(0,0,0,0.08);
-  --ghrs-shadow-xl: 0 16px 40px rgba(0,0,0,0.10);
+  --ghrs-text-primary: #1e2a20;
+  --ghrs-text-secondary: #4a5b4c;
+  --ghrs-text-tertiary: #7d8b7e;
+  --ghrs-border-default: #e0d9c6;
+  --ghrs-border-strong: #c8c0a8;
+  --ghrs-shadow-sm: 0 1px 2px rgba(46, 58, 44, 0.04), 0 1px 3px rgba(46, 58, 44, 0.06);
+  --ghrs-shadow-md: 0 2px 4px rgba(46, 58, 44, 0.04), 0 8px 16px rgba(46, 58, 44, 0.08);
+  --ghrs-shadow-lg: 0 4px 8px rgba(46, 58, 44, 0.06), 0 16px 32px rgba(46, 58, 44, 0.10);
+  --ghrs-shadow-xl: 0 8px 16px rgba(46, 58, 44, 0.08), 0 24px 48px rgba(46, 58, 44, 0.12);
+
+  /* Premium accent surfaces */
+  --ghrs-surface-warm: #fef6e8;
+  --ghrs-surface-success: #ecfdf5;
+  --ghrs-surface-pending: #fef3e2;
+  --ghrs-surface-purple: #f3eaff;
+
+  /* Refined radius scale */
+  --ghrs-radius-xs: 0.5rem;
+  --ghrs-radius-sm: 0.75rem;
+  --ghrs-radius-md: 1rem;
+  --ghrs-radius-lg: 1.25rem;
+  --ghrs-radius-xl: 1.75rem;
+  --ghrs-radius-2xl: 2rem;
 }
 
 [data-theme="dark"] .child-mode {
-  --ghrs-bg-primary: #0f1514;
-  --ghrs-bg-secondary: #172120;
-  --ghrs-bg-tertiary: #212f2a;
-  --ghrs-bg-card: #172120;
-  --ghrs-bg-card-hover: #212f2a;
-  --ghrs-text-primary: #e6ede7;
-  --ghrs-text-secondary: #a7b8a9;
-  --ghrs-text-tertiary: #667a68;
-  --ghrs-border-default: #283830;
-  --ghrs-border-strong: #384a3e;
-  --ghrs-shadow-sm: 0 1px 3px rgba(0,0,0,0.2);
-  --ghrs-shadow-md: 0 4px 12px rgba(0,0,0,0.3);
-  --ghrs-shadow-lg: 0 8px 24px rgba(0,0,0,0.35);
-  --ghrs-shadow-xl: 0 16px 40px rgba(0,0,0,0.4);
+  --ghrs-bg-primary: #0d1311;
+  --ghrs-bg-secondary: #141b18;
+  --ghrs-bg-tertiary: #1c2522;
+  --ghrs-bg-card: #161e1b;
+  --ghrs-bg-card-hover: #1c2522;
+  --ghrs-text-primary: #f0f5f1;
+  --ghrs-text-secondary: #a8b8aa;
+  --ghrs-text-tertiary: #6a7a6c;
+  --ghrs-border-default: #2a3530;
+  --ghrs-border-strong: #3a4641;
+  --ghrs-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.3);
+  --ghrs-shadow-md: 0 2px 4px rgba(0, 0, 0, 0.25), 0 8px 16px rgba(0, 0, 0, 0.35);
+  --ghrs-shadow-lg: 0 4px 8px rgba(0, 0, 0, 0.3), 0 16px 32px rgba(0, 0, 0, 0.4);
+  --ghrs-shadow-xl: 0 8px 16px rgba(0, 0, 0, 0.35), 0 24px 48px rgba(0, 0, 0, 0.5);
+
+  /* Premium accent surfaces (dark) */
+  --ghrs-surface-warm: #2a1f10;
+  --ghrs-surface-success: #0f2a1f;
+  --ghrs-surface-pending: #2a1f10;
+  --ghrs-surface-purple: #1f1830;
 }
 
 /* ===== Child Mode Task Card ===== */

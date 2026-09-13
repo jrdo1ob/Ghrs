@@ -149,7 +149,7 @@ export function ChildBottomNav() {
       style={{
         background: 'var(--ghrs-bg-card)',
         borderTop: '1px solid var(--ghrs-border-default)',
-        boxShadow: '0 -2px 12px rgba(0,0,0,0.06)',
+        boxShadow: '0 -1px 3px rgba(46, 58, 44, 0.04), 0 -8px 24px rgba(46, 58, 44, 0.06)',
         paddingBottom: 'env(safe-area-inset-bottom, 0px)',
       }}
       aria-label="التنقل السفلي للطفل"

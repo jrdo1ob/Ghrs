@@ -168,77 +168,137 @@ export default function ChildGiftsPage() {
         className="p-4 md:p-8 max-w-2xl mx-auto"
         style={{ paddingBottom: 'var(--ghrs-nav-total)' }}
       >
-        <div className="flex justify-end mb-3">
+        <div className="flex justify-end mb-4">
           <ThemeToggle />
         </div>
 
-        {/* === Header + Balance === */}
+        {/* === Header === */}
+        <div className="mb-5">
+          <h1
+            className="text-2xl font-extrabold tracking-tight leading-tight"
+            style={{ color: 'var(--ghrs-text-primary)' }}
+          >
+            مكافآتي
+          </h1>
+          <p
+            className="text-[13px] font-medium mt-1"
+            style={{ color: 'var(--ghrs-text-secondary)' }}
+          >
+            اجمع XP واطلب مكافآتك المفضلة
+          </p>
+        </div>
+
+        {/* === Balance === */}
         <div
-          className="mb-5 rounded-3xl p-5 relative overflow-hidden"
+          className="mb-4 rounded-2xl p-4"
           style={{
-            background: 'linear-gradient(170deg, var(--ghrs-purple-50) 0%, var(--ghrs-bg-card) 70%)',
-            border: '1.5px solid var(--ghrs-purple-200)',
-            boxShadow: 'var(--ghrs-shadow-md)',
+            background: 'var(--ghrs-bg-card)',
+            border: '1px solid var(--ghrs-border-default)',
+            boxShadow: 'var(--ghrs-shadow-sm)',
           }}
         >
-          <div className="absolute top-3 right-5 opacity-10">
-            <SparkleIcon size={18} />
-          </div>
-          <div className="absolute top-6 left-6 opacity-[0.07]">
-            <SparkleIcon size={12} />
-          </div>
-
-          <div className="relative">
-            <h1 className="text-xl font-extrabold mb-1" style={{ color: 'var(--ghrs-text-primary)' }}>
-              مكافآتي 🎁
-            </h1>
-            <p className="text-xs font-semibold mb-4" style={{ color: 'var(--ghrs-text-secondary)' }}>
-              اجمع XP واطلب مكافآتك المفضلة
-            </p>
-
-            {/* Balance */}
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2 px-4 py-2.5 rounded-2xl" style={{ background: 'var(--ghrs-amber-50)', border: '1px solid var(--ghrs-amber-200)' }}>
-                <StarIcon size={18} color="var(--ghrs-amber-600)" />
+          <div className="flex items-center gap-3">
+            <div
+              className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl flex-1"
+              style={{
+                background: 'var(--ghrs-surface-pending)',
+                border: '1px solid var(--ghrs-amber-200)',
+              }}
+            >
+              <StarIcon size={18} color="var(--ghrs-amber-600)" />
+              <div>
+                <p
+                  className="text-lg font-extrabold leading-tight tabular-nums"
+                  style={{ color: 'var(--ghrs-text-primary)' }}
+                >
+                  {xp}
+                </p>
+                <p
+                  className="text-[10px] font-bold"
+                  style={{ color: 'var(--ghrs-amber-700)' }}
+                >
+                  XP
+                </p>
+              </div>
+            </div>
+            {moneyBalance > 0 && (
+              <div
+                className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl flex-1"
+                style={{
+                  background: 'var(--ghrs-surface-success)',
+                  border: '1px solid var(--ghrs-green-200)',
+                }}
+              >
+                <CoinIcon size={18} color="var(--ghrs-green-600)" />
                 <div>
-                  <p className="text-lg font-extrabold leading-tight" style={{ color: 'var(--ghrs-amber-600)' }}>{xp}</p>
-                  <p className="text-[10px] font-semibold" style={{ color: 'var(--ghrs-amber-700)' }}>XP</p>
+                  <p
+                    className="text-lg font-extrabold leading-tight tabular-nums"
+                    style={{ color: 'var(--ghrs-text-primary)' }}
+                  >
+                    {fmtMoney(moneyBalance)}
+                  </p>
+                  <p
+                    className="text-[10px] font-bold"
+                    style={{ color: 'var(--ghrs-green-700)' }}
+                  >
+                    د.ب
+                  </p>
                 </div>
               </div>
-              {moneyBalance > 0 && (
-                <>
-                  <div className="w-px h-8" style={{ background: 'var(--ghrs-border-default)' }} />
-                  <div className="flex items-center gap-2 px-4 py-2.5 rounded-2xl" style={{ background: 'var(--ghrs-green-50)', border: '1px solid var(--ghrs-green-200)' }}>
-                    <CoinIcon size={18} color="var(--ghrs-green-600)" />
-                    <div>
-                      <p className="text-lg font-extrabold leading-tight" style={{ color: 'var(--ghrs-green-600)' }}>{fmtMoney(moneyBalance)}</p>
-                      <p className="text-[10px] font-semibold" style={{ color: 'var(--ghrs-green-700)' }}>د.ب</p>
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
+            )}
           </div>
         </div>
 
         {/* === Reward Shop === */}
         {gifts.length === 0 ? (
           <div
-            className="text-center py-14 rounded-3xl mb-6"
+            className="text-center py-14 rounded-2xl mb-6"
             style={{
               background: 'var(--ghrs-bg-card)',
-              border: '1.5px solid var(--ghrs-border-default)',
+              border: '1px solid var(--ghrs-border-default)',
+              boxShadow: 'var(--ghrs-shadow-sm)',
             }}
           >
-            <div className="text-4xl mb-3 ghrs-animate-float">🎁</div>
-            <p className="text-base font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>ما في مكافآت حالياً</p>
-            <p className="text-xs mt-1" style={{ color: 'var(--ghrs-text-tertiary)' }}>الوالد لم يضف مكافآت بعد. اجمع XP واستنى!</p>
+            <div
+              className="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center"
+              style={{
+                background: 'var(--ghrs-surface-purple)',
+                border: '1px solid var(--ghrs-purple-200)',
+              }}
+            >
+              <span className="text-3xl leading-none">🎁</span>
+            </div>
+            <p
+              className="text-[15px] font-bold"
+              style={{ color: 'var(--ghrs-text-primary)' }}
+            >
+              ما في مكافآت حالياً
+            </p>
+            <p
+              className="text-xs mt-1"
+              style={{ color: 'var(--ghrs-text-tertiary)' }}
+            >
+              اجمع XP واستنى الوالد يضيف مكافآت
+            </p>
           </div>
         ) : (
           <div className="space-y-3 mb-6">
-            <div className="flex items-center gap-2 mb-1">
-              <GiftsIcon size={18} color="var(--ghrs-purple-600)" />
-              <h2 className="text-sm font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>المكافآت المتاحة</h2>
+            <div className="flex items-center gap-2 mb-1 px-1">
+              <h2
+                className="text-[15px] font-extrabold tracking-tight"
+                style={{ color: 'var(--ghrs-text-primary)' }}
+              >
+                المكافآت المتاحة
+              </h2>
+              <span
+                className="text-[11px] font-bold px-2 py-0.5 rounded-md tabular-nums"
+                style={{
+                  background: 'var(--ghrs-bg-secondary)',
+                  color: 'var(--ghrs-text-secondary)',
+                }}
+              >
+                {gifts.length}
+              </span>
             </div>
 
             {gifts.map(gift => {
@@ -255,40 +315,83 @@ export default function ChildGiftsPage() {
                   key={gift.id}
                   className="rounded-2xl overflow-hidden transition-all active:scale-[0.98]"
                   style={{
-                    background: 'var(--ghrs-bg-card)',
-                    border: `1.5px solid ${isApproved ? 'var(--ghrs-green-300)' : isPending ? 'var(--ghrs-amber-300)' : isRejected ? 'var(--ghrs-red-200)' : canAfford ? 'var(--ghrs-purple-200)' : 'var(--ghrs-border-default)'}`,
-                    boxShadow: canAfford && !isPending && !isApproved ? 'var(--ghrs-shadow-md)' : 'var(--ghrs-shadow-sm)',
+                    background: isApproved
+                      ? 'var(--ghrs-surface-success)'
+                      : isPending
+                        ? 'var(--ghrs-surface-pending)'
+                        : 'var(--ghrs-bg-card)',
+                    border: `1px solid ${
+                      isApproved
+                        ? 'var(--ghrs-green-300)'
+                        : isPending
+                          ? 'var(--ghrs-amber-300)'
+                          : isRejected
+                            ? 'var(--ghrs-red-200)'
+                            : canAfford
+                              ? 'var(--ghrs-purple-300)'
+                              : 'var(--ghrs-border-default)'
+                    }`,
+                    boxShadow: 'var(--ghrs-shadow-sm)',
                   }}
                 >
                   {/* Gift header bar */}
                   <div
-                    className="px-4 py-2.5 flex items-center justify-between"
+                    className="px-4 py-2 flex items-center justify-between"
                     style={{
-                      background: isApproved
-                        ? 'linear-gradient(135deg, var(--ghrs-green-50), var(--ghrs-green-100))'
-                        : isPending
-                          ? 'linear-gradient(135deg, var(--ghrs-amber-50), var(--ghrs-amber-100))'
-                          : isRejected
-                            ? 'linear-gradient(135deg, var(--ghrs-red-50), var(--ghrs-red-100))'
-                            : canAfford
-                              ? 'linear-gradient(135deg, var(--ghrs-purple-50), var(--ghrs-purple-100))'
-                              : 'var(--ghrs-bg-secondary)',
+                      background: 'var(--ghrs-bg-secondary)',
+                      borderBottom: '1px solid var(--ghrs-border-default)',
                     }}
                   >
                     <div className="flex items-center gap-2">
-                      <GiftsIcon size={16} color={isApproved ? 'var(--ghrs-green-600)' : isPending ? 'var(--ghrs-amber-600)' : isRejected ? 'var(--ghrs-red-500)' : 'var(--ghrs-purple-600)'} />
-                      <span className="text-[11px] font-bold" style={{ color: isApproved ? 'var(--ghrs-green-700)' : isPending ? 'var(--ghrs-amber-700)' : isRejected ? 'var(--ghrs-red-600)' : canAfford ? 'var(--ghrs-purple-700)' : 'var(--ghrs-text-tertiary)' }}>
-                        {isApproved ? 'تمت الموافقة ✓' : isPending ? '⏳ بانتظار الوالد' : isRejected ? 'تم الرفض' : isRevoked ? 'تم السحب' : canAfford ? 'تقدر تطلبها 🎉' : 'رصيدك ما يكفي'}
+                      <span
+                        className="text-[10px] font-bold uppercase tracking-wider"
+                        style={{
+                          color: isApproved
+                            ? 'var(--ghrs-green-700)'
+                            : isPending
+                              ? 'var(--ghrs-amber-700)'
+                              : isRejected
+                                ? 'var(--ghrs-red-600)'
+                                : canAfford
+                                  ? 'var(--ghrs-purple-700)'
+                                  : 'var(--ghrs-text-tertiary)',
+                        }}
+                      >
+                        {isApproved
+                          ? 'تمت الموافقة'
+                          : isPending
+                            ? 'بانتظار الوالد'
+                            : isRejected
+                              ? 'تم الرفض'
+                              : isRevoked
+                                ? 'تم السحب'
+                                : canAfford
+                                  ? 'تقدر تطلبها'
+                                  : 'رصيدك ما يكفي'}
                       </span>
                     </div>
                     {/* Cost */}
-                    <div className="flex items-center gap-2">
-                      <span className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-lg" style={{ background: 'rgba(255,255,255,0.6)', color: 'var(--ghrs-amber-700)' }}>
-                        <StarIcon size={12} color="var(--ghrs-amber-600)" /> {gift.cost_xp}
+                    <div className="flex items-center gap-1.5">
+                      <span
+                        className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-md tabular-nums"
+                        style={{
+                          background: 'var(--ghrs-bg-card)',
+                          color: 'var(--ghrs-text-primary)',
+                          border: '1px solid var(--ghrs-border-default)',
+                        }}
+                      >
+                        <StarIcon size={10} color="var(--ghrs-amber-600)" /> {gift.cost_xp}
                       </span>
                       {gift.cost_money > 0 && (
-                        <span className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-lg" style={{ background: 'rgba(255,255,255,0.6)', color: 'var(--ghrs-green-700)' }}>
-                          <CoinIcon size={12} color="var(--ghrs-green-600)" /> {fmtMoney(gift.cost_money)}
+                        <span
+                          className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-md tabular-nums"
+                          style={{
+                            background: 'var(--ghrs-bg-card)',
+                            color: 'var(--ghrs-text-primary)',
+                            border: '1px solid var(--ghrs-border-default)',
+                          }}
+                        >
+                          <CoinIcon size={10} color="var(--ghrs-green-600)" /> {fmtMoney(gift.cost_money)}
                         </span>
                       )}
                     </div>
@@ -298,20 +401,26 @@ export default function ChildGiftsPage() {
                   <div className="p-4">
                     <div className="flex items-start gap-3 mb-3">
                       <div
-                        className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
+                        className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
                         style={{
-                          background: isApproved ? 'var(--ghrs-green-50)' : isRejected ? 'var(--ghrs-red-50)' : 'var(--ghrs-purple-50)',
-                          border: `1px solid ${isApproved ? 'var(--ghrs-green-200)' : isRejected ? 'var(--ghrs-red-200)' : 'var(--ghrs-purple-200)'}`,
+                          background: 'var(--ghrs-surface-purple)',
+                          border: '1px solid var(--ghrs-purple-200)',
                         }}
                       >
-                        <GiftsIcon size={22} color={isApproved ? 'var(--ghrs-green-600)' : isRejected ? 'var(--ghrs-red-500)' : 'var(--ghrs-purple-600)'} />
+                        <GiftsIcon size={20} color="var(--ghrs-purple-600)" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-sm font-bold leading-snug" style={{ color: 'var(--ghrs-text-primary)' }}>
+                        <h3
+                          className="text-[14px] font-bold leading-snug"
+                          style={{ color: 'var(--ghrs-text-primary)' }}
+                        >
                           {gift.title}
                         </h3>
                         {gift.description && (
-                          <p className="text-[11px] mt-0.5 line-clamp-2 leading-relaxed" style={{ color: 'var(--ghrs-text-secondary)' }}>
+                          <p
+                            className="text-[12px] mt-1 line-clamp-2 leading-relaxed"
+                            style={{ color: 'var(--ghrs-text-secondary)' }}
+                          >
                             {gift.description}
                           </p>
                         )}
@@ -321,24 +430,30 @@ export default function ChildGiftsPage() {
                     {/* Action */}
                     {isPending ? (
                       <div
-                        className="w-full py-3 rounded-xl text-center text-sm font-bold"
-                        style={{ background: 'var(--ghrs-amber-50)', color: 'var(--ghrs-amber-600)' }}
+                        className="w-full py-3 rounded-xl text-center text-[13px] font-bold"
+                        style={{
+                          background: 'rgba(245, 158, 11, 0.1)',
+                          color: 'var(--ghrs-amber-700)',
+                        }}
                       >
                         بانتظار موافقة الوالد
                       </div>
                     ) : isApproved ? (
                       <div
-                        className="w-full py-3 rounded-xl text-center text-sm font-bold"
-                        style={{ background: 'var(--ghrs-green-50)', color: 'var(--ghrs-green-600)' }}
+                        className="w-full py-3 rounded-xl text-center text-[13px] font-bold"
+                        style={{
+                          background: 'rgba(34, 197, 94, 0.1)',
+                          color: 'var(--ghrs-green-700)',
+                        }}
                       >
-                        تمت الموافقة! وصلت المكافأة ✓
+                        تمت الموافقة — وصلت المكافأة
                       </div>
                     ) : (
                       <div className="flex gap-2">
                         <button
                           onClick={() => handleRedeem(gift.id)}
                           disabled={!canAfford || isBusy}
-                          className="flex-1 py-3 rounded-xl text-sm font-bold transition-all active:scale-[0.97]"
+                          className="flex-1 py-3 rounded-xl text-[13px] font-bold transition-all active:scale-[0.97]"
                           style={{
                             background: canAfford ? 'var(--ghrs-purple-600)' : 'var(--ghrs-bg-secondary)',
                             color: canAfford ? 'white' : 'var(--ghrs-text-tertiary)',
@@ -349,7 +464,7 @@ export default function ChildGiftsPage() {
                         </button>
                         <button
                           onClick={() => openGiftModal(gift)}
-                          className="px-4 py-3 rounded-xl text-sm font-bold transition-all active:scale-[0.97]"
+                          className="px-4 py-3 rounded-xl text-[13px] font-bold transition-all active:scale-[0.97]"
                           style={{
                             background: 'var(--ghrs-bg-secondary)',
                             color: 'var(--ghrs-text-secondary)',
@@ -370,7 +485,12 @@ export default function ChildGiftsPage() {
         {/* === Request History (Secondary) === */}
         {hasHistory && (
           <>
-            <h2 className="text-sm font-bold mb-3" style={{ color: 'var(--ghrs-text-primary)' }}>طلباتي السابقة</h2>
+            <h2
+              className="text-[15px] font-extrabold tracking-tight mb-3 px-1"
+              style={{ color: 'var(--ghrs-text-primary)' }}
+            >
+              طلباتي السابقة
+            </h2>
             <div className="grid grid-cols-2 gap-3">
               {(['pending', 'rejected', 'approved', 'revoked'] as const).map(key => {
                 const sc = statusConfig[key]
@@ -380,21 +500,33 @@ export default function ChildGiftsPage() {
                   <div
                     key={key}
                     onClick={() => openStatusModal(key)}
-                    className="cursor-pointer active:scale-[0.97] transition-all rounded-2xl p-4 flex flex-col items-center text-center gap-1.5"
+                    className="cursor-pointer active:scale-[0.97] transition-all rounded-2xl p-3.5 flex items-center gap-3"
                     style={{
                       background: 'var(--ghrs-bg-card)',
-                      border: '1.5px solid var(--ghrs-border-default)',
+                      border: '1px solid var(--ghrs-border-default)',
                       boxShadow: 'var(--ghrs-shadow-sm)',
                     }}
                   >
                     <div
-                      className="w-10 h-10 rounded-full flex items-center justify-center"
+                      className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
                       style={{ background: sc.iconBg }}
                     >
                       {sc.icon}
                     </div>
-                    <span className="text-[10px] font-bold" style={{ color: sc.color }}>{sc.label}</span>
-                    <span className="text-lg font-bold leading-tight" style={{ color: 'var(--ghrs-text-primary)' }}>{count}</span>
+                    <div className="flex flex-col items-start min-w-0">
+                      <span
+                        className="text-[10px] font-bold"
+                        style={{ color: sc.color }}
+                      >
+                        {sc.label}
+                      </span>
+                      <span
+                        className="text-lg font-bold leading-tight tabular-nums"
+                        style={{ color: 'var(--ghrs-text-primary)' }}
+                      >
+                        {count}
+                      </span>
+                    </div>
                   </div>
                 )
               })}

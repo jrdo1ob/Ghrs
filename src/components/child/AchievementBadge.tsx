@@ -14,31 +14,42 @@ interface AchievementBadgeProps {
 export default function AchievementBadge({ title, description, icon, unlocked, progress }: AchievementBadgeProps) {
   return (
     <div
-      className="rounded-2xl p-3.5 transition-all"
+      className="rounded-xl p-3 transition-all"
       style={{
-        background: 'var(--ghrs-bg-card)',
-        border: unlocked ? '1.5px solid var(--ghrs-amber-300)' : '1.5px solid var(--ghrs-border-default)',
-        opacity: unlocked ? 1 : 0.6,
-        boxShadow: unlocked ? '0 2px 8px rgba(245, 158, 11, 0.06)' : 'var(--ghrs-shadow-sm)',
+        background: unlocked ? 'var(--ghrs-surface-pending)' : 'var(--ghrs-bg-secondary)',
+        border: unlocked ? '1px solid var(--ghrs-amber-300)' : '1px solid var(--ghrs-border-default)',
+        opacity: unlocked ? 1 : 0.55,
       }}
     >
       <div className="flex items-center gap-3">
         <div
-          className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+          className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
           style={{
-            background: unlocked ? 'var(--ghrs-amber-50)' : 'var(--ghrs-bg-secondary)',
+            background: unlocked ? 'var(--ghrs-bg-card)' : 'var(--ghrs-bg-card)',
             border: unlocked ? '1px solid var(--ghrs-amber-200)' : '1px solid var(--ghrs-border-default)',
           }}
         >
           {unlocked ? (
-            icon ? <span className="text-lg">{icon}</span> : <TrophyIcon size={18} color="var(--ghrs-amber-600)" />
+            icon ? <span className="text-lg leading-none">{icon}</span> : <TrophyIcon size={18} color="var(--ghrs-amber-600)" />
           ) : (
             <LockIcon size={16} color="var(--ghrs-text-tertiary)" />
           )}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-xs font-bold truncate" style={{ color: 'var(--ghrs-text-primary)' }}>{title}</p>
-          <p className="text-[10px] mt-0.5" style={{ color: 'var(--ghrs-text-secondary)' }}>{description}</p>
+          <p
+            className="text-[12px] font-bold truncate"
+            style={{
+              color: unlocked ? 'var(--ghrs-text-primary)' : 'var(--ghrs-text-secondary)',
+            }}
+          >
+            {title}
+          </p>
+          <p
+            className="text-[10px] mt-0.5 truncate"
+            style={{ color: 'var(--ghrs-text-secondary)' }}
+          >
+            {description}
+          </p>
           {progress && !unlocked && (
             <div className="mt-1.5">
               <div className="ghrs-garden-xp-bar" style={{ height: '4px' }}>
@@ -47,7 +58,10 @@ export default function AchievementBadge({ title, description, icon, unlocked, p
                   style={{ width: `${Math.min(100, (progress.current / progress.max) * 100)}%` }}
                 />
               </div>
-              <p className="text-[9px] mt-0.5" style={{ color: 'var(--ghrs-text-tertiary)' }}>
+              <p
+                className="text-[9px] mt-0.5 tabular-nums"
+                style={{ color: 'var(--ghrs-text-tertiary)' }}
+              >
                 {progress.current} / {progress.max}
               </p>
             </div>
@@ -56,9 +70,12 @@ export default function AchievementBadge({ title, description, icon, unlocked, p
         {unlocked && (
           <div
             className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0"
-            style={{ background: 'var(--ghrs-green-100)', border: '1px solid var(--ghrs-green-200)' }}
+            style={{
+              background: 'var(--ghrs-surface-success)',
+              border: '1px solid var(--ghrs-green-300)',
+            }}
           >
-            <CheckIcon size={12} color="var(--ghrs-green-600)" />
+            <CheckIcon size={12} color="var(--ghrs-green-700)" />
           </div>
         )}
       </div>
