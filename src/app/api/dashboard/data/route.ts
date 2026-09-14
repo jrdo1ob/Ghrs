@@ -46,23 +46,22 @@ export async function POST(request: NextRequest) {
     }
 
     // Count pending gift redemptions (scoped to this family's gifts)
-    const { data: pendingGifts } = await supabase
-      .from('gift_redemptions')
-      .select('id, gift_id, member_id')
-      .eq('status', 'pending')
+    const { data: familyGifts } = await supabase
+      .from('gifts')
+      .select('id')
+      .eq('family_id', familyId)
 
-    const giftIds = (pendingGifts || []).map((g: any) => g.gift_id)
+    const familyGiftIds = new Set((familyGifts || []).map((g: { id: string }) => g.id))
     let pendingGiftApprovals = 0
     const giftRedemptionsByChild: Record<string, number> = {}
-    if (giftIds.length > 0) {
-      const { data: familyGifts } = await supabase
-        .from('gifts')
-        .select('id')
-        .eq('family_id', familyId)
-        .in('id', giftIds)
-      const familyGiftIds = new Set((familyGifts || []).map((g: { id: string }) => g.id))
+    if (familyGiftIds.size > 0) {
+      const { data: pendingGifts } = await supabase
+        .from('gift_redemptions')
+        .select('id, gift_id, member_id')
+        .eq('status', 'pending')
+        .in('gift_id', [...familyGiftIds])
       for (const gr of pendingGifts || []) {
-        if (familyGiftIds.has(gr.gift_id) && gr.member_id) {
+        if (gr.member_id) {
           giftRedemptionsByChild[gr.member_id] = (giftRedemptionsByChild[gr.member_id] || 0) + 1
           pendingGiftApprovals++
         }
@@ -74,22 +73,14 @@ export async function POST(request: NextRequest) {
       .from('withdrawal_requests')
       .select('id, member_id')
       .eq('status', 'pending')
+      .in('member_id', childIds)
 
-    const withdrawalMemberIds = (pendingWithdrawals || []).map((w: any) => w.member_id)
     let pendingWithdrawalCount = 0
     const withdrawalsByChild: Record<string, number> = {}
-    if (withdrawalMemberIds.length > 0) {
-      const { data: familyMembers } = await supabase
-        .from('members')
-        .select('id')
-        .eq('family_id', familyId)
-        .in('id', withdrawalMemberIds)
-      const familyMemberIds = new Set((familyMembers || []).map((m: { id: string }) => m.id))
-      for (const w of pendingWithdrawals || []) {
-        if (familyMemberIds.has(w.member_id)) {
-          withdrawalsByChild[w.member_id] = (withdrawalsByChild[w.member_id] || 0) + 1
-          pendingWithdrawalCount++
-        }
+    for (const w of pendingWithdrawals || []) {
+      if (w.member_id) {
+        withdrawalsByChild[w.member_id] = (withdrawalsByChild[w.member_id] || 0) + 1
+        pendingWithdrawalCount++
       }
     }
 

@@ -155,35 +155,53 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // Step 4: Get gift activity events
-    const { data: giftActivities } = await supabase
-      .from('gift_activity')
-      .select('id, gift_redemption_id, action, performed_by, xp_amount, money_amount, reason, created_at')
-      .order('created_at', { ascending: false })
-      .limit(100)
+    // Step 4: Get gift activity events (family-scoped through gifts.family_id)
+    const { data: familyGiftsForActivity } = await supabase
+      .from('gifts')
+      .select('id')
+      .eq('family_id', member.family_id)
 
-    // Get gift redemption details for gift activities
-    const giftRedemptionIds = (giftActivities || []).map(g => g.gift_redemption_id)
-    const { data: giftRedemptions } = giftRedemptionIds.length > 0
-      ? await supabase.from('gift_redemptions').select('id, gift_id, member_id').in('id', giftRedemptionIds)
-      : { data: [] }
+    const familyGiftIdsForActivity = (familyGiftsForActivity || []).map(g => g.id)
 
-    const giftRedemptionMap = new Map((giftRedemptions || []).map(r => [r.id, r]))
+    let giftActivities: Array<{ id: string; gift_redemption_id: string; action: string; performed_by: string | null; xp_amount: number | null; money_amount: number | null; reason: string | null; created_at: string }> = []
+    let giftRedemptions: Array<{ id: string; gift_id: string; member_id: string }> = []
 
-    const giftIds = [...new Set((giftRedemptions || []).map(r => r.gift_id))]
+    if (familyGiftIdsForActivity.length > 0) {
+      const { data: familyRedemptions } = await supabase
+        .from('gift_redemptions')
+        .select('id, gift_id, member_id')
+        .in('gift_id', familyGiftIdsForActivity)
+
+      giftRedemptions = familyRedemptions || []
+      const redemptionIds = giftRedemptions.map(r => r.id)
+
+      if (redemptionIds.length > 0) {
+        const { data } = await supabase
+          .from('gift_activity')
+          .select('id, gift_redemption_id, action, performed_by, xp_amount, money_amount, reason, created_at')
+          .in('gift_redemption_id', redemptionIds)
+          .order('created_at', { ascending: false })
+          .limit(100)
+        giftActivities = data || []
+      }
+    }
+
+    const giftRedemptionMap = new Map(giftRedemptions.map(r => [r.id, r]))
+
+    const giftIds = [...new Set(giftRedemptions.map(r => r.gift_id))]
     const { data: gifts } = giftIds.length > 0
       ? await supabase.from('gifts').select('id, title').in('id', giftIds)
       : { data: [] }
     const giftTitleById = new Map((gifts || []).map(g => [g.id, g.title]))
 
-    const giftMemberIds = [...new Set((giftRedemptions || []).map(r => r.member_id))]
+    const giftMemberIds = [...new Set(giftRedemptions.map(r => r.member_id))]
     const { data: giftMembers } = giftMemberIds.length > 0
       ? await supabase.from('members').select('id, name').in('id', giftMemberIds)
       : { data: [] }
     const giftMemberNameById = new Map((giftMembers || []).map(m => [m.id, m.name]))
 
     const giftPerformerIds = [...new Set(
-      (giftActivities || []).map(g => g.performed_by).filter((id): id is string => id !== null)
+      giftActivities.map(g => g.performed_by).filter((id): id is string => id !== null)
     )]
     const { data: giftPerformers } = giftPerformerIds.length > 0
       ? await supabase.from('members').select('id, name').in('id', giftPerformerIds)
