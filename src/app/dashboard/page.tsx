@@ -76,7 +76,7 @@ export default function DashboardPage() {
 
   const handleLogout = async () => {
     clearAuth()
-    if (authUser?.via === 'supabase') await supabase.auth.signOut()
+    await supabase.auth.signOut()
     router.push('/')
   }
 
