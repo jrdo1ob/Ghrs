@@ -267,7 +267,7 @@ export default function ChildrenPage() {
                 </div>
                 <div>
                   <label className="ghrs-label">رمز PIN (4-6 أرقام)</label>
-                  <input type="password" inputMode="numeric" pattern="[0-9]*" value={newPin} onChange={e => setNewPin(e.target.value)} required className="ghrs-input text-center text-lg tracking-widest font-mono" placeholder="1234" maxLength={6} dir="ltr" autoComplete="one-time-code" />
+                  <input type="password" inputMode="numeric" pattern="[0-9]*" value={newPin} onChange={e => setNewPin(e.target.value)} required className="ghrs-input text-center text-lg tracking-widest font-mono" placeholder="••••" maxLength={6} dir="ltr" autoComplete="one-time-code" />
                 </div>
                 <div className="flex gap-2 pt-1">
                   <button type="submit" className="ghrs-btn-primary">إضافة</button>
@@ -294,7 +294,7 @@ export default function ChildrenPage() {
                     <div>
                       <label className="ghrs-label">رمز PIN الجديد</label>
                       <div className="flex gap-2">
-                        <input type="password" inputMode="numeric" pattern="[0-9]*" value={editPin} onChange={e => setEditPin(e.target.value)} className="ghrs-input flex-1 text-center tracking-widest font-mono" placeholder="1234" maxLength={6} dir="ltr" autoComplete="one-time-code" />
+                        <input type="password" inputMode="numeric" pattern="[0-9]*" value={editPin} onChange={e => setEditPin(e.target.value)} className="ghrs-input flex-1 text-center tracking-widest font-mono" placeholder="••••" maxLength={6} dir="ltr" autoComplete="one-time-code" />
                         <button onClick={() => handleUpdatePin(member.id)} className="ghrs-btn-primary flex-shrink-0">حفظ الرمز</button>
                       </div>
                     </div>
