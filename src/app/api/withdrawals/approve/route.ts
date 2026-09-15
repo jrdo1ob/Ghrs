@@ -27,81 +27,29 @@ export async function POST(request: NextRequest) {
 
     const supabase = createServiceRoleClient()
 
-    // Get withdrawal request
-    const { data: withdrawal, error: wError } = await supabase
-      .from('withdrawal_requests')
-      .select('*')
-      .eq('id', withdrawal_id)
-      .single()
-
-    if (wError || !withdrawal) {
-      return NextResponse.json({ success: false, error: 'طلب السحب غير موجود' }, { status: 404 })
-    }
-
-    // Verify family ownership
-    const { data: childData } = await supabase
-      .from('members')
-      .select('family_id')
-      .eq('id', withdrawal.member_id)
-      .single()
-
-    if (!childData || childData.family_id !== member.family_id) {
-      return NextResponse.json({ success: false, error: 'طلب السحب لا ينتمي لعائلتك' }, { status: 403 })
-    }
-
-    // Check if already processed
-    if (withdrawal.status !== 'pending') {
-      return NextResponse.json({ success: false, error: 'تم معالجة هذا الطلب بالفعل' }, { status: 400 })
-    }
-
     if (action === 'approve') {
-      // Check balance again
-      const { data: moneyData } = await supabase
-        .from('money_transactions')
-        .select('amount, type')
-        .eq('member_id', withdrawal.member_id)
-        .eq('status', 'approved')
+      // Atomic approval via RPC: locks row, checks balance, deducts, updates status
+      const { data, error } = await supabase.rpc('approve_withdrawal', {
+        p_withdrawal_id: withdrawal_id,
+        p_approver_member_id: member.member_id,
+      })
 
-      const balance = (moneyData || []).reduce((sum: number, t: any) => sum + (t.type === 'earned' ? t.amount : -t.amount), 0)
-
-      if (balance < withdrawal.amount) {
-        return NextResponse.json({ success: false, error: 'الرصيد غير كافي للموافقة' }, { status: 400 })
+      if (error) {
+        console.error('[GHRS WITHDRAWAL APPROVE] RPC error:', error.message)
+        return NextResponse.json({ success: false, error: 'حدث خطأ أثناء المعالجة' }, { status: 500 })
       }
 
-      // Deduct money
-      const { error: deductError } = await supabase
-        .from('money_transactions')
-        .insert({
-          member_id: withdrawal.member_id,
-          amount: withdrawal.amount,
-          type: 'withdrawn',
-          source: 'withdrawal',
-          source_id: withdrawal.id,
-          status: 'approved',
-          description: 'سحب من الرصيد',
-        })
-
-      if (deductError) {
-        return NextResponse.json({ success: false, error: 'حدث خطأ أثناء الخصم' }, { status: 500 })
+      const result = Array.isArray(data) ? data[0] : data
+      if (!result || !result.success) {
+        return NextResponse.json(
+          { success: false, error: result?.message || 'فشل في المعالجة' },
+          { status: 400 }
+        )
       }
 
-      // Mark as approved/paid
-      const { error: updateError } = await supabase
-        .from('withdrawal_requests')
-        .update({
-          status: 'paid',
-          processed_by: member.member_id,
-          processed_at: new Date().toISOString(),
-        })
-        .eq('id', withdrawal_id)
-
-      if (updateError) {
-        return NextResponse.json({ success: false, error: 'حدث خطأ' }, { status: 500 })
-      }
-
-      return NextResponse.json({ success: true, message: 'تمت الموافقة على السحب' })
+      return NextResponse.json({ success: true, message: result.message })
     } else {
-      // Reject
+      // Reject: update withdrawal status
       const { error: updateError } = await supabase
         .from('withdrawal_requests')
         .update({
@@ -110,6 +58,7 @@ export async function POST(request: NextRequest) {
           processed_at: new Date().toISOString(),
         })
         .eq('id', withdrawal_id)
+        .eq('status', 'pending')
 
       if (updateError) {
         return NextResponse.json({ success: false, error: 'حدث خطأ' }, { status: 500 })
