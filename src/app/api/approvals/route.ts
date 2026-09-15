@@ -17,6 +17,15 @@ export async function POST(request: NextRequest) {
     const familyId = session.member.family_id
     const supabase = createServiceRoleClient()
 
+    // Get family member IDs for withdrawal scoping
+    const { data: familyMembers } = await supabase
+      .from('members')
+      .select('id')
+      .eq('family_id', familyId)
+      .eq('is_deleted', false)
+
+    const familyMemberIds = (familyMembers || []).map((m: { id: string }) => m.id)
+
     // 1. Get pending task completions
     const { data: taskCompletions } = await supabase
       .from('task_completions')
@@ -102,11 +111,14 @@ export async function POST(request: NextRequest) {
         }
       })
 
-    // 3. Get pending withdrawal requests
-    const { data: withdrawals } = await supabase
-      .from('withdrawal_requests')
-      .select('id, member_id, amount, status, requested_at')
-      .eq('status', 'pending')
+    // 3. Get pending withdrawal requests (scoped to family members)
+    const { data: withdrawals } = familyMemberIds.length > 0
+      ? await supabase
+          .from('withdrawal_requests')
+          .select('id, member_id, amount, status, requested_at')
+          .eq('status', 'pending')
+          .in('member_id', familyMemberIds)
+      : { data: [] }
 
     const withdrawalMemberIds = [...new Set((withdrawals || []).map((w: any) => w.member_id))]
     const { data: withdrawalMembers } = await supabase
