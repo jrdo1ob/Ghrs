@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { createServiceRoleClient } from '@/lib/supabase/service-role'
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
@@ -36,20 +37,24 @@ export async function GET(request: Request) {
     console.log('[GHRS AUTH CALLBACK] exchangeCodeForSession success')
 
     if (data?.user) {
+      // Use service-role client for database queries and RPC calls
+      // (anon key no longer has EXECUTE on create_oauth_session after migration 062)
+      const srv = createServiceRoleClient()
+
       // Check if user has a member identity
-      const { data: identity, error: identityError } = await supabase
+      const { data: identity, error: identityError } = await srv
         .from('auth_identities')
         .select('member_id')
         .eq('auth_user_id', data.user.id)
         .single()
 
-      if (!identity) {
-        // No member identity found, go to family setup
+      if (identityError || !identity?.member_id) {
+        console.error('[GHRS AUTH CALLBACK] identity lookup failed:', identityError?.message)
         return NextResponse.redirect(`${origin}/family-setup`)
       }
 
       // Create internal user_sessions record using the new RPC
-      const { data: sessionToken, error: sessionError } = await supabase.rpc('create_oauth_session', {
+      const { data: sessionToken, error: sessionError } = await srv.rpc('create_oauth_session', {
         p_member_id: identity.member_id,
       })
 
