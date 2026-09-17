@@ -5,6 +5,9 @@
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
+-- Enable pgcrypto for crypt()/gen_salt() used by PIN hashing (migration 003+)
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
 -- ============================================
 -- 1. families
 -- ============================================

@@ -73,7 +73,6 @@ REVOKE EXECUTE ON FUNCTION reject_task_completion(uuid, uuid) FROM PUBLIC, anon,
 REVOKE EXECUTE ON FUNCTION revoke_task_approval(uuid, text) FROM PUBLIC, anon, authenticated;
 REVOKE EXECUTE ON FUNCTION redeem_gift(uuid, uuid) FROM PUBLIC, anon, authenticated;
 REVOKE EXECUTE ON FUNCTION add_preset_task(uuid, uuid, uuid, integer, numeric) FROM PUBLIC, anon, authenticated;
-REVOKE EXECUTE ON FUNCTION add_preset_task(uuid, uuid, integer, numeric) FROM PUBLIC, anon, authenticated;
 REVOKE EXECUTE ON FUNCTION delete_task(uuid) FROM PUBLIC, anon, authenticated;
 REVOKE EXECUTE ON FUNCTION toggle_task_pause(uuid) FROM PUBLIC, anon, authenticated;
 REVOKE EXECUTE ON FUNCTION apply_manual_adjustment(uuid, text, text, integer, text) FROM PUBLIC, anon, authenticated;
