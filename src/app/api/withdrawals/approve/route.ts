@@ -49,7 +49,32 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json({ success: true, message: result.message })
     } else {
-      // Reject: update withdrawal status
+      // Reject: verify family ownership before updating
+      const { data: withdrawal, error: fetchError } = await supabase
+        .from('withdrawal_requests')
+        .select('id, status, member_id')
+        .eq('id', withdrawal_id)
+        .single()
+
+      if (fetchError || !withdrawal) {
+        return NextResponse.json({ success: false, error: 'طلب السحب غير موجود' }, { status: 404 })
+      }
+
+      if (withdrawal.status !== 'pending') {
+        return NextResponse.json({ success: false, error: 'تم معالجة هذا الطلب بالفعل' }, { status: 400 })
+      }
+
+      // Verify the withdrawal belongs to a child in the same family
+      const { data: withdrawalMember, error: memberError } = await supabase
+        .from('members')
+        .select('family_id')
+        .eq('id', withdrawal.member_id)
+        .single()
+
+      if (memberError || !withdrawalMember || withdrawalMember.family_id !== member.family_id) {
+        return NextResponse.json({ success: false, error: 'طلب السحب لا ينتمي لعائلتك' }, { status: 403 })
+      }
+
       const { error: updateError } = await supabase
         .from('withdrawal_requests')
         .update({
@@ -58,7 +83,6 @@ export async function POST(request: NextRequest) {
           processed_at: new Date().toISOString(),
         })
         .eq('id', withdrawal_id)
-        .eq('status', 'pending')
 
       if (updateError) {
         return NextResponse.json({ success: false, error: 'حدث خطأ' }, { status: 500 })
