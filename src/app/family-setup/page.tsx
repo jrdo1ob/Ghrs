@@ -22,14 +22,11 @@ export default function FamilySetupPage() {
         return
       }
 
-      // Check if user already has a family
-      const { data: identity } = await supabase
-        .from('auth_identities')
-        .select('member_id')
-        .eq('auth_user_id', user.id)
-        .single()
+      // Check if user already has a family (server-side to avoid direct DB access)
+      const checkResp = await fetch('/api/family-setup/check-identity', { method: 'POST' })
+      const checkData = await checkResp.json()
 
-      if (identity) {
+      if (checkData?.hasFamily) {
         router.push('/dashboard')
         return
       }
