@@ -1,18 +1,21 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createServiceRoleClient } from '@/lib/supabase/service-role'
-import { verifyMembersBelongToFamily } from '@/lib/auth/server-session'
+import { validateRequestAuth, requireParentRole, verifyMembersBelongToFamily } from '@/lib/auth/server-session'
 
 export async function POST(request: NextRequest) {
   try {
-    // 1. Read session token from HttpOnly cookie
-    const sessionToken = request.cookies.get('ghrs_member_session')?.value
-
-    if (!sessionToken) {
-      return NextResponse.json(
-        { success: false, error: 'يجب تسجيل الدخول أولاً' },
-        { status: 401 }
-      )
+    const session = await validateRequestAuth(request)
+    if (!session.success || !session.member) {
+      return NextResponse.json({ success: false, error: session.error }, { status: session.status })
     }
+
+    const roleCheck = requireParentRole(session.member)
+    if (!roleCheck.ok) {
+      return NextResponse.json({ success: false, error: roleCheck.error }, { status: roleCheck.status })
+    }
+
+    const familyId = session.member.family_id
+    const memberId = session.member.member_id
 
     // 2. Parse request body
     const taskData = await request.json()
@@ -24,35 +27,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 3. Validate session using server-side RPC
     const supabase = createServiceRoleClient()
 
-    const { data: sessionData, error: sessionError } = await supabase.rpc('validate_member_session', {
-      p_session_token: sessionToken,
-    })
-
-    if (sessionError || !sessionData || sessionData.length === 0) {
-      return NextResponse.json(
-        { success: false, error: 'جلسة غير صالحة أو منتهية' },
-        { status: 401 }
-      )
-    }
-
-    const member = sessionData[0]
-
-    // 4. Verify role === 'parent' or 'owner'
-    if (member.member_role !== 'parent' && member.member_role !== 'owner') {
-      return NextResponse.json(
-        { success: false, error: 'هذه العملية مخصصة للوالدين فقط' },
-        { status: 403 }
-      )
-    }
-
-    // 5. Force family_id from authenticated session (NOT from browser)
-    const familyId = member.family_id
-    const memberId = member.member_id
-
-    // 5b. Validate assigned_to members belong to the session family
+    // Validate assigned_to members belong to the session family
     const assignedTo = taskData.assigned_to
       ? taskData.assigned_to
       : null

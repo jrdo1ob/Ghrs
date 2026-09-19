@@ -1,17 +1,17 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createServiceRoleClient } from '@/lib/supabase/service-role'
-import { verifyMembersBelongToFamily } from '@/lib/auth/server-session'
+import { validateRequestAuth, requireParentRole, verifyMembersBelongToFamily } from '@/lib/auth/server-session'
 
 export async function POST(request: NextRequest) {
   try {
-    // 1. Read session token from HttpOnly cookie
-    const sessionToken = request.cookies.get('ghrs_member_session')?.value
+    const session = await validateRequestAuth(request)
+    if (!session.success || !session.member) {
+      return NextResponse.json({ success: false, error: session.error }, { status: session.status })
+    }
 
-    if (!sessionToken) {
-      return NextResponse.json(
-        { success: false, error: 'يجب تسجيل الدخول أولاً' },
-        { status: 401 }
-      )
+    const roleCheck = requireParentRole(session.member)
+    if (!roleCheck.ok) {
+      return NextResponse.json({ success: false, error: roleCheck.error }, { status: roleCheck.status })
     }
 
     // 2. Parse request body
@@ -24,31 +24,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 3. Validate session using server-side RPC
+    // 3. Load target task and verify family ownership
     const supabase = createServiceRoleClient()
 
-    const { data: sessionData, error: sessionError } = await supabase.rpc('validate_member_session', {
-      p_session_token: sessionToken,
-    })
-
-    if (sessionError || !sessionData || sessionData.length === 0) {
-      return NextResponse.json(
-        { success: false, error: 'جلسة غير صالحة أو منتهية' },
-        { status: 401 }
-      )
-    }
-
-    const member = sessionData[0]
-
-    // 4. Verify role === 'parent' or 'owner'
-    if (member.member_role !== 'parent' && member.member_role !== 'owner') {
-      return NextResponse.json(
-        { success: false, error: 'هذه العملية مخصصة للوالدين فقط' },
-        { status: 403 }
-      )
-    }
-
-    // 5. Load target task and verify family ownership
     const { data: existingTask, error: taskError } = await supabase
       .from('tasks')
       .select('id, family_id')
@@ -62,7 +40,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (existingTask.family_id !== member.family_id) {
+    if (existingTask.family_id !== session.member.family_id) {
       return NextResponse.json(
         { success: false, error: 'المهمة لا تنتمي لعائلتك' },
         { status: 403 }
@@ -72,7 +50,7 @@ export async function POST(request: NextRequest) {
     let assignedTo = taskData.assigned_to || null
 
     if (assignedTo && Array.isArray(assignedTo) && assignedTo.length > 0) {
-      const ownership = await verifyMembersBelongToFamily(supabase, assignedTo, member.family_id)
+      const ownership = await verifyMembersBelongToFamily(supabase, assignedTo, session.member.family_id)
       if (!ownership.ok) {
         return NextResponse.json(
           { success: false, error: ownership.error },

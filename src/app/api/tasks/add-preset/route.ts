@@ -1,10 +1,10 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createServiceRoleClient } from '@/lib/supabase/service-role'
-import { validateSession, requireParentRole } from '@/lib/auth/server-session'
+import { validateRequestAuth, requireParentRole } from '@/lib/auth/server-session'
 
 export async function POST(request: NextRequest) {
   try {
-    const auth = await validateSession(request)
+    const auth = await validateRequestAuth(request)
     if (!auth.success || !auth.member) {
       return NextResponse.json({ success: false, error: auth.error }, { status: auth.status })
     }
