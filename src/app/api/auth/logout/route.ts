@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createServiceRoleClient } from '@/lib/supabase/service-role'
 
 export async function POST(request: Request) {
   try {
@@ -10,7 +10,7 @@ export async function POST(request: Request) {
 
     if (sessionToken) {
       // Delete session from database
-      const supabase = await createClient()
+      const supabase = createServiceRoleClient()
       await supabase.rpc('logout_member_session', {
         p_session_token: sessionToken,
       })
