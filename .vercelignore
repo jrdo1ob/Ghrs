@@ -30,6 +30,11 @@ Thumbs.db
 # Test files
 *.test.js
 *.spec.js
+*.test.ts
+*.spec.ts
+*.test.tsx
+*.spec.tsx
+e2e/
 
 # TypeScript build info
 *.tsbuildinfo
