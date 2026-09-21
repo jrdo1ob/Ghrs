@@ -1,37 +1,12 @@
 import { NextResponse } from 'next/server'
 import { createServiceRoleClient } from '@/lib/supabase/service-role'
+import { getClientIp } from '@/lib/auth/ip'
 
-// Application-layer rate limiter (defense-in-depth)
-// In-memory store: resets on cold start. Database lockout is the primary boundary.
-const loginAttempts = new Map<string, { count: number; resetAt: number }>()
-const RATE_LIMIT_WINDOW = 60_000 // 1 minute
-const RATE_LIMIT_MAX = 10 // max requests per window per IP
-
-function getClientIp(request: Request): string {
-  const forwarded = request.headers.get('x-forwarded-for')
-  if (forwarded) return forwarded.split(',')[0].trim()
-  const realIp = request.headers.get('x-real-ip')
-  if (realIp) return realIp
-  return 'unknown'
-}
-
-function isRateLimited(ip: string): { limited: boolean; retryAfter: number } {
-  const now = Date.now()
-  const entry = loginAttempts.get(ip)
-
-  if (!entry || now > entry.resetAt) {
-    loginAttempts.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW })
-    return { limited: false, retryAfter: 0 }
-  }
-
-  entry.count++
-  if (entry.count > RATE_LIMIT_MAX) {
-    const retryAfter = Math.ceil((entry.resetAt - now) / 1000)
-    return { limited: true, retryAfter }
-  }
-
-  return { limited: false, retryAfter: 0 }
-}
+// P0.2: Durable rate limiting replaces in-memory limiter.
+// Scope 'member-login:300s' encodes the 5-minute window to prevent collisions.
+const RATE_LIMIT_SCOPE = 'member-login:300s'
+const RATE_LIMIT_WINDOW_SECONDS = 300 // 5 minutes
+const RATE_LIMIT_MAX_ATTEMPTS = 30
 
 export async function POST(request: Request) {
   try {
@@ -45,9 +20,39 @@ export async function POST(request: Request) {
       )
     }
 
-    // Application-layer rate limit (defense-in-depth; database lockout is primary)
+    // Durable rate limit (fail-closed: 503 if limiter cannot be evaluated)
     const ip = getClientIp(request)
-    const { limited, retryAfter } = isRateLimited(ip)
+    const supabase = createServiceRoleClient()
+
+    let limited = false
+    let retryAfter = 0
+
+    try {
+      const { data, error } = await supabase.rpc('check_rate_limit', {
+        p_scope: RATE_LIMIT_SCOPE,
+        p_key: ip,
+        p_window_seconds: RATE_LIMIT_WINDOW_SECONDS,
+        p_max_attempts: RATE_LIMIT_MAX_ATTEMPTS,
+      })
+
+      if (error) {
+        console.error('[GHRS MEMBER LOGIN] Rate limit check failed:', error.message)
+        return NextResponse.json(
+          { success: false, error: 'Service temporarily unavailable' },
+          { status: 503 }
+        )
+      }
+
+      const result = Array.isArray(data) ? data[0] : data
+      limited = !result.allowed
+      retryAfter = result.retry_after ?? 0
+    } catch {
+      return NextResponse.json(
+        { success: false, error: 'Service temporarily unavailable' },
+        { status: 503 }
+      )
+    }
+
     if (limited) {
       return NextResponse.json(
         { success: false, error: 'Too many attempts. Please try again later.' },
@@ -59,8 +64,6 @@ export async function POST(request: Request) {
     }
 
     // Call login RPC using service-role client (bypasses RLS, required after REVOKE)
-    const supabase = createServiceRoleClient()
-
     const { data, error } = await supabase.rpc('login_with_code_and_pin', {
       p_login_code: loginCode.toUpperCase(),
       p_pin: pin,

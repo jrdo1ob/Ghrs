@@ -1,6 +1,14 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createServiceRoleClient } from '@/lib/supabase/service-role'
+import { getClientIp } from '@/lib/auth/ip'
+
+// P0.2: IP-based rate limit BEFORE exchangeCodeForSession.
+// Account identity is NOT available before the PKCE exchange.
+// Scope 'oauth-callback:300s' encodes the 5-minute window.
+const RATE_LIMIT_SCOPE = 'oauth-callback:300s'
+const RATE_LIMIT_WINDOW_SECONDS = 300 // 5 minutes
+const RATE_LIMIT_MAX_ATTEMPTS = 20
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
@@ -22,6 +30,35 @@ export async function GET(request: Request) {
 
   // Handle authorization code
   if (code) {
+    // P0.2: Rate limit BEFORE the expensive PKCE exchange.
+    // Identity is not available at this point — IP is the only safe key.
+    const ip = getClientIp(request)
+    const srvForLimit = createServiceRoleClient()
+
+    try {
+      const { data: limitData, error: limitError } = await srvForLimit.rpc('check_rate_limit', {
+        p_scope: RATE_LIMIT_SCOPE,
+        p_key: ip,
+        p_window_seconds: RATE_LIMIT_WINDOW_SECONDS,
+        p_max_attempts: RATE_LIMIT_MAX_ATTEMPTS,
+      })
+
+      if (limitError) {
+        console.error('[GHRS AUTH CALLBACK] Rate limit check failed:', limitError.message)
+        return new NextResponse('Service temporarily unavailable', { status: 503 })
+      }
+
+      const limitResult = Array.isArray(limitData) ? limitData[0] : limitData
+      if (!limitResult.allowed) {
+        return new NextResponse('Too many requests', {
+          status: 429,
+          headers: { 'Retry-After': String(limitResult.retry_after ?? 0) },
+        })
+      }
+    } catch {
+      return new NextResponse('Service temporarily unavailable', { status: 503 })
+    }
+
     const supabase = await createClient()
 
     console.log('[GHRS AUTH CALLBACK] exchangeCodeForSession started')
