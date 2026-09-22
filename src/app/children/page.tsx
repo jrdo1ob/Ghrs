@@ -27,6 +27,7 @@ export default function ChildrenPage() {
   const [manualModal, setManualModal] = useState<{ child: any; type: 'reward' | 'penalty' } | null>(null)
   const [manualForm, setManualForm] = useState({ reason: '', currencyType: 'xp' as 'xp' | 'money', amount: 10 })
   const [processingId, setProcessingId] = useState<string | null>(null)
+  const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string } | null>(null)
   const router = useRouter()
 
   useEffect(() => {
@@ -102,7 +103,6 @@ export default function ChildrenPage() {
   }
 
   const handleDelete = async (memberId: string, memberName: string) => {
-    if (!confirm(`هل أنت متأكد من حذف "${memberName}"؟`)) return
     const response = await fetch('/api/members/delete', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -113,6 +113,7 @@ export default function ChildrenPage() {
     setChildren(children.filter(c => c.id !== memberId))
     setParents(parents.filter(p => p.id !== memberId))
     setToast({ type: 'success', message: `تم حذف ${memberName}` })
+    setDeleteConfirm(null)
   }
 
   const handleManualAdjustment = async () => {
@@ -180,6 +181,18 @@ export default function ChildrenPage() {
   return (
     <div className="min-h-screen" style={{ background: 'var(--ghrs-bg-primary)' }}>
       {toast && <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />}
+      {deleteConfirm && (
+        <ConfirmDialog
+          show={!!deleteConfirm}
+          title="حذف الفرد"
+          message={`هل أنت متأكد من حذف "${deleteConfirm.name}"؟ لا يمكن التراجع عن هذا الإجراء.`}
+          confirmText="حذف"
+          cancelText="إلغاء"
+          variant="danger"
+          onConfirm={() => handleDelete(deleteConfirm.id, deleteConfirm.name)}
+          onCancel={() => setDeleteConfirm(null)}
+        />
+      )}
       {manualModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.5)' }} onClick={() => setManualModal(null)}>
           <div className="ghrs-card p-6 w-full max-w-md ghrs-animate-scale-in" onClick={e => e.stopPropagation()}>
@@ -327,12 +340,17 @@ export default function ChildrenPage() {
                           }}>
                             {member.role === 'owner' ? 'مالك' : member.role === 'parent' ? 'ولي أمر' : 'طفل'}
                           </span>
+                          {member.role === 'child' && (
+                            <Link href={`/children/${member.id}`} className="text-[10px] font-semibold mt-1 inline-block" style={{ color: 'var(--ghrs-green-600)' }}>
+                              التفاصيل ←
+                            </Link>
+                          )}
                         </div>
                       </div>
                       <div className="flex gap-1.5 flex-shrink-0">
                         <button onClick={() => { setEditingId(member.id); setEditName(member.name); setEditPin(''); setError('') }} className="p-2 rounded-lg" style={{ background: 'var(--ghrs-bg-secondary)', color: 'var(--ghrs-text-secondary)' }}><EditIcon size={14} /></button>
                         {member.role !== 'owner' && (
-                          <button onClick={() => handleDelete(member.id, member.name)} className="p-2 rounded-lg" style={{ background: 'var(--ghrs-red-50)', color: 'var(--ghrs-red-600)' }}><DeleteIcon size={14} /></button>
+                          <button onClick={() => setDeleteConfirm({ id: member.id, name: member.name })} className="p-2 rounded-lg" style={{ background: 'var(--ghrs-red-50)', color: 'var(--ghrs-red-600)' }}><DeleteIcon size={14} /></button>
                         )}
                       </div>
                     </div>

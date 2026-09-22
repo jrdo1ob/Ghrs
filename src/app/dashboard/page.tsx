@@ -8,6 +8,7 @@ import { ParentBottomNav, ParentSidebar, PageHeader, EmptyState } from '@/compon
 import { getCurrentUser, clearAuth, AuthUser } from '@/lib/auth/helper'
 import { useFamilyCurrency } from '@/hooks/useFamilyCurrency'
 import { ChildIcon, TasksIcon, ClockIcon, CopyIcon, GiftsIcon, CoinIcon, TrophyIcon, BookIcon, LeafIcon, GardenIcon, SettingsIcon, StarIcon, CheckIcon } from '@/components/icons'
+import OnboardingWizard from '@/components/OnboardingWizard'
 
 export default function DashboardPage() {
   const [authUser, setAuthUser] = useState<AuthUser | null>(null)
@@ -100,6 +101,16 @@ export default function DashboardPage() {
             title={`مرحباً ${authUser?.name}`}
             subtitle={family?.name}
           />
+
+          {/* Onboarding wizard for new families */}
+          {family?.id && (
+            <OnboardingWizard
+              familyId={family.id}
+              childCount={children.length}
+              taskCount={tasks.length}
+              onComplete={() => {}}
+            />
+          )}
 
           {/* Stats grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
