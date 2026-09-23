@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { useTheme, Theme } from '@/lib/theme/provider'
 import GHRSLogo from '@/components/GHRSLogo'
-import { TasksIcon, GiftsIcon, XPIcon, StreakIcon, GardenIcon, ChildIcon, BookIcon, CopyIcon, SettingsIcon, CheckIcon, RejectIcon, UserIcon, SparkleIcon, CoinIcon, ClockIcon, HomeIcon } from '@/components/icons'
+import { TasksIcon, GiftsIcon, XPIcon, StreakIcon, GardenIcon, ChildIcon, BookIcon, CopyIcon, SettingsIcon, CheckIcon, RejectIcon, UserIcon, SparkleIcon, CoinIcon, ClockIcon, HomeIcon, TrophyIcon } from '@/components/icons'
 
 /* ===== Parent Bottom Navigation (Mobile) ===== */
 export function ParentBottomNav() {
@@ -16,6 +16,7 @@ export function ParentBottomNav() {
     { href: '/children', label: 'الأبناء', icon: <ChildIcon size={20} /> },
     { href: '/tasks', label: 'المهام', icon: <TasksIcon size={20} /> },
     { href: '/rewards', label: 'المكافآت', icon: <GiftsIcon size={20} /> },
+    { href: '/analytics', label: 'التحليلات', icon: <TrophyIcon size={20} /> },
     { href: '/settings', label: 'المزيد', icon: <SettingsIcon size={20} /> },
   ]
 
@@ -57,6 +58,7 @@ export function ParentSidebar() {
   ]
 
   const moreTabs = [
+    { href: '/analytics', label: 'التحليلات', icon: <TrophyIcon size={18} /> },
     { href: '/activity', label: 'سجل النشاط', icon: <ClockIcon size={18} /> },
     { href: '/ledger', label: 'سجل المعاملات', icon: <CoinIcon size={18} /> },
     { href: '/payments', label: 'الأموال', icon: <XPIcon size={18} /> },

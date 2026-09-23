@@ -346,6 +346,15 @@ export default function DashboardPage() {
                   <p className="text-sm font-semibold truncate" style={{ color: 'var(--ghrs-text-primary)' }}>الإعدادات</p>
                 </div>
               </Link>
+
+              <Link href="/analytics" className="ghrs-card p-3 ghrs-card-interactive">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'var(--ghrs-purple-50)' }}>
+                    <TrophyIcon size={20} color="var(--ghrs-purple-600)" />
+                  </div>
+                  <p className="text-sm font-semibold truncate" style={{ color: 'var(--ghrs-text-primary)' }}>التحليلات</p>
+                </div>
+              </Link>
             </div>
           </div>
 

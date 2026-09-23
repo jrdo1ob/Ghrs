@@ -36,6 +36,7 @@ const parentOnlyRoutes = [
   '/presets',
   '/reward-bank',
   '/gift-approvals',
+  '/analytics',
 ]
 
 const childOnlyRoutes = [
