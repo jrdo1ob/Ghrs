@@ -887,16 +887,28 @@ Product Phase 2 is **PASS — PRODUCTION VERIFIED**. Proceed to **Product Phase 
 
 | Attribute | Value |
 |---|---|
-| **Status** | **TODO / PLANNING** |
-| **Date** | 2026-09-22 |
+| **Status** | **IN PROGRESS** |
+| **Date** | 2026-09-23 |
 
-**Candidate scope:**
-- Parent Analytics Dashboard — Visualize child progress over time
-- Trends — XP/BHD trends, task completion rates
-- Child Progress Insights — Per-child performance comparison
-- Reports — Exportable or viewable summary reports
+**Implemented Items:**
 
-**Important:** Do not implement yet. Scope must be defined.
+#### Phase 3A.1: Analytics Summary API — PASS
+
+| Attribute | Value |
+|---|---|
+| **File** | `src/app/api/analytics/summary/route.ts` (NEW) |
+| **E2E** | `e2e/security/p3-analytics-summary.spec.ts` (NEW) |
+| **Commit** | `bbd61e909422cb5283c023583561f6930d448733` |
+| **Status** | IMPLEMENTED |
+| **Features** | POST endpoint returning per-child analytics summary: XP earned, money earned, tasks completed, tasks approved within a configurable date range. Supports optional `childId` filter, `from`/`to` date range (default 30 days, max 365 days). Server-authoritative, family-scoped. |
+| **Security** | `validateRequestAuth` + `requireParentRole`; family isolation via `session.member.family_id`; cross-family childId rejected (403); unauthenticated → 401; child role → 403; client-supplied family_id ignored |
+
+**Remaining Candidate Scope:**
+- Phase 3A.2: Analytics Trends API (time-series data) — TODO
+- Phase 3B: Analytics Dashboard UI — TODO
+- Phase 3C: Child Progress Comparison — TODO
+
+**Important:** Phase 3 is IN PROGRESS. Only 3A.1 is complete.
 
 ---
 
