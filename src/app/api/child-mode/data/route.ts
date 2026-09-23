@@ -58,6 +58,16 @@ export async function POST(request: NextRequest) {
 
       const recentManual = allXp.find(t => t.source === 'manual' && new Date(t.created_at) >= new Date(fiveMinAgo))
 
+      // Get daily goal data
+      const { data: goalData } = await supabase
+        .from('daily_goals')
+        .select('target_tasks')
+        .eq('member_id', memberId)
+        .single()
+
+      const dailyGoalTarget = goalData?.target_tasks || 3
+      const completedTodayCount = (completionsResult.data || []).filter((c: any) => c.approved).length
+
       return NextResponse.json({
         success: true,
         member: { name: memberData.name, current_streak: memberData.current_streak },
@@ -67,6 +77,11 @@ export async function POST(request: NextRequest) {
         money_balance: (moneyResult.data || []).reduce((sum, t) => sum + (t.type === 'earned' ? t.amount : -t.amount), 0),
         completed_today: (completionsResult.data || []).filter(c => c.approved).map(c => c.task_id),
         pending_today: (completionsResult.data || []).filter(c => c.approved === null).map(c => c.task_id),
+        daily_goal: {
+          target: dailyGoalTarget,
+          completed: completedTodayCount,
+          reached: completedTodayCount >= dailyGoalTarget,
+        },
         recent_manual: recentManual ? {
           type: recentManual.amount > 0 ? 'success' : 'error',
           message: recentManual.amount > 0
@@ -185,19 +200,36 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // 'profile' — profile summary
-    const [xpResult, tasksResult, completionsResult] = await Promise.all([
+    // 'profile' — profile summary with DB-driven achievements
+    const [xpResult, tasksResult, completionsResult, achievementsResult, allAchievementsResult] = await Promise.all([
       supabase.from('xp_transactions').select('amount').eq('member_id', memberId),
       supabase.from('tasks').select('id').eq('family_id', familyId).eq('is_active', true),
       supabase.from('task_completions').select('id').eq('member_id', memberId),
+      supabase.from('member_achievements').select('achievement_id, earned_at').eq('member_id', memberId),
+      supabase.from('achievement_definitions').select('id, title, description, icon, requirement_type, requirement_value'),
     ])
+
+    // Build achievement list with unlock status
+    const earnedSet = new Set((achievementsResult.data || []).map((a: any) => a.achievement_id))
+    const achievements = (allAchievementsResult.data || []).map((def: any) => ({
+      id: def.id,
+      title: def.title,
+      description: def.description,
+      icon: def.icon,
+      unlocked: earnedSet.has(def.id),
+      requirement_type: def.requirement_type,
+      requirement_value: def.requirement_value,
+    }))
 
     return NextResponse.json({
       success: true,
-      member: { name: memberData.name, current_streak: memberData.current_streak },
-      xp: (xpResult.data || []).reduce((sum, t) => sum + t.amount, 0),
+      member: { name: memberData.name, current_streak: memberData.current_streak, longest_streak: memberData.longest_streak, grace_shields: memberData.grace_shields },
+      xp: (xpResult.data || []).reduce((sum: number, t: any) => sum + t.amount, 0),
       total_tasks: tasksResult.data?.length || 0,
       completed_tasks: completionsResult.data?.length || 0,
+      achievements,
+      unlocked_count: achievements.filter((a: any) => a.unlocked).length,
+      total_achievements: achievements.length,
     })
   } catch (err) {
     console.error('[GHRS CHILD-MODE DATA] Unexpected error:', err)

@@ -28,6 +28,8 @@ export default function ChildrenPage() {
   const [manualForm, setManualForm] = useState({ reason: '', currencyType: 'xp' as 'xp' | 'money', amount: 10 })
   const [processingId, setProcessingId] = useState<string | null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string } | null>(null)
+  const [goalModal, setGoalModal] = useState<{ childId: string; childName: string; currentTarget: number } | null>(null)
+  const [goalTarget, setGoalTarget] = useState(3)
   const router = useRouter()
 
   useEffect(() => {
@@ -153,6 +155,30 @@ export default function ChildrenPage() {
     setManualForm({ reason: '', currencyType: 'xp', amount: 10 })
   }
 
+  const handleSetGoal = async () => {
+    if (!goalModal) return
+    setProcessingId(goalModal.childId)
+
+    const response = await fetch('/api/child-mode/daily-goal', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        child_id: goalModal.childId,
+        target_tasks: goalTarget,
+      }),
+    })
+
+    const data = await response.json()
+
+    if (!response.ok || !data.success) {
+      setToast({ type: 'error', message: data.error || 'حدث خطأ' })
+      setProcessingId(null); setGoalModal(null); return
+    }
+
+    setToast({ type: 'success', message: `تم تحديد الهدف اليومي: ${goalTarget} مهام` })
+    setProcessingId(null); setGoalModal(null)
+  }
+
   const copyLoginCode = async (code: string) => {
     await navigator.clipboard.writeText(code); setCopiedId(code); setTimeout(() => setCopiedId(null), 2000)
   }
@@ -193,6 +219,33 @@ export default function ChildrenPage() {
           onCancel={() => setDeleteConfirm(null)}
         />
       )}
+      {goalModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.5)' }} onClick={() => setGoalModal(null)}>
+          <div className="ghrs-card p-6 w-full max-w-md ghrs-animate-scale-in" onClick={e => e.stopPropagation()}>
+            <h2 className="text-lg font-bold mb-2" style={{ color: 'var(--ghrs-amber-600)' }}>
+              🎯 تحديد الهدف اليومي
+            </h2>
+            <p className="text-sm mb-4" style={{ color: 'var(--ghrs-text-secondary)' }}>
+              حدد عدد المهام اليومية التي يجب على {goalModal.childName} إنجازها
+            </p>
+
+            <div className="space-y-3">
+              <label className="text-xs font-bold" style={{ color: 'var(--ghrs-text-secondary)' }}>عدد المهام</label>
+              <input type="number" min="1" max="20" value={goalTarget} onChange={e => setGoalTarget(parseInt(e.target.value) || 1)} className="ghrs-input w-full text-center text-lg font-bold tabular-nums" />
+            </div>
+
+            <div className="flex gap-2 mt-5">
+              <button onClick={handleSetGoal} disabled={processingId === goalModal.childId}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold transition-all"
+                style={{ background: 'var(--ghrs-amber-500)', color: 'white', opacity: processingId === goalModal.childId ? 0.6 : 1 }}>
+                🎯 حفظ الهدف
+              </button>
+              <button onClick={() => setGoalModal(null)} className="ghrs-btn-secondary">إلغاء</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {manualModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.5)' }} onClick={() => setManualModal(null)}>
           <div className="ghrs-card p-6 w-full max-w-md ghrs-animate-scale-in" onClick={e => e.stopPropagation()}>
@@ -367,6 +420,11 @@ export default function ChildrenPage() {
                           className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all"
                           style={{ background: 'var(--ghrs-red-50)', color: 'var(--ghrs-red-600)', border: '1px solid var(--ghrs-red-200)' }}>
                           <ShieldIcon size={12} /> خصم / عقاب
+                        </button>
+                        <button onClick={() => { setGoalModal({ childId: member.id, childName: member.name, currentTarget: 3 }); setGoalTarget(3) }}
+                          className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all"
+                          style={{ background: 'var(--ghrs-amber-50)', color: 'var(--ghrs-amber-700)', border: '1px solid var(--ghrs-amber-200)' }}>
+                          🎯 هدف يومي
                         </button>
                       </div>
                     )}

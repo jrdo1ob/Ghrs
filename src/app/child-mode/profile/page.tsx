@@ -16,6 +16,7 @@ export default function ChildProfilePage() {
   const [totalTasks, setTotalTasks] = useState(0)
   const [completedTasks, setCompletedTasks] = useState(0)
   const [streak, setStreak] = useState(0)
+  const [achievements, setAchievements] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const router = useRouter()
 
@@ -43,6 +44,7 @@ export default function ChildProfilePage() {
       setTotalTasks(result.total_tasks)
       setCompletedTasks(result.completed_tasks)
       setStreak(result.member.current_streak || 0)
+      setAchievements(result.achievements || [])
       setLoading(false)
     }
 
@@ -65,54 +67,32 @@ export default function ChildProfilePage() {
     return <ChildLoading text="جاري تحميل الملف..." icon="👤" />
   }
 
-  // Achievement calculations (all existing logic preserved)
-  const achievements = [
-    {
-      title: 'جامع النقاط',
-      description: 'اجمع 500 نقطة خبرة',
-      icon: '⭐',
-      unlocked: xp >= 500,
-      progress: { current: xp, max: 500 },
-    },
-    {
-      title: 'المهام النشطة',
-      description: 'أكمل 10 مهام',
-      icon: '📋',
-      unlocked: completedTasks >= 10,
-      progress: { current: completedTasks, max: 10 },
-    },
-    {
-      title: 'محارب الإنجاز',
-      description: 'حافظ على سلسلة 7 أيام',
-      icon: '🔥',
-      unlocked: streak >= 7,
-      progress: { current: streak, max: 7 },
-    },
-    {
-      title: 'المستوى العالي',
-      description: 'وصّل إلى المستوى 4',
-      icon: '🌳',
-      unlocked: level.level >= 4,
-      progress: { current: level.level, max: 4 },
-    },
-    {
-      title: 'حديقة كاملة',
-      description: 'اصل إلى أعلى مستوى',
-      icon: '🏡',
-      unlocked: level.level >= 6,
-      progress: { current: level.level, max: 6 },
-    },
-    {
-      title: 'درع الحماية',
-      description: 'احصل على 3 دروع حماية',
-      icon: '🛡️',
-      unlocked: (member?.grace_shields || 0) >= 3,
-      progress: { current: member?.grace_shields || 0, max: 3 },
-    },
-  ]
+  // Achievements are now DB-driven from the API response
+  // Compute progress based on requirement_type and current stats
+  const achievementsWithProgress = achievements.map((a: any) => {
+    let current = 0
+    switch (a.requirement_type) {
+      case 'xp_total':
+        current = xp
+        break
+      case 'tasks_completed':
+        current = completedTasks
+        break
+      case 'streak':
+      case 'streak_days':
+        current = streak
+        break
+      default:
+        current = 0
+    }
+    return {
+      ...a,
+      progress: { current, max: a.requirement_value },
+    }
+  })
 
-  const unlockedCount = achievements.filter(a => a.unlocked).length
-  const totalAchievements = achievements.length
+  const unlockedCount = achievementsWithProgress.filter((a: any) => a.unlocked).length
+  const totalAchievements = achievementsWithProgress.length
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--ghrs-bg-primary)' }}>
@@ -185,7 +165,7 @@ export default function ChildProfilePage() {
           </div>
 
           <div className="space-y-2">
-            {achievements.map((achievement, i) => (
+            {achievementsWithProgress.map((achievement: any, i: number) => (
               <AchievementBadge
                 key={i}
                 title={achievement.title}

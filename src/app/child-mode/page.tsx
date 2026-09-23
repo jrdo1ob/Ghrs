@@ -35,6 +35,7 @@ export default function ChildModePage() {
   const [streak, setStreak] = useState(0)
   const [moneyBalance, setMoneyBalance] = useState(0)
   const [completingTask, setCompletingTask] = useState<string | null>(null)
+  const [dailyGoal, setDailyGoal] = useState<{ target: number; completed: number; reached: boolean } | null>(null)
   const [showCelebration, setShowCelebration] = useState(false)
   const [celebrationLevel, setCelebrationLevel] = useState<Level | null>(null)
   const [showConfetti, setShowConfetti] = useState(false)
@@ -77,6 +78,9 @@ export default function ChildModePage() {
         setMoneyBalance(result.money_balance)
         setCompletedToday(result.completed_today)
         setPendingToday(result.pending_today)
+        if (result.daily_goal) {
+          setDailyGoal(result.daily_goal)
+        }
 
         if (result.recent_manual) {
           setTimeout(() => {
@@ -108,6 +112,30 @@ export default function ChildModePage() {
     }
     prevLevelRef.current = level
   }, [level, play])
+
+  // Daily goal celebration
+  const prevGoalRef = useRef<boolean>(false)
+  useEffect(() => {
+    if (dailyGoal && dailyGoal.reached && !prevGoalRef.current) {
+      setShowConfetti(true)
+      setTimeout(() => setShowConfetti(false), 2500)
+      play('complete')
+      setToast({ type: 'success', message: '🎯 أحسنت! أنجزت هدفك اليومي!' })
+    }
+    prevGoalRef.current = dailyGoal?.reached || false
+  }, [dailyGoal, play])
+
+  // Streak milestone celebration
+  const prevStreakRef = useRef<number>(0)
+  useEffect(() => {
+    if (streak > 0 && streak > prevStreakRef.current && (streak === 7 || streak === 14 || streak === 21 || streak === 30)) {
+      setShowConfetti(true)
+      setTimeout(() => setShowConfetti(false), 2500)
+      play('levelup')
+      setToast({ type: 'success', message: `🔥 مبروك! سلسلة ${streak} أيام متتالية!` })
+    }
+    prevStreakRef.current = streak
+  }, [streak, play])
 
   const handleCompleteTask = async (taskId: string) => {
     const authUser = await getCurrentUser()
@@ -448,6 +476,41 @@ export default function ChildModePage() {
                       }}
                     />
                   </div>
+                </div>
+              )}
+
+              {/* Daily Goal */}
+              {dailyGoal && dailyGoal.target > 0 && (
+                <div
+                  className="mb-3 rounded-xl px-3 py-2 flex items-center justify-between"
+                  style={{
+                    background: dailyGoal.reached
+                      ? 'var(--ghrs-surface-success)'
+                      : 'var(--ghrs-bg-card)',
+                    border: `1px solid ${dailyGoal.reached ? 'var(--ghrs-green-200)' : 'var(--ghrs-border-default)'}`,
+                  }}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm">
+                      {dailyGoal.reached ? '🎉' : '🎯'}
+                    </span>
+                    <span
+                      className="text-xs font-bold"
+                      style={{ color: 'var(--ghrs-text-primary)' }}
+                    >
+                      الهدف اليومي
+                    </span>
+                  </div>
+                  <span
+                    className="text-xs font-bold tabular-nums"
+                    style={{
+                      color: dailyGoal.reached
+                        ? 'var(--ghrs-green-700)'
+                        : 'var(--ghrs-text-secondary)',
+                    }}
+                  >
+                    {dailyGoal.completed}/{dailyGoal.target}
+                  </span>
                 </div>
               )}
 
