@@ -915,11 +915,23 @@ Product Phase 2 is **PASS — PRODUCTION VERIFIED**. Proceed to **Product Phase 
 | **Security** | `validateRequestAuth` + `requireParentRole`; family isolation via `session.member.family_id`; cross-family childId rejected (403); unauthenticated → 401; child role → 403; client-supplied family_id ignored |
 | **E2E Count** | 17 tests: auth, structure, daily/weekly granularity, date range, child filtering, cross-family isolation, XP earned vs deductions, money earned semantics, task completion/approval semantics, empty periods, range exclusion, multiple children |
 
+#### Phase 3B: Analytics Dashboard — PASS
+
+| Attribute | Value |
+|---|---|
+| **File** | `src/app/analytics/page.tsx` (NEW) |
+| **E2E** | `e2e/security/p3b-analytics-dashboard.spec.ts` (NEW) |
+| **Commit** | `fb8cda6` |
+| **Status** | IMPLEMENTED |
+| **Features** | Parent-only analytics dashboard consuming `/api/analytics/summary` and `/api/analytics/trends`. Date-range selector (7/30/90 days), child filter, family summary stats (XP, BHD, tasks completed/approved), child snapshot with streak estimation, horizontal metric bars for trend visualization, compact bucket rows. Arabic RTL, responsive, dark mode compatible. |
+| **Security** | Middleware-protected (`/analytics` in `parentOnlyRoutes`); unauthenticated → redirect to `/owner-login`; child → redirect to `/child-mode`; APIs remain server-authoritative |
+| **Navigation** | Added to desktop sidebar (more section) and mobile bottom nav |
+| **E2E Count** | 11 tests: unauthenticated redirect, child blocked, parent loads, API integration, date range selection, child selection, stat cards render, no fake values, empty state, dashboard regression, child-mode regression |
+
 **Remaining Candidate Scope:**
-- Phase 3B: Analytics Dashboard UI — TODO
 - Phase 3C: Child Progress Comparison — TODO
 
-**Important:** Phase 3 is IN PROGRESS. 3A.1 and 3A.2 are complete.
+**Important:** Phase 3 is IN PROGRESS. 3A.1, 3A.2, and 3B are complete.
 
 ---
 
