@@ -903,12 +903,23 @@ Product Phase 2 is **PASS — PRODUCTION VERIFIED**. Proceed to **Product Phase 
 | **Features** | POST endpoint returning per-child analytics summary: XP earned, money earned, tasks completed, tasks approved within a configurable date range. Supports optional `childId` filter, `from`/`to` date range (default 30 days, max 365 days). Server-authoritative, family-scoped. |
 | **Security** | `validateRequestAuth` + `requireParentRole`; family isolation via `session.member.family_id`; cross-family childId rejected (403); unauthenticated → 401; child role → 403; client-supplied family_id ignored |
 
+#### Phase 3A.2: Analytics Trends API — PASS
+
+| Attribute | Value |
+|---|---|
+| **File** | `src/app/api/analytics/trends/route.ts` (NEW) |
+| **E2E** | `e2e/security/p3-analytics-trends.spec.ts` (NEW) |
+| **Commit** | `8e3aa22` |
+| **Status** | IMPLEMENTED |
+| **Features** | POST endpoint returning per-child time-series analytics: XP earned, XP deductions, money earned, tasks completed, tasks approved. Server-side time bucketing with configurable granularity (`day`/`week`). Zero-filled empty periods. Optional `childId` filter, `from`/`to` date range (default 30 days, max 365 days). Server-authoritative, family-scoped. |
+| **Security** | `validateRequestAuth` + `requireParentRole`; family isolation via `session.member.family_id`; cross-family childId rejected (403); unauthenticated → 401; child role → 403; client-supplied family_id ignored |
+| **E2E Count** | 17 tests: auth, structure, daily/weekly granularity, date range, child filtering, cross-family isolation, XP earned vs deductions, money earned semantics, task completion/approval semantics, empty periods, range exclusion, multiple children |
+
 **Remaining Candidate Scope:**
-- Phase 3A.2: Analytics Trends API (time-series data) — TODO
 - Phase 3B: Analytics Dashboard UI — TODO
 - Phase 3C: Child Progress Comparison — TODO
 
-**Important:** Phase 3 is IN PROGRESS. Only 3A.1 is complete.
+**Important:** Phase 3 is IN PROGRESS. 3A.1 and 3A.2 are complete.
 
 ---
 
