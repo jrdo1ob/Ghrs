@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createServiceRoleClient } from '@/lib/supabase/service-role';
 import { getClientIp } from '@/lib/auth/ip';
+import { logError, logAuthSuccess, logAuthFailure } from '@/lib/logger';
 
 // P0.2: IP-based rate limit BEFORE exchangeCodeForSession.
 // Account identity is NOT available before the PKCE exchange.
@@ -17,13 +18,15 @@ export async function GET(request: Request) {
   const error = searchParams.get('error');
   const errorDescription = searchParams.get('error_description');
 
-  console.log('[GHRS AUTH CALLBACK] callback reached');
+  logAuthSuccess('auth.oauth.callback.received');
 
   // Handle OAuth errors
   if (error) {
     const errorMessage = errorDescription || error;
-    console.error('[GHRS AUTH CALLBACK] OAuth error:', errorMessage);
-    return NextResponse.redirect(`${origin}/owner-login?error=${encodeURIComponent(errorMessage)}`);
+    logAuthFailure('auth.oauth.error', { reason: errorMessage });
+    return NextResponse.redirect(
+      `${origin}/owner-login?error=${encodeURIComponent('حدث خطأ أثناء المصادقة')}`
+    );
   }
 
   // Handle authorization code
@@ -42,34 +45,39 @@ export async function GET(request: Request) {
       });
 
       if (limitError) {
-        console.error('[GHRS AUTH CALLBACK] Rate limit check failed:', limitError.message);
+        logError('auth.rate_limit.error', 'Rate limit check failed', { ip });
         return new NextResponse('Service temporarily unavailable', { status: 503 });
       }
 
       const limitResult = Array.isArray(limitData) ? limitData[0] : limitData;
       if (!limitResult.allowed) {
+        logAuthFailure('auth.rate_limit.exceeded', { ip });
         return new NextResponse('Too many requests', {
           status: 429,
           headers: { 'Retry-After': String(limitResult.retry_after ?? 0) },
         });
       }
     } catch {
-      return new NextResponse('Service temporarily unavailable', { status: 503 });
+      logError('auth.rate_limit.exception', 'Rate limit check threw exception', { ip });
+      return new NextResponse('Service temporarily available', { status: 503 });
     }
 
     const supabase = await createClient();
 
-    console.log('[GHRS AUTH CALLBACK] exchangeCodeForSession started');
+    logAuthSuccess('auth.oauth.exchange_started');
     const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
 
     if (exchangeError) {
-      console.error('[GHRS AUTH CALLBACK] exchangeCodeForSession error:', exchangeError.message);
+      // Server-side: log the full error for diagnostics
+      logError('auth.oauth.exchange_failed', exchangeError.message);
+
+      // Client-side: return SAFE generic error (no internal details)
       return NextResponse.redirect(
-        `${origin}/owner-login?error=${encodeURIComponent('فشل في تبديل كود المصادقة: ' + exchangeError.message)}`
+        `${origin}/owner-login?error=${encodeURIComponent('فشل في تبديل كود المصادقة')}`
       );
     }
 
-    console.log('[GHRS AUTH CALLBACK] exchangeCodeForSession success');
+    logAuthSuccess('auth.oauth.exchange_succeeded');
 
     if (data?.user) {
       // Use service-role client for database queries and RPC calls
@@ -84,7 +92,7 @@ export async function GET(request: Request) {
         .single();
 
       if (identityError || !identity?.member_id) {
-        console.error('[GHRS AUTH CALLBACK] identity lookup failed:', identityError?.message);
+        logError('auth.oauth.identity_missing', 'No member identity found for OAuth user');
         return NextResponse.redirect(`${origin}/family-setup`);
       }
 
@@ -94,14 +102,19 @@ export async function GET(request: Request) {
       });
 
       if (sessionError || !sessionToken) {
-        console.error(
-          '[GHRS AUTH CALLBACK] Failed to create OAuth session:',
-          sessionError?.message
+        logError(
+          'auth.oauth.session_create_failed',
+          sessionError?.message || 'Session creation failed',
+          {
+            member_id: identity.member_id,
+          }
         );
         return NextResponse.redirect(
           `${origin}/owner-login?error=${encodeURIComponent('فشل إنشاء الجلسة')}`
         );
       }
+
+      logAuthSuccess('auth.login.success', { member_id: identity.member_id, via: 'oauth' });
 
       const response = NextResponse.redirect(`${origin}/dashboard`);
 

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createServiceRoleClient } from '@/lib/supabase/service-role';
+import { logAuthSuccess, logError } from '@/lib/logger';
 
 export async function POST(request: Request) {
   try {
@@ -14,6 +15,7 @@ export async function POST(request: Request) {
       await supabase.rpc('logout_member_session', {
         p_session_token: sessionToken,
       });
+      logAuthSuccess('auth.logout.success');
     }
 
     // Create response
@@ -30,7 +32,7 @@ export async function POST(request: Request) {
 
     return response;
   } catch (err) {
-    console.error('[GHRS LOGOUT] Unexpected error:', err);
+    logError('auth.logout.error', 'Logout error occurred');
     // Still clear cookie even if database operation fails
     const response = NextResponse.json({ success: true });
     response.cookies.set('ghrs_member_session', '', {

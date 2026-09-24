@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { validateRequestAuth } from '@/lib/auth/server-session';
+import { logAuthFailure, logError } from '@/lib/logger';
 
 export async function POST(request: NextRequest) {
   try {
@@ -9,6 +10,7 @@ export async function POST(request: NextRequest) {
     const result = await validateRequestAuth(request);
 
     if (!result.success || !result.member) {
+      logAuthFailure('auth.session.invalid', { reason: result.error || 'no_session' });
       return NextResponse.json(
         { success: false, error: result.error || 'No session found' },
         { status: result.status || 401 }
@@ -26,7 +28,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (err) {
-    console.error('[GHRS VALIDATE SESSION] Unexpected error:', err);
+    logError('auth.session.unexpected', 'Session validation error');
     return NextResponse.json(
       { success: false, error: 'Session validation failed' },
       { status: 500 }

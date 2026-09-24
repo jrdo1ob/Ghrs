@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createServiceRoleClient } from '@/lib/supabase/service-role';
 import { getClientIp } from '@/lib/auth/ip';
+import { logError, logAuthSuccess, logAuthFailure } from '@/lib/logger';
 
 // P0.2: Durable rate limiting replaces in-memory limiter.
 // Scope 'member-login:300s' encodes the 5-minute window to prevent collisions.
@@ -14,6 +15,7 @@ export async function POST(request: Request) {
 
     // Validate input
     if (!loginCode || !pin) {
+      logAuthFailure('auth.login.missing_input');
       return NextResponse.json({ success: false, error: 'الكود والرمز مطلوبان' }, { status: 400 });
     }
 
@@ -33,7 +35,7 @@ export async function POST(request: Request) {
       });
 
       if (error) {
-        console.error('[GHRS MEMBER LOGIN] Rate limit check failed:', error.message);
+        logError('auth.rate_limit.error', 'Rate limit check failed', { ip });
         return NextResponse.json(
           { success: false, error: 'Service temporarily unavailable' },
           { status: 503 }
@@ -44,6 +46,7 @@ export async function POST(request: Request) {
       limited = !result.allowed;
       retryAfter = result.retry_after ?? 0;
     } catch {
+      logError('auth.rate_limit.exception', 'Rate limit check threw exception', { ip });
       return NextResponse.json(
         { success: false, error: 'Service temporarily unavailable' },
         { status: 503 }
@@ -51,6 +54,7 @@ export async function POST(request: Request) {
     }
 
     if (limited) {
+      logAuthFailure('auth.login.rate_limited', { ip });
       return NextResponse.json(
         { success: false, error: 'Too many attempts. Please try again later.' },
         {
@@ -67,7 +71,7 @@ export async function POST(request: Request) {
     });
 
     if (error) {
-      console.error('[GHRS MEMBER LOGIN] RPC error:', error.message);
+      logAuthFailure('auth.login.rpc_error', { reason: 'invalid_credentials' });
       return NextResponse.json(
         { success: false, error: 'الكود أو الرمز غير صحيح' },
         { status: 401 }
@@ -75,6 +79,7 @@ export async function POST(request: Request) {
     }
 
     if (!data || data.length === 0) {
+      logAuthFailure('auth.login.no_result', { reason: 'empty_rpc_result' });
       return NextResponse.json(
         { success: false, error: 'الكود أو الرمز غير صحيح' },
         { status: 401 }
@@ -85,6 +90,12 @@ export async function POST(request: Request) {
     const sessionToken = sessionData.session_token;
     const memberRole = sessionData.member_role;
     const memberName = sessionData.member_name;
+
+    logAuthSuccess('auth.login.success', {
+      member_id: sessionData.member_id,
+      role: memberRole,
+      via: 'code_pin',
+    });
 
     // Create response
     const response = NextResponse.json({
@@ -105,7 +116,7 @@ export async function POST(request: Request) {
 
     return response;
   } catch (err) {
-    console.error('[GHRS MEMBER LOGIN] Unexpected error:', err);
+    logError('auth.login.unexpected', 'Unexpected login error');
     return NextResponse.json({ success: false, error: 'حدث خطأ غير متوقع' }, { status: 500 });
   }
 }
