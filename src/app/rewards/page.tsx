@@ -1,31 +1,54 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
-import { ParentBottomNav, ParentSidebar, PageHeader, EmptyState, Toast, Skeleton } from '@/components/layout'
-import ConfirmDialog from '@/components/ConfirmDialog'
-import { AuthUser } from '@/lib/auth/helper'
-import { CURRENCIES } from '@/lib/currency'
-import { StarIcon, CoinIcon, GiftsIcon, EditIcon, DeleteIcon, CheckIcon, RejectIcon, CopyIcon, PlusIcon } from '@/components/icons'
-import IconPicker, { getIconByName } from '@/components/IconPicker'
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import {
+  ParentBottomNav,
+  ParentSidebar,
+  PageHeader,
+  EmptyState,
+  Toast,
+  Skeleton,
+} from '@/components/layout';
+import ConfirmDialog from '@/components/ConfirmDialog';
+import { AuthUser } from '@/lib/auth/helper';
+import { CURRENCIES } from '@/lib/currency';
+import {
+  StarIcon,
+  CoinIcon,
+  GiftsIcon,
+  EditIcon,
+  DeleteIcon,
+  CheckIcon,
+  RejectIcon,
+  CopyIcon,
+  PlusIcon,
+} from '@/components/icons';
+import IconPicker, { getIconByName } from '@/components/IconPicker';
 
 export default function RewardsPage() {
-  const [authUser, setAuthUser] = useState<AuthUser | null>(null)
-  const [gifts, setGifts] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-  const [showAdd, setShowAdd] = useState(false)
-  const [editingGift, setEditingGift] = useState<any | null>(null)
-  const [formData, setFormData] = useState({ title: '', description: '', cost_xp: 100, cost_money: 0, icon: '' })
-  const [error, setError] = useState('')
-  const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
-  const [deleteConfirm, setDeleteConfirm] = useState<any | null>(null)
-  const [showIconPicker, setShowIconPicker] = useState(false)
-  const router = useRouter()
-  const [currency, setCurrency] = useState('KWD')
-  const symbol = CURRENCIES[currency]?.symbol || 'د.ك'
-  const fmtMoney = (amount: number) => `${amount} ${symbol}`
-  const currencySymbol = symbol
+  const [authUser, setAuthUser] = useState<AuthUser | null>(null);
+  const [gifts, setGifts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showAdd, setShowAdd] = useState(false);
+  const [editingGift, setEditingGift] = useState<any | null>(null);
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    cost_xp: 100,
+    cost_money: 0,
+    icon: '',
+  });
+  const [error, setError] = useState('');
+  const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<any | null>(null);
+  const [showIconPicker, setShowIconPicker] = useState(false);
+  const router = useRouter();
+  const [currency, setCurrency] = useState('KWD');
+  const symbol = CURRENCIES[currency]?.symbol || 'د.ك';
+  const fmtMoney = (amount: number) => `${amount} ${symbol}`;
+  const currencySymbol = symbol;
 
   useEffect(() => {
     const getGifts = async () => {
@@ -34,9 +57,12 @@ export default function RewardsPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({}),
-      })
-      const result = await response.json()
-      if (!response.ok || !result.success) { router.push('/owner-login'); return }
+      });
+      const result = await response.json();
+      if (!response.ok || !result.success) {
+        router.push('/owner-login');
+        return;
+      }
 
       if (result.member) {
         setAuthUser({
@@ -45,27 +71,39 @@ export default function RewardsPage() {
           role: result.member.member_role,
           familyId: result.member.family_id,
           via: 'session',
-        })
+        });
       }
-      if (result.currency) setCurrency(result.currency)
+      if (result.currency) setCurrency(result.currency);
 
-      setGifts(result.gifts)
-      setLoading(false)
-    }
-    getGifts()
-  }, [])
+      setGifts(result.gifts);
+      setLoading(false);
+    };
+    getGifts();
+  }, []);
 
-  const openAdd = () => { setEditingGift(null); setFormData({ title: '', description: '', cost_xp: 100, cost_money: 0, icon: '' }); setShowAdd(true); setError('') }
+  const openAdd = () => {
+    setEditingGift(null);
+    setFormData({ title: '', description: '', cost_xp: 100, cost_money: 0, icon: '' });
+    setShowAdd(true);
+    setError('');
+  };
   const openEdit = (gift: any) => {
-    setEditingGift(gift)
-    setFormData({ title: gift.title, description: gift.description || '', cost_xp: gift.cost_xp, cost_money: gift.cost_money || 0, icon: gift.icon || '' })
-    setShowAdd(true); setError('')
-  }
+    setEditingGift(gift);
+    setFormData({
+      title: gift.title,
+      description: gift.description || '',
+      cost_xp: gift.cost_xp,
+      cost_money: gift.cost_money || 0,
+      icon: gift.icon || '',
+    });
+    setShowAdd(true);
+    setError('');
+  };
 
   const handleSaveGift = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
-    if (!authUser) return
+    e.preventDefault();
+    setError('');
+    if (!authUser) return;
 
     if (editingGift) {
       const response = await fetch('/api/gifts/update', {
@@ -79,11 +117,14 @@ export default function RewardsPage() {
           cost_money: formData.cost_money || null,
           icon: formData.icon || null,
         }),
-      })
-      const result = await response.json()
-      if (!response.ok || !result.success) { setError(result.error || 'حدث خطأ'); return }
-      setGifts(gifts.map(g => g.id === editingGift.id ? { ...g, ...formData } : g))
-      setToast({ type: 'success', message: 'تم تعديل الهدية بنجاح!' })
+      });
+      const result = await response.json();
+      if (!response.ok || !result.success) {
+        setError(result.error || 'حدث خطأ');
+        return;
+      }
+      setGifts(gifts.map((g) => (g.id === editingGift.id ? { ...g, ...formData } : g)));
+      setToast({ type: 'success', message: 'تم تعديل الهدية بنجاح!' });
     } else {
       const response = await fetch('/api/gifts/create', {
         method: 'POST',
@@ -95,96 +136,182 @@ export default function RewardsPage() {
           cost_money: formData.cost_money || null,
           icon: formData.icon || null,
         }),
-      })
-      const result = await response.json()
-      if (!response.ok || !result.success) { setError(result.error || 'حدث خطأ'); return }
-      setGifts([result.gift, ...gifts])
-      setToast({ type: 'success', message: 'تم إضافة الهدية بنجاح!' })
+      });
+      const result = await response.json();
+      if (!response.ok || !result.success) {
+        setError(result.error || 'حدث خطأ');
+        return;
+      }
+      setGifts([result.gift, ...gifts]);
+      setToast({ type: 'success', message: 'تم إضافة الهدية بنجاح!' });
     }
-    setShowAdd(false); setEditingGift(null); setFormData({ title: '', description: '', cost_xp: 100, cost_money: 0, icon: '' })
-  }
+    setShowAdd(false);
+    setEditingGift(null);
+    setFormData({ title: '', description: '', cost_xp: 100, cost_money: 0, icon: '' });
+  };
 
   const handleDeleteGift = async () => {
-    if (!deleteConfirm) return
+    if (!deleteConfirm) return;
     const response = await fetch('/api/gifts/delete', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ gift_id: deleteConfirm.id }),
-    })
-    const result = await response.json()
-    if (!response.ok || !result.success) { setToast({ type: 'error', message: 'حدث خطأ' }); setDeleteConfirm(null); return }
-    setGifts(gifts.filter(g => g.id !== deleteConfirm.id))
-    setToast({ type: 'success', message: 'تم حذف الهدية' })
-    setDeleteConfirm(null)
-  }
+    });
+    const result = await response.json();
+    if (!response.ok || !result.success) {
+      setToast({ type: 'error', message: 'حدث خطأ' });
+      setDeleteConfirm(null);
+      return;
+    }
+    setGifts(gifts.filter((g) => g.id !== deleteConfirm.id));
+    setToast({ type: 'success', message: 'تم حذف الهدية' });
+    setDeleteConfirm(null);
+  };
 
   const handleToggleActive = async (gift: any) => {
     const response = await fetch('/api/gifts/update', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ gift_id: gift.id, is_active: !gift.is_active }),
-    })
-    const result = await response.json()
-    if (!response.ok || !result.success) { setToast({ type: 'error', message: 'حدث خطأ' }); return }
-    setGifts(gifts.map(g => g.id === gift.id ? { ...g, is_active: !g.is_active } : g))
-    setToast({ type: 'success', message: gift.is_active ? 'تم إخفاء الهدية' : 'تم تفعيل الهدية' })
-  }
+    });
+    const result = await response.json();
+    if (!response.ok || !result.success) {
+      setToast({ type: 'error', message: 'حدث خطأ' });
+      return;
+    }
+    setGifts(gifts.map((g) => (g.id === gift.id ? { ...g, is_active: !g.is_active } : g)));
+    setToast({ type: 'success', message: gift.is_active ? 'تم إخفاء الهدية' : 'تم تفعيل الهدية' });
+  };
 
   if (loading) {
     return (
       <div className="min-h-screen" style={{ background: 'var(--ghrs-bg-primary)' }}>
         <ParentSidebar />
         <div className="md:mr-[var(--ghrs-sidebar-width)] pb-24 md:pb-8 p-4 md:p-8">
-          <div className="max-w-4xl mx-auto"><div className="grid grid-cols-2 gap-4"><Skeleton className="h-32 w-full" /><Skeleton className="h-32 w-full" /></div></div>
+          <div className="max-w-4xl mx-auto">
+            <div className="grid grid-cols-2 gap-4">
+              <Skeleton className="h-32 w-full" />
+              <Skeleton className="h-32 w-full" />
+            </div>
+          </div>
         </div>
         <ParentBottomNav />
       </div>
-    )
+    );
   }
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--ghrs-bg-primary)' }}>
       {toast && <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />}
       {deleteConfirm && (
-        <ConfirmDialog show={!!deleteConfirm} title="حذف الهدية" message={`هل أنت متأكد من حذف "${deleteConfirm.title}"؟`} confirmText="حذف" cancelText="إلغاء" variant="danger" onConfirm={handleDeleteGift} onCancel={() => setDeleteConfirm(null)} />
+        <ConfirmDialog
+          show={!!deleteConfirm}
+          title="حذف الهدية"
+          message={`هل أنت متأكد من حذف "${deleteConfirm.title}"؟`}
+          confirmText="حذف"
+          cancelText="إلغاء"
+          variant="danger"
+          onConfirm={handleDeleteGift}
+          onCancel={() => setDeleteConfirm(null)}
+        />
       )}
 
       <ParentSidebar />
       <div className="md:mr-[var(--ghrs-sidebar-width)] pb-24 md:pb-8">
         <div className="p-4 md:p-8 max-w-4xl mx-auto">
-          <PageHeader title="المكافآت" subtitle="إدارة الهدايا والمكافآت" backHref="/dashboard"
+          <PageHeader
+            title="المكافآت"
+            subtitle="إدارة الهدايا والمكافآت"
+            backHref="/dashboard"
             action={
               <div className="flex gap-2">
-                <Link href="/reward-bank" className="ghrs-btn-secondary"><CopyIcon size={14} /> بنك المكافآت</Link>
-                <button onClick={openAdd} className="ghrs-btn-primary">+ إضافة هدية</button>
+                <Link href="/reward-bank" className="ghrs-btn-secondary">
+                  <CopyIcon size={14} /> بنك المكافآت
+                </Link>
+                <button onClick={openAdd} className="ghrs-btn-primary">
+                  + إضافة هدية
+                </button>
               </div>
-            } />
+            }
+          />
 
-          {error && <div className="mb-4 p-3 rounded-lg text-sm" style={{ background: 'var(--ghrs-red-50)', color: 'var(--ghrs-red-600)', border: '1px solid var(--ghrs-red-200)' }}>{error}</div>}
+          {error && (
+            <div
+              className="mb-4 p-3 rounded-lg text-sm"
+              style={{
+                background: 'var(--ghrs-red-50)',
+                color: 'var(--ghrs-red-600)',
+                border: '1px solid var(--ghrs-red-200)',
+              }}
+            >
+              {error}
+            </div>
+          )}
 
           {/* Add/Edit Form */}
           {showAdd && (
             <div className="ghrs-card p-5 mb-5 ghrs-animate-scale-in">
-              <h2 className="text-base font-bold mb-4" style={{ color: 'var(--ghrs-text-primary)' }}>{editingGift ? 'تعديل الهدية' : 'هدية جديدة'}</h2>
+              <h2
+                className="text-base font-bold mb-4"
+                style={{ color: 'var(--ghrs-text-primary)' }}
+              >
+                {editingGift ? 'تعديل الهدية' : 'هدية جديدة'}
+              </h2>
               <form onSubmit={handleSaveGift} className="space-y-3">
                 <div>
                   <label className="ghrs-label">اسم الهدية</label>
-                  <input type="text" value={formData.title} onChange={e => setFormData({ ...formData, title: e.target.value })} required className="ghrs-input w-full" placeholder="لعبة جديدة" />
+                  <input
+                    type="text"
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    required
+                    className="ghrs-input w-full"
+                    placeholder="لعبة جديدة"
+                  />
                 </div>
                 <div>
                   <label className="ghrs-label">الوصف (اختياري)</label>
-                  <input type="text" value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} className="ghrs-input w-full" placeholder="لعبة مميزة" />
+                  <input
+                    type="text"
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    className="ghrs-input w-full"
+                    placeholder="لعبة مميزة"
+                  />
                 </div>
                 {/* Icon Picker */}
                 <div>
                   <label className="ghrs-label">الأيقونة</label>
-                  <button type="button" onClick={() => setShowIconPicker(true)}
+                  <button
+                    type="button"
+                    onClick={() => setShowIconPicker(true)}
                     className="flex items-center gap-3 px-3 py-2 rounded-lg w-full transition-all"
-                    style={{ background: 'var(--ghrs-bg-secondary)', border: '1px solid var(--ghrs-border-default)' }}>
-                    <div className="w-8 h-8 rounded-md flex items-center justify-center" style={{ background: 'var(--ghrs-bg-card)' }}>
-                      {formData.icon ? (() => { const Icon = getIconByName(formData.icon); return <Icon size={16} color="var(--ghrs-green-600)" /> })() : <PlusIcon size={16} color="var(--ghrs-text-tertiary)" />}
+                    style={{
+                      background: 'var(--ghrs-bg-secondary)',
+                      border: '1px solid var(--ghrs-border-default)',
+                    }}
+                  >
+                    <div
+                      className="w-8 h-8 rounded-md flex items-center justify-center"
+                      style={{ background: 'var(--ghrs-bg-card)' }}
+                    >
+                      {formData.icon ? (
+                        (() => {
+                          const Icon = getIconByName(formData.icon);
+                          return <Icon size={16} color="var(--ghrs-green-600)" />;
+                        })()
+                      ) : (
+                        <PlusIcon size={16} color="var(--ghrs-text-tertiary)" />
+                      )}
                     </div>
-                    <span className="text-sm font-medium" style={{ color: formData.icon ? 'var(--ghrs-text-primary)' : 'var(--ghrs-text-tertiary)' }}>
+                    <span
+                      className="text-sm font-medium"
+                      style={{
+                        color: formData.icon
+                          ? 'var(--ghrs-text-primary)'
+                          : 'var(--ghrs-text-tertiary)',
+                      }}
+                    >
                       {formData.icon ? 'تغيير الأيقونة' : 'اختر أيقونة (اختياري)'}
                     </span>
                   </button>
@@ -192,16 +319,44 @@ export default function RewardsPage() {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="ghrs-label">التكلفة (XP)</label>
-                    <input type="number" value={formData.cost_xp} onChange={e => setFormData({ ...formData, cost_xp: parseInt(e.target.value) || 1 })} min="1" className="ghrs-input w-full" />
+                    <input
+                      type="number"
+                      value={formData.cost_xp}
+                      onChange={(e) =>
+                        setFormData({ ...formData, cost_xp: parseInt(e.target.value) || 1 })
+                      }
+                      min="1"
+                      className="ghrs-input w-full"
+                    />
                   </div>
                   <div>
                     <label className="ghrs-label">التكلفة ({currencySymbol})</label>
-                    <input type="number" step="0.001" value={formData.cost_money} onChange={e => setFormData({ ...formData, cost_money: parseFloat(e.target.value) || 0 })} min="0" className="ghrs-input w-full" />
+                    <input
+                      type="number"
+                      step="0.001"
+                      value={formData.cost_money}
+                      onChange={(e) =>
+                        setFormData({ ...formData, cost_money: parseFloat(e.target.value) || 0 })
+                      }
+                      min="0"
+                      className="ghrs-input w-full"
+                    />
                   </div>
                 </div>
                 <div className="flex gap-2 pt-1">
-                  <button type="submit" className="ghrs-btn-primary">{editingGift ? 'حفظ التعديلات' : 'إضافة'}</button>
-                  <button type="button" onClick={() => { setShowAdd(false); setEditingGift(null) }} className="ghrs-btn-secondary">إلغاء</button>
+                  <button type="submit" className="ghrs-btn-primary">
+                    {editingGift ? 'حفظ التعديلات' : 'إضافة'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowAdd(false);
+                      setEditingGift(null);
+                    }}
+                    className="ghrs-btn-secondary"
+                  >
+                    إلغاء
+                  </button>
                 </div>
               </form>
             </div>
@@ -218,31 +373,83 @@ export default function RewardsPage() {
 
           {/* Gifts Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {gifts.map(gift => (
-              <div key={gift.id} className="ghrs-card p-4 transition-all" style={{ opacity: gift.is_active ? 1 : 0.6 }}>
+            {gifts.map((gift) => (
+              <div
+                key={gift.id}
+                className="ghrs-card p-4 transition-all"
+                style={{ opacity: gift.is_active ? 1 : 0.6 }}
+              >
                 <div className="flex items-start gap-3 mb-3">
                   <div
                     className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
-                    style={{ background: gift.is_active ? 'var(--ghrs-bg-secondary)' : 'var(--ghrs-bg-tertiary)' }}
+                    style={{
+                      background: gift.is_active
+                        ? 'var(--ghrs-bg-secondary)'
+                        : 'var(--ghrs-bg-tertiary)',
+                    }}
                   >
-                    {gift.icon ? (() => { const Icon = getIconByName(gift.icon); return <Icon size={20} color={gift.is_active ? 'var(--ghrs-green-600)' : 'var(--ghrs-text-tertiary)'} /> })() : <GiftsIcon size={20} color={gift.is_active ? 'var(--ghrs-green-600)' : 'var(--ghrs-text-tertiary)'} />}
+                    {gift.icon ? (
+                      (() => {
+                        const Icon = getIconByName(gift.icon);
+                        return (
+                          <Icon
+                            size={20}
+                            color={
+                              gift.is_active ? 'var(--ghrs-green-600)' : 'var(--ghrs-text-tertiary)'
+                            }
+                          />
+                        );
+                      })()
+                    ) : (
+                      <GiftsIcon
+                        size={20}
+                        color={
+                          gift.is_active ? 'var(--ghrs-green-600)' : 'var(--ghrs-text-tertiary)'
+                        }
+                      />
+                    )}
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-baseline gap-2">
-                      <h3 className="text-sm font-bold truncate" style={{ color: 'var(--ghrs-text-primary)' }}>{gift.title}</h3>
-                      {!gift.is_active && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded ghrs-badge ghrs-badge-neutral">معطل</span>}
+                      <h3
+                        className="text-sm font-bold truncate"
+                        style={{ color: 'var(--ghrs-text-primary)' }}
+                      >
+                        {gift.title}
+                      </h3>
+                      {!gift.is_active && (
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded ghrs-badge ghrs-badge-neutral">
+                          معطل
+                        </span>
+                      )}
                     </div>
-                    {gift.description && <p className="text-xs mt-0.5 truncate" style={{ color: 'var(--ghrs-text-secondary)' }}>{gift.description}</p>}
+                    {gift.description && (
+                      <p
+                        className="text-xs mt-0.5 truncate"
+                        style={{ color: 'var(--ghrs-text-secondary)' }}
+                      >
+                        {gift.description}
+                      </p>
+                    )}
                   </div>
                 </div>
 
                 {/* Price */}
-                <div className="flex gap-3 text-xs mb-3 pb-3 border-t pt-3" style={{ borderColor: 'var(--ghrs-border-default)' }}>
-                  <span className="inline-flex items-center gap-1 font-semibold tabular-nums" style={{ color: 'var(--ghrs-text-secondary)' }}>
+                <div
+                  className="flex gap-3 text-xs mb-3 pb-3 border-t pt-3"
+                  style={{ borderColor: 'var(--ghrs-border-default)' }}
+                >
+                  <span
+                    className="inline-flex items-center gap-1 font-semibold tabular-nums"
+                    style={{ color: 'var(--ghrs-text-secondary)' }}
+                  >
                     <StarIcon size={12} /> {gift.cost_xp} XP
                   </span>
                   {gift.cost_money > 0 && (
-                    <span className="inline-flex items-center gap-1 font-semibold tabular-nums" style={{ color: 'var(--ghrs-text-secondary)' }}>
+                    <span
+                      className="inline-flex items-center gap-1 font-semibold tabular-nums"
+                      style={{ color: 'var(--ghrs-text-secondary)' }}
+                    >
                       <CoinIcon size={12} /> {fmtMoney(gift.cost_money)}
                     </span>
                   )}
@@ -250,14 +457,35 @@ export default function RewardsPage() {
 
                 {/* Action Buttons */}
                 <div className="flex gap-1.5">
-                  <button onClick={() => openEdit(gift)} className="flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-md text-xs font-bold transition-all" style={{ background: 'var(--ghrs-bg-secondary)', color: 'var(--ghrs-text-secondary)' }}>
+                  <button
+                    onClick={() => openEdit(gift)}
+                    className="flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-md text-xs font-bold transition-all"
+                    style={{
+                      background: 'var(--ghrs-bg-secondary)',
+                      color: 'var(--ghrs-text-secondary)',
+                    }}
+                  >
                     <EditIcon size={12} /> تعديل
                   </button>
-                  <button onClick={() => handleToggleActive(gift)} className="flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-md text-xs font-bold transition-all"
-                    style={{ background: gift.is_active ? 'var(--ghrs-bg-secondary)' : 'var(--ghrs-green-50)', color: gift.is_active ? 'var(--ghrs-text-secondary)' : 'var(--ghrs-green-700)' }}>
+                  <button
+                    onClick={() => handleToggleActive(gift)}
+                    className="flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-md text-xs font-bold transition-all"
+                    style={{
+                      background: gift.is_active
+                        ? 'var(--ghrs-bg-secondary)'
+                        : 'var(--ghrs-green-50)',
+                      color: gift.is_active
+                        ? 'var(--ghrs-text-secondary)'
+                        : 'var(--ghrs-green-700)',
+                    }}
+                  >
                     {gift.is_active ? 'إخفاء' : 'تفعيل'}
                   </button>
-                  <button onClick={() => setDeleteConfirm(gift)} className="px-3 py-2 rounded-md text-xs font-bold transition-all" style={{ background: 'var(--ghrs-red-50)', color: 'var(--ghrs-red-600)' }}>
+                  <button
+                    onClick={() => setDeleteConfirm(gift)}
+                    className="px-3 py-2 rounded-md text-xs font-bold transition-all"
+                    style={{ background: 'var(--ghrs-red-50)', color: 'var(--ghrs-red-600)' }}
+                  >
                     <DeleteIcon size={12} />
                   </button>
                 </div>
@@ -266,12 +494,20 @@ export default function RewardsPage() {
           </div>
 
           {gifts.length === 0 && (
-            <EmptyState icon={<GiftsIcon size={32} />} title="لم تتم إضافة أي هدايا بعد" description="أضف هدايا ومكافآت لتحفيز أطفالك"
-              action={<button onClick={openAdd} className="ghrs-btn-primary">+ أضف أول هدية</button>} />
+            <EmptyState
+              icon={<GiftsIcon size={32} />}
+              title="لم تتم إضافة أي هدايا بعد"
+              description="أضف هدايا ومكافآت لتحفيز أطفالك"
+              action={
+                <button onClick={openAdd} className="ghrs-btn-primary">
+                  + أضف أول هدية
+                </button>
+              }
+            />
           )}
         </div>
       </div>
       <ParentBottomNav />
     </div>
-  )
+  );
 }

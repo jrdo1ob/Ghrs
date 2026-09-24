@@ -1,13 +1,13 @@
-'use client'
+'use client';
 
-import { motion } from 'framer-motion'
+import { motion } from 'framer-motion';
 
 export default function Error({
   error,
   reset,
 }: {
-  error: Error & { digest?: string }
-  reset: () => void
+  error: Error & { digest?: string };
+  reset: () => void;
 }) {
   return (
     <div
@@ -20,16 +20,10 @@ export default function Error({
         className="text-center max-w-sm"
       >
         <div className="text-6xl mb-4">⚠️</div>
-        <h1
-          className="text-2xl font-bold mb-2"
-          style={{ color: 'var(--ghrs-text-primary)' }}
-        >
+        <h1 className="text-2xl font-bold mb-2" style={{ color: 'var(--ghrs-text-primary)' }}>
           حدث خطأ
         </h1>
-        <p
-          className="text-sm mb-6"
-          style={{ color: 'var(--ghrs-text-secondary)' }}
-        >
+        <p className="text-sm mb-6" style={{ color: 'var(--ghrs-text-secondary)' }}>
           عذراً، حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.
         </p>
         <motion.button
@@ -43,5 +37,5 @@ export default function Error({
         </motion.button>
       </motion.div>
     </div>
-  )
+  );
 }

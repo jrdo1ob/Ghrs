@@ -13,13 +13,13 @@ if (typeof window !== 'undefined') {
 
 /**
  * Handle Google Sign-In for both Native and Web
- * 
+ *
  * Android: GoogleAuth.signIn() → idToken → signInWithIdToken (NO PKCE)
  * Web: signInWithOAuth → /auth/callback (standard OAuth)
  */
 export async function handleGoogleSignIn() {
   const supabase = createClient();
-  
+
   // Official Capacitor platform detection
   const nativePlatform = Capacitor.isNativePlatform();
   const platform = Capacitor.getPlatform();
@@ -33,13 +33,13 @@ export async function handleGoogleSignIn() {
     // ===== NATIVE ANDROID PATH =====
     // Opens Android's native Google account picker (NO browser)
     console.log('[GHRS AUTH] GoogleAuth.signIn started');
-    
+
     const googleUser = await GoogleAuth.signIn();
     console.log('[GHRS AUTH] GoogleAuth.signIn returned');
 
     if (!googleUser.authentication.idToken) {
       console.error('[GHRS AUTH] No idToken received from Google');
-      throw new Error("لم يتم إرجاع idToken من Google");
+      throw new Error('لم يتم إرجاع idToken من Google');
     }
 
     console.log('[GHRS AUTH] signInWithIdToken started');
@@ -57,7 +57,6 @@ export async function handleGoogleSignIn() {
 
     console.log('[GHRS AUTH] signInWithIdToken success');
     return data;
-
   } else {
     // ===== WEB PATH =====
     // Standard OAuth redirect for browser

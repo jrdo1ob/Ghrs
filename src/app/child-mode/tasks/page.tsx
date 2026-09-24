@@ -1,92 +1,112 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { ChildBottomNav, Toast } from '@/components/layout'
-import { useFamilyCurrency } from '@/hooks/useFamilyCurrency'
-import ParticleEffects from '@/components/ParticleEffects'
-import TaskDetailsModal from '@/components/TaskDetailsModal'
-import TaskCompletionFeedback from '@/components/child/TaskCompletionFeedback'
-import ThemeToggle from '@/components/child/ThemeToggle'
-import ChildLoading from '@/components/child/ChildLoading'
-import { useSound } from '@/components/child/SoundManager'
-import { ClockIcon, StarIcon, CoinIcon, CheckIcon, QuranIcon, SparkleIcon, BookIcon, TasksIcon } from '@/components/icons'
-import { getCurrentUser } from '@/lib/auth/helper'
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { ChildBottomNav, Toast } from '@/components/layout';
+import { useFamilyCurrency } from '@/hooks/useFamilyCurrency';
+import ParticleEffects from '@/components/ParticleEffects';
+import TaskDetailsModal from '@/components/TaskDetailsModal';
+import TaskCompletionFeedback from '@/components/child/TaskCompletionFeedback';
+import ThemeToggle from '@/components/child/ThemeToggle';
+import ChildLoading from '@/components/child/ChildLoading';
+import { useSound } from '@/components/child/SoundManager';
+import {
+  ClockIcon,
+  StarIcon,
+  CoinIcon,
+  CheckIcon,
+  QuranIcon,
+  SparkleIcon,
+  BookIcon,
+  TasksIcon,
+} from '@/components/icons';
+import { getCurrentUser } from '@/lib/auth/helper';
 
 export default function ChildTasksPage() {
-  const [tasks, setTasks] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-  const [completedToday, setCompletedToday] = useState<string[]>([])
-  const [pendingToday, setPendingToday] = useState<string[]>([])
-  const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
-  const [completingTask, setCompletingTask] = useState<string | null>(null)
-  const [showConfetti, setShowConfetti] = useState(false)
-  const [childId, setChildId] = useState<string | null>(null)
-  const [childName, setChildName] = useState('')
-  const [selectedTask, setSelectedTask] = useState<any>(null)
-  const [showTaskModal, setShowTaskModal] = useState(false)
-  const [showCompletionFeedback, setShowCompletionFeedback] = useState(false)
-  const [completionFeedback, setCompletionFeedback] = useState<{ taskName: string; xp: number; money: number; needsApproval: boolean } | null>(null)
-  const router = useRouter()
-  const { format: fmtMoney } = useFamilyCurrency()
-  const { play } = useSound()
+  const [tasks, setTasks] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [completedToday, setCompletedToday] = useState<string[]>([]);
+  const [pendingToday, setPendingToday] = useState<string[]>([]);
+  const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [completingTask, setCompletingTask] = useState<string | null>(null);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [childId, setChildId] = useState<string | null>(null);
+  const [childName, setChildName] = useState('');
+  const [selectedTask, setSelectedTask] = useState<any>(null);
+  const [showTaskModal, setShowTaskModal] = useState(false);
+  const [showCompletionFeedback, setShowCompletionFeedback] = useState(false);
+  const [completionFeedback, setCompletionFeedback] = useState<{
+    taskName: string;
+    xp: number;
+    money: number;
+    needsApproval: boolean;
+  } | null>(null);
+  const router = useRouter();
+  const { format: fmtMoney } = useFamilyCurrency();
+  const { play } = useSound();
 
   useEffect(() => {
     const getData = async () => {
-      const authUser = await getCurrentUser()
-      if (!authUser || authUser.role !== 'child') { router.push('/family-login'); return }
-      const storedId = authUser.memberId
-      setChildId(storedId)
+      const authUser = await getCurrentUser();
+      if (!authUser || authUser.role !== 'child') {
+        router.push('/family-login');
+        return;
+      }
+      const storedId = authUser.memberId;
+      setChildId(storedId);
 
       const response = await fetch('/api/child-mode/data', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ section: 'tasks' }),
-      })
-      const result = await response.json()
-      if (!response.ok || !result.success) { router.push('/family-login'); return }
+      });
+      const result = await response.json();
+      if (!response.ok || !result.success) {
+        router.push('/family-login');
+        return;
+      }
 
-      setChildName(result.member.name)
-      setTasks(result.tasks)
-      setCompletedToday(result.completed_today)
-      setPendingToday(result.pending_today)
-      setLoading(false)
-    }
-    getData()
-  }, [])
+      setChildName(result.member.name);
+      setTasks(result.tasks);
+      setCompletedToday(result.completed_today);
+      setPendingToday(result.pending_today);
+      setLoading(false);
+    };
+    getData();
+  }, []);
 
   const handleCompleteTask = async (taskId: string) => {
-    if (!childId || completingTask) return
-    setCompletingTask(taskId)
+    if (!childId || completingTask) return;
+    setCompletingTask(taskId);
 
     try {
       const response = await fetch('/api/tasks/complete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ task_id: taskId }),
-      })
+      });
 
-      const result = await response.json()
+      const result = await response.json();
 
       if (!response.ok || !result.success) {
-        setToast({ type: 'error', message: result.error || 'حدث خطأ أثناء إنجاز المهمة' })
-        setCompletingTask(null)
-        play('error')
-        return
+        setToast({ type: 'error', message: result.error || 'حدث خطأ أثناء إنجاز المهمة' });
+        setCompletingTask(null);
+        play('error');
+        return;
       }
 
-      const task = tasks.find(t => t.id === taskId)
-      const needsApproval = task?.requires_approval !== false
+      const task = tasks.find((t) => t.id === taskId);
+      const needsApproval = task?.requires_approval !== false;
 
-      setPendingToday(prev => [...prev, taskId])
-      setShowTaskModal(false)
+      setPendingToday((prev) => [...prev, taskId]);
+      setShowTaskModal(false);
 
       if (!needsApproval) {
-        setShowConfetti(true)
-        setTimeout(() => setShowConfetti(false), 2500)
-        play('complete')
+        setShowConfetti(true);
+        setTimeout(() => setShowConfetti(false), 2500);
+        play('complete');
       } else {
-        play('click')
+        play('click');
       }
 
       setCompletionFeedback({
@@ -94,31 +114,36 @@ export default function ChildTasksPage() {
         xp: task?.xp_reward || 0,
         money: task?.money_reward || 0,
         needsApproval,
-      })
-      setShowCompletionFeedback(true)
+      });
+      setShowCompletionFeedback(true);
     } catch (err) {
-      console.error('[GHRS] Complete task error:', err)
-      setToast({ type: 'error', message: 'حدث خطأ أثناء إنجاز المهمة' })
+      console.error('[GHRS] Complete task error:', err);
+      setToast({ type: 'error', message: 'حدث خطأ أثناء إنجاز المهمة' });
     } finally {
-      setCompletingTask(null)
+      setCompletingTask(null);
     }
-  }
+  };
 
   const openTaskModal = (task: any) => {
-    setSelectedTask(task)
-    setShowTaskModal(true)
-  }
+    setSelectedTask(task);
+    setShowTaskModal(true);
+  };
 
-  const isCompletedToday = (taskId: string) => completedToday.includes(taskId)
-  const isPendingToday = (taskId: string) => pendingToday.includes(taskId)
+  const isCompletedToday = (taskId: string) => completedToday.includes(taskId);
+  const isPendingToday = (taskId: string) => pendingToday.includes(taskId);
 
   if (loading) {
-    return <ChildLoading text="جاري تحميل المهام..." icon={<TasksIcon size={48} color="var(--ghrs-green-500)" />} />
+    return (
+      <ChildLoading
+        text="جاري تحميل المهام..."
+        icon={<TasksIcon size={48} color="var(--ghrs-green-500)" />}
+      />
+    );
   }
 
-  const completedCount = completedToday.length
-  const pendingCount = pendingToday.length
-  const availableTasks = tasks.filter(t => !isCompletedToday(t.id) && !isPendingToday(t.id))
+  const completedCount = completedToday.length;
+  const pendingCount = pendingToday.length;
+  const availableTasks = tasks.filter((t) => !isCompletedToday(t.id) && !isPendingToday(t.id));
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--ghrs-bg-primary)' }}>
@@ -128,7 +153,10 @@ export default function ChildTasksPage() {
       <TaskDetailsModal
         show={showTaskModal}
         task={selectedTask}
-        onClose={() => { setShowTaskModal(false); setSelectedTask(null) }}
+        onClose={() => {
+          setShowTaskModal(false);
+          setSelectedTask(null);
+        }}
         onComplete={handleCompleteTask}
         isCompleted={selectedTask ? isCompletedToday(selectedTask.id) : false}
         isPending={selectedTask ? isPendingToday(selectedTask.id) : false}
@@ -142,7 +170,10 @@ export default function ChildTasksPage() {
         xpEarned={completionFeedback?.xp || 0}
         moneyEarned={completionFeedback?.money || 0}
         needsApproval={completionFeedback?.needsApproval ?? true}
-        onClose={() => { setShowCompletionFeedback(false); setCompletionFeedback(null) }}
+        onClose={() => {
+          setShowCompletionFeedback(false);
+          setCompletionFeedback(null);
+        }}
         formatMoney={fmtMoney}
       />
 
@@ -194,16 +225,10 @@ export default function ChildTasksPage() {
             >
               <span className="text-3xl leading-none">🌿</span>
             </div>
-            <p
-              className="text-[15px] font-bold"
-              style={{ color: 'var(--ghrs-text-primary)' }}
-            >
+            <p className="text-[15px] font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>
               ما في مهام
             </p>
-            <p
-              className="text-xs mt-1"
-              style={{ color: 'var(--ghrs-text-tertiary)' }}
-            >
+            <p className="text-xs mt-1" style={{ color: 'var(--ghrs-text-tertiary)' }}>
               استرح وتمتّع بيومك
             </p>
           </div>
@@ -229,7 +254,10 @@ export default function ChildTasksPage() {
                       {completedCount} مكتملة
                     </span>
                   </div>
-                  <div className="w-px h-3.5" style={{ background: 'var(--ghrs-border-default)' }} />
+                  <div
+                    className="w-px h-3.5"
+                    style={{ background: 'var(--ghrs-border-default)' }}
+                  />
                   <div className="flex items-center gap-1.5">
                     <ClockIcon size={14} color="var(--ghrs-amber-600)" />
                     <span
@@ -250,19 +278,21 @@ export default function ChildTasksPage() {
               <div className="ghrs-garden-xp-bar" style={{ height: '6px' }}>
                 <div
                   className="ghrs-garden-xp-fill"
-                  style={{ width: `${tasks.length > 0 ? Math.round((completedCount / tasks.length) * 100) : 0}%` }}
+                  style={{
+                    width: `${tasks.length > 0 ? Math.round((completedCount / tasks.length) * 100) : 0}%`,
+                  }}
                 />
               </div>
             </div>
 
             {/* Task cards */}
             <div className="space-y-3">
-              {tasks.map(task => {
-                const completed = isCompletedToday(task.id)
-                const pending = isPendingToday(task.id)
-                const isQuran = task.task_type === 'quran'
-                const isDua = task.task_type === 'dua'
-                const isBusy = completingTask === task.id
+              {tasks.map((task) => {
+                const completed = isCompletedToday(task.id);
+                const pending = isPendingToday(task.id);
+                const isQuran = task.task_type === 'quran';
+                const isDua = task.task_type === 'dua';
+                const isBusy = completingTask === task.id;
 
                 return (
                   <div
@@ -321,7 +351,9 @@ export default function ChildTasksPage() {
                           <h3
                             className="text-[14px] font-bold leading-snug"
                             style={{
-                              color: completed ? 'var(--ghrs-green-700)' : 'var(--ghrs-text-primary)',
+                              color: completed
+                                ? 'var(--ghrs-green-700)'
+                                : 'var(--ghrs-text-primary)',
                               textDecoration: completed ? 'line-through' : 'none',
                             }}
                           >
@@ -359,7 +391,8 @@ export default function ChildTasksPage() {
                               border: '1px solid var(--ghrs-green-200)',
                             }}
                           >
-                            <CoinIcon size={13} color="var(--ghrs-green-600)" /> +{fmtMoney(task.money_reward)} د.ب
+                            <CoinIcon size={13} color="var(--ghrs-green-600)" /> +
+                            {fmtMoney(task.money_reward)} د.ب
                           </span>
                         )}
                         {isQuran && task.quran_action_type && (
@@ -426,7 +459,7 @@ export default function ChildTasksPage() {
                       )}
                     </div>
                   </div>
-                )
+                );
               })}
             </div>
           </>
@@ -435,5 +468,5 @@ export default function ChildTasksPage() {
 
       <ChildBottomNav />
     </div>
-  )
+  );
 }

@@ -1,72 +1,103 @@
-import { NextResponse, type NextRequest } from 'next/server'
-import { createServiceRoleClient } from '@/lib/supabase/service-role'
-import { validateRequestAuth } from '@/lib/auth/server-session'
+import { NextResponse, type NextRequest } from 'next/server';
+import { createServiceRoleClient } from '@/lib/supabase/service-role';
+import { validateRequestAuth } from '@/lib/auth/server-session';
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await validateRequestAuth(request)
+    const session = await validateRequestAuth(request);
     if (!session.success || !session.member) {
-      return NextResponse.json({ success: false, error: session.error }, { status: session.status })
+      return NextResponse.json(
+        { success: false, error: session.error },
+        { status: session.status }
+      );
     }
 
     if (session.member.member_role !== 'child') {
-      return NextResponse.json({ success: false, error: 'هذه الصفحة مخصصة للأطفال فقط' }, { status: 403 })
+      return NextResponse.json(
+        { success: false, error: 'هذه الصفحة مخصصة للأطفال فقط' },
+        { status: 403 }
+      );
     }
 
-    const { section = 'home' } = await request.json()
+    const { section = 'home' } = await request.json();
 
-    const supabase = createServiceRoleClient()
-    const memberId = session.member.member_id
-    const familyId = session.member.family_id
+    const supabase = createServiceRoleClient();
+    const memberId = session.member.member_id;
+    const familyId = session.member.family_id;
 
     const { data: memberData, error: memberError } = await supabase
       .from('members')
       .select('id, name, role, current_streak, longest_streak, grace_shields, last_active_date')
       .eq('id', memberId)
-      .single()
+      .single();
 
     if (memberError || !memberData || memberData.role !== 'child') {
-      return NextResponse.json({ success: false, error: 'العضو غير موجود' }, { status: 401 })
+      return NextResponse.json({ success: false, error: 'العضو غير موجود' }, { status: 401 });
     }
 
     // Validate section against member identity (never trust client-supplied member_id)
-    if (section !== 'home' && section !== 'tasks' && section !== 'gifts' && section !== 'garden' && section !== 'profile') {
-      return NextResponse.json({ success: false, error: 'قسم غير معروف' }, { status: 400 })
+    if (
+      section !== 'home' &&
+      section !== 'tasks' &&
+      section !== 'gifts' &&
+      section !== 'garden' &&
+      section !== 'profile'
+    ) {
+      return NextResponse.json({ success: false, error: 'قسم غير معروف' }, { status: 400 });
     }
 
-    const today = new Date().toISOString().split('T')[0]
-    const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString()
+    const today = new Date().toISOString().split('T')[0];
+    const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
 
     // 'home' — full dashboard for the child
     if (section === 'home') {
       const [tasksResult, allXpResult, moneyResult, completionsResult] = await Promise.all([
-        supabase.from('tasks').select('id, title, xp_reward, money_reward, requires_approval, task_type, quran_action_type, icon, description')
-          .eq('family_id', familyId).eq('is_active', true).eq('is_deleted', false).eq('is_paused', false),
-        supabase.from('xp_transactions').select('amount, description, created_at, source')
+        supabase
+          .from('tasks')
+          .select(
+            'id, title, xp_reward, money_reward, requires_approval, task_type, quran_action_type, icon, description'
+          )
+          .eq('family_id', familyId)
+          .eq('is_active', true)
+          .eq('is_deleted', false)
+          .eq('is_paused', false),
+        supabase
+          .from('xp_transactions')
+          .select('amount, description, created_at, source')
           .eq('member_id', memberId),
-        supabase.from('money_transactions').select('amount, type')
-          .eq('member_id', memberId).eq('status', 'approved'),
-        supabase.from('task_completions').select('task_id, approved')
-          .eq('member_id', memberId).gte('completed_at', today),
-      ])
+        supabase
+          .from('money_transactions')
+          .select('amount, type')
+          .eq('member_id', memberId)
+          .eq('status', 'approved'),
+        supabase
+          .from('task_completions')
+          .select('task_id, approved')
+          .eq('member_id', memberId)
+          .gte('completed_at', today),
+      ]);
 
-      const allXp = allXpResult.data || []
-      const xpTransactions = allXp.map(t => ({
+      const allXp = allXpResult.data || [];
+      const xpTransactions = allXp.map((t) => ({
         ...t,
         created_at: t.created_at,
-      }))
+      }));
 
-      const recentManual = allXp.find(t => t.source === 'manual' && new Date(t.created_at) >= new Date(fiveMinAgo))
+      const recentManual = allXp.find(
+        (t) => t.source === 'manual' && new Date(t.created_at) >= new Date(fiveMinAgo)
+      );
 
       // Get daily goal data
       const { data: goalData } = await supabase
         .from('daily_goals')
         .select('target_tasks')
         .eq('member_id', memberId)
-        .single()
+        .single();
 
-      const dailyGoalTarget = goalData?.target_tasks || 3
-      const completedTodayCount = (completionsResult.data || []).filter((c: any) => c.approved).length
+      const dailyGoalTarget = goalData?.target_tasks || 3;
+      const completedTodayCount = (completionsResult.data || []).filter(
+        (c: any) => c.approved
+      ).length;
 
       return NextResponse.json({
         success: true,
@@ -74,43 +105,71 @@ export async function POST(request: NextRequest) {
         tasks: tasksResult.data || [],
         xp_transactions: xpTransactions,
         xp: allXp.reduce((sum, t) => sum + t.amount, 0),
-        money_balance: (moneyResult.data || []).reduce((sum, t) => sum + (t.type === 'earned' ? t.amount : -t.amount), 0),
-        completed_today: (completionsResult.data || []).filter(c => c.approved).map(c => c.task_id),
-        pending_today: (completionsResult.data || []).filter(c => c.approved === null).map(c => c.task_id),
+        money_balance: (moneyResult.data || []).reduce(
+          (sum, t) => sum + (t.type === 'earned' ? t.amount : -t.amount),
+          0
+        ),
+        completed_today: (completionsResult.data || [])
+          .filter((c) => c.approved)
+          .map((c) => c.task_id),
+        pending_today: (completionsResult.data || [])
+          .filter((c) => c.approved === null)
+          .map((c) => c.task_id),
         daily_goal: {
           target: dailyGoalTarget,
           completed: completedTodayCount,
           reached: completedTodayCount >= dailyGoalTarget,
         },
-        recent_manual: recentManual ? {
-          type: recentManual.amount > 0 ? 'success' : 'error',
-          message: recentManual.amount > 0
-            ? `مكافأة من الوالد: ${recentManual.description} (+${recentManual.amount} XP)`
-            : `تنبيه من الوالد: ${recentManual.description} (${recentManual.amount} XP)`,
-        } : null,
-      })
+        recent_manual: recentManual
+          ? {
+              type: recentManual.amount > 0 ? 'success' : 'error',
+              message:
+                recentManual.amount > 0
+                  ? `مكافأة من الوالد: ${recentManual.description} (+${recentManual.amount} XP)`
+                  : `تنبيه من الوالد: ${recentManual.description} (${recentManual.amount} XP)`,
+            }
+          : null,
+      });
     }
 
     // 'tasks' — task list scoped to this child
     if (section === 'tasks') {
       const [tasksResult, completionsResult] = await Promise.all([
-        supabase.from('tasks').select('id, title, description, xp_reward, money_reward, requires_approval, task_type, quran_action_type, icon, priority, custom_content_text')
-          .eq('family_id', familyId).eq('is_active', true).eq('is_deleted', false).eq('is_paused', false)
+        supabase
+          .from('tasks')
+          .select(
+            'id, title, description, xp_reward, money_reward, requires_approval, task_type, quran_action_type, icon, priority, custom_content_text'
+          )
+          .eq('family_id', familyId)
+          .eq('is_active', true)
+          .eq('is_deleted', false)
+          .eq('is_paused', false)
           .or(`assigned_to.is.null,assigned_to.cs.{${memberId}}`),
-        supabase.from('task_completions').select('task_id, approved')
-          .eq('member_id', memberId).gte('completed_at', today),
-      ])
+        supabase
+          .from('task_completions')
+          .select('task_id, approved')
+          .eq('member_id', memberId)
+          .gte('completed_at', today),
+      ]);
 
-      const priorityOrder: Record<string, number> = { high: 0, medium: 1, low: 2 }
-      const sortedTasks = (tasksResult.data || []).sort((a, b) => (priorityOrder[a.priority || 'medium'] || 1) - (priorityOrder[b.priority || 'medium'] || 1))
+      const priorityOrder: Record<string, number> = { high: 0, medium: 1, low: 2 };
+      const sortedTasks = (tasksResult.data || []).sort(
+        (a, b) =>
+          (priorityOrder[a.priority || 'medium'] || 1) -
+          (priorityOrder[b.priority || 'medium'] || 1)
+      );
 
       return NextResponse.json({
         success: true,
         member: { name: memberData.name },
         tasks: sortedTasks,
-        completed_today: (completionsResult.data || []).filter(c => c.approved === true).map(c => c.task_id),
-        pending_today: (completionsResult.data || []).filter(c => c.approved === null).map(c => c.task_id),
-      })
+        completed_today: (completionsResult.data || [])
+          .filter((c) => c.approved === true)
+          .map((c) => c.task_id),
+        pending_today: (completionsResult.data || [])
+          .filter((c) => c.approved === null)
+          .map((c) => c.task_id),
+      });
     }
 
     // 'gifts' — active gifts + this child's balances + redemption status
@@ -118,28 +177,35 @@ export async function POST(request: NextRequest) {
       const [giftsResult, xpResult, moneyResult, redemptionsResult] = await Promise.all([
         supabase.from('gifts').select('*').eq('family_id', familyId).eq('is_active', true),
         supabase.from('xp_transactions').select('amount').eq('member_id', memberId),
-        supabase.from('money_transactions').select('amount, type').eq('member_id', memberId).eq('status', 'approved'),
-        supabase.from('gift_redemptions').select('id, gift_id, status, requested_xp_cost, xp_spent, money_spent, redeemed_at').eq('member_id', memberId),
-      ])
+        supabase
+          .from('money_transactions')
+          .select('amount, type')
+          .eq('member_id', memberId)
+          .eq('status', 'approved'),
+        supabase
+          .from('gift_redemptions')
+          .select('id, gift_id, status, requested_xp_cost, xp_spent, money_spent, redeemed_at')
+          .eq('member_id', memberId),
+      ]);
 
       // Build full redemption history per gift for this child
-      const allRedemptions = (redemptionsResult.data || [])
-      const redemptionsByGift = new Map<string, typeof allRedemptions>()
+      const allRedemptions = redemptionsResult.data || [];
+      const redemptionsByGift = new Map<string, typeof allRedemptions>();
       for (const r of allRedemptions) {
-        const list = redemptionsByGift.get(r.gift_id) || []
-        list.push(r)
-        redemptionsByGift.set(r.gift_id, list)
+        const list = redemptionsByGift.get(r.gift_id) || [];
+        list.push(r);
+        redemptionsByGift.set(r.gift_id, list);
       }
 
       // Sort each gift's history by date descending (newest first)
       for (const list of redemptionsByGift.values()) {
-        list.sort((a, b) => new Date(b.redeemed_at).getTime() - new Date(a.redeemed_at).getTime())
+        list.sort((a, b) => new Date(b.redeemed_at).getTime() - new Date(a.redeemed_at).getTime());
       }
 
       // Enrich gifts with latest status + full history
       const enrichedGifts = (giftsResult.data || []).map((g: any) => {
-        const history = redemptionsByGift.get(g.id) || []
-        const latest = history[0] || null
+        const history = redemptionsByGift.get(g.id) || [];
+        const latest = history[0] || null;
         return {
           ...g,
           redemption_status: latest?.status || null,
@@ -153,11 +219,11 @@ export async function POST(request: NextRequest) {
             money_spent: r.money_spent,
             date: r.redeemed_at,
           })),
-        }
-      })
+        };
+      });
 
       // Build flat list of all requests with gift titles
-      const giftTitleById = new Map((giftsResult.data || []).map((g: any) => [g.id, g.title]))
+      const giftTitleById = new Map((giftsResult.data || []).map((g: any) => [g.id, g.title]));
       const redemptionRequests = allRedemptions
         .map((r: any) => ({
           id: r.id,
@@ -169,15 +235,18 @@ export async function POST(request: NextRequest) {
           money_spent: r.money_spent,
           date: r.redeemed_at,
         }))
-        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
       return NextResponse.json({
         success: true,
         gifts: enrichedGifts,
         redemption_requests: redemptionRequests,
         xp: (xpResult.data || []).reduce((sum, t) => sum + t.amount, 0),
-        money_balance: (moneyResult.data || []).reduce((sum, t) => sum + (t.type === 'earned' ? t.amount : -t.amount), 0),
-      })
+        money_balance: (moneyResult.data || []).reduce(
+          (sum, t) => sum + (t.type === 'earned' ? t.amount : -t.amount),
+          0
+        ),
+      });
     }
 
     // 'garden' — level/streak data
@@ -185,7 +254,7 @@ export async function POST(request: NextRequest) {
       const { data: xpData } = await supabase
         .from('xp_transactions')
         .select('amount')
-        .eq('member_id', memberId)
+        .eq('member_id', memberId);
 
       return NextResponse.json({
         success: true,
@@ -197,20 +266,26 @@ export async function POST(request: NextRequest) {
           last_active_date: memberData.last_active_date,
         },
         xp: (xpData || []).reduce((sum, t) => sum + t.amount, 0),
-      })
+      });
     }
 
     // 'profile' — profile summary with DB-driven achievements
-    const [xpResult, tasksResult, completionsResult, achievementsResult, allAchievementsResult] = await Promise.all([
-      supabase.from('xp_transactions').select('amount').eq('member_id', memberId),
-      supabase.from('tasks').select('id').eq('family_id', familyId).eq('is_active', true),
-      supabase.from('task_completions').select('id').eq('member_id', memberId),
-      supabase.from('member_achievements').select('achievement_id, earned_at').eq('member_id', memberId),
-      supabase.from('achievement_definitions').select('id, title, description, icon, requirement_type, requirement_value'),
-    ])
+    const [xpResult, tasksResult, completionsResult, achievementsResult, allAchievementsResult] =
+      await Promise.all([
+        supabase.from('xp_transactions').select('amount').eq('member_id', memberId),
+        supabase.from('tasks').select('id').eq('family_id', familyId).eq('is_active', true),
+        supabase.from('task_completions').select('id').eq('member_id', memberId),
+        supabase
+          .from('member_achievements')
+          .select('achievement_id, earned_at')
+          .eq('member_id', memberId),
+        supabase
+          .from('achievement_definitions')
+          .select('id, title, description, icon, requirement_type, requirement_value'),
+      ]);
 
     // Build achievement list with unlock status
-    const earnedSet = new Set((achievementsResult.data || []).map((a: any) => a.achievement_id))
+    const earnedSet = new Set((achievementsResult.data || []).map((a: any) => a.achievement_id));
     const achievements = (allAchievementsResult.data || []).map((def: any) => ({
       id: def.id,
       title: def.title,
@@ -219,20 +294,25 @@ export async function POST(request: NextRequest) {
       unlocked: earnedSet.has(def.id),
       requirement_type: def.requirement_type,
       requirement_value: def.requirement_value,
-    }))
+    }));
 
     return NextResponse.json({
       success: true,
-      member: { name: memberData.name, current_streak: memberData.current_streak, longest_streak: memberData.longest_streak, grace_shields: memberData.grace_shields },
+      member: {
+        name: memberData.name,
+        current_streak: memberData.current_streak,
+        longest_streak: memberData.longest_streak,
+        grace_shields: memberData.grace_shields,
+      },
       xp: (xpResult.data || []).reduce((sum: number, t: any) => sum + t.amount, 0),
       total_tasks: tasksResult.data?.length || 0,
       completed_tasks: completionsResult.data?.length || 0,
       achievements,
       unlocked_count: achievements.filter((a: any) => a.unlocked).length,
       total_achievements: achievements.length,
-    })
+    });
   } catch (err) {
-    console.error('[GHRS CHILD-MODE DATA] Unexpected error:', err)
-    return NextResponse.json({ success: false, error: 'حدث خطأ غير متوقع' }, { status: 500 })
+    console.error('[GHRS CHILD-MODE DATA] Unexpected error:', err);
+    return NextResponse.json({ success: false, error: 'حدث خطأ غير متوقع' }, { status: 500 });
   }
 }

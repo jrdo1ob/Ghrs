@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 
 interface IllustrationProps {
   size?: number;
@@ -7,7 +7,7 @@ interface IllustrationProps {
 
 export const EmptyStateIllustration: React.FC<IllustrationProps> = ({
   size = 200,
-  className = "",
+  className = '',
 }) => (
   <svg
     width={size}
@@ -33,7 +33,16 @@ export const EmptyStateIllustration: React.FC<IllustrationProps> = ({
 
     {/* Main empty box/container */}
     <rect x="55" y="95" width="90" height="70" rx="8" fill="#e2e8f0" opacity="0.5" />
-    <rect x="55" y="95" width="90" height="70" rx="8" stroke="#94a3b8" strokeWidth="2" strokeDasharray="4 4" />
+    <rect
+      x="55"
+      y="95"
+      width="90"
+      height="70"
+      rx="8"
+      stroke="#94a3b8"
+      strokeWidth="2"
+      strokeDasharray="4 4"
+    />
 
     {/* Open lid */}
     <path d="M50 95 L100 75 L150 95" fill="#f1f5f9" stroke="#94a3b8" strokeWidth="2" />
@@ -56,7 +65,16 @@ export const EmptyStateIllustration: React.FC<IllustrationProps> = ({
     {/* Floating elements */}
     <g opacity="0.4">
       {/* Paper/document */}
-      <rect x="85" y="120" width="15" height="20" rx="2" fill="#f1f5f9" stroke="#94a3b8" strokeWidth="1.5" />
+      <rect
+        x="85"
+        y="120"
+        width="15"
+        height="20"
+        rx="2"
+        fill="#f1f5f9"
+        stroke="#94a3b8"
+        strokeWidth="1.5"
+      />
       <line x1="88" y1="126" x2="97" y2="126" stroke="#cbd5e1" strokeWidth="1" />
       <line x1="88" y1="130" x2="95" y2="130" stroke="#cbd5e1" strokeWidth="1" />
       <line x1="88" y1="134" x2="97" y2="134" stroke="#cbd5e1" strokeWidth="1" />
@@ -78,7 +96,15 @@ export const EmptyStateIllustration: React.FC<IllustrationProps> = ({
     <circle cx="142" cy="147" r="1" fill="#cbd5e1" opacity="0.2" />
 
     {/* Sprout growing from empty box */}
-    <line x1="100" y1="95" x2="100" y2="78" stroke="#22c55e" strokeWidth="2" strokeLinecap="round" />
+    <line
+      x1="100"
+      y1="95"
+      x2="100"
+      y2="78"
+      stroke="#22c55e"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
     <path d="M100 78 Q95 72 100 75" fill="#22c55e" stroke="none" />
     <path d="M100 80 Q105 74 100 77" fill="#4ade80" stroke="none" />
     <circle cx="100" cy="76" r="2" fill="#22c55e" opacity="0.6" />

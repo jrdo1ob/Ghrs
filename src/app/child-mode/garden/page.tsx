@@ -1,11 +1,11 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { ChildBottomNav } from '@/components/layout'
-import { LEVELS, getLevel, getNextLevel } from '@/lib/gamification'
-import ThemeToggle from '@/components/child/ThemeToggle'
-import ChildLoading from '@/components/child/ChildLoading'
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { ChildBottomNav } from '@/components/layout';
+import { LEVELS, getLevel, getNextLevel } from '@/lib/gamification';
+import ThemeToggle from '@/components/child/ThemeToggle';
+import ChildLoading from '@/components/child/ChildLoading';
 import {
   GardenIcon,
   WaterIcon,
@@ -15,55 +15,55 @@ import {
   ShieldIcon,
   CheckIcon,
   LockIcon,
-} from '@/components/icons'
-import { getCurrentUser } from '@/lib/auth/helper'
+} from '@/components/icons';
+import { getCurrentUser } from '@/lib/auth/helper';
 
 export default function ChildGardenPage() {
-  const [xp, setXp] = useState(0)
-  const [loading, setLoading] = useState(true)
-  const [member, setMember] = useState<any>(null)
-  const [showAllStages, setShowAllStages] = useState(false)
-  const router = useRouter()
+  const [xp, setXp] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [member, setMember] = useState<any>(null);
+  const [showAllStages, setShowAllStages] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     const getData = async () => {
-      const authUser = await getCurrentUser()
+      const authUser = await getCurrentUser();
       if (!authUser || authUser.role !== 'child') {
-        router.push('/family-login')
-        return
+        router.push('/family-login');
+        return;
       }
 
       const response = await fetch('/api/child-mode/data', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ section: 'garden' }),
-      })
-      const result = await response.json()
+      });
+      const result = await response.json();
       if (!response.ok || !result.success) {
-        router.push('/family-login')
-        return
+        router.push('/family-login');
+        return;
       }
 
-      setMember(result.member)
-      setXp(result.xp)
-      setLoading(false)
-    }
+      setMember(result.member);
+      setXp(result.xp);
+      setLoading(false);
+    };
 
-    getData()
-  }, [])
+    getData();
+  }, []);
 
-  const level = getLevel(xp)
-  const nextLevel = getNextLevel(level)
+  const level = getLevel(xp);
+  const nextLevel = getNextLevel(level);
   const progressToNext = nextLevel
     ? Math.min(100, ((xp - level.minXp) / (nextLevel.minXp - level.minXp)) * 100)
-    : 100
+    : 100;
 
-  const today = new Date().toISOString().split('T')[0]
-  const lastActive = member?.last_active_date
+  const today = new Date().toISOString().split('T')[0];
+  const lastActive = member?.last_active_date;
   const isThirsty =
     lastActive &&
     lastActive < today &&
-    new Date().getTime() - new Date(lastActive).getTime() > 86400000
+    new Date().getTime() - new Date(lastActive).getTime() > 86400000;
 
   if (loading) {
     return (
@@ -71,12 +71,12 @@ export default function ChildGardenPage() {
         text="جاري تحميل حديقتك..."
         icon={<GardenIcon size={48} color="var(--ghrs-green-500)" />}
       />
-    )
+    );
   }
 
-  const isMaxLevel = !nextLevel
-  const xpInCurrentLevel = xp - level.minXp
-  const xpForNext = nextLevel ? nextLevel.minXp - level.minXp : 0
+  const isMaxLevel = !nextLevel;
+  const xpInCurrentLevel = xp - level.minXp;
+  const xpForNext = nextLevel ? nextLevel.minXp - level.minXp : 0;
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--ghrs-bg-primary)' }}>
@@ -101,9 +101,7 @@ export default function ChildGardenPage() {
             className="text-sm font-semibold mt-1 ghrs-animate-fade-in"
             style={{ color: 'var(--ghrs-text-secondary)', animationDelay: '0.15s' }}
           >
-            {isMaxLevel
-              ? '恭喜! حديقتك أصبحت حديقة مزهرة!'
-              : 'نزرع معاً حديقة جميلة بالإنجازات'}
+            {isMaxLevel ? '恭喜! حديقتك أصبحت حديقة مزهرة!' : 'نزرع معاً حديقة جميلة بالإنجازات'}
           </p>
         </div>
 
@@ -127,7 +125,8 @@ export default function ChildGardenPage() {
                 width: '40px',
                 height: '40px',
                 borderRadius: '50%',
-                background: 'radial-gradient(circle, #fbbf24 40%, rgba(251,191,36,0.3) 70%, transparent 100%)',
+                background:
+                  'radial-gradient(circle, #fbbf24 40%, rgba(251,191,36,0.3) 70%, transparent 100%)',
                 boxShadow: '0 0 20px rgba(251,191,36,0.4)',
               }}
             />
@@ -139,11 +138,23 @@ export default function ChildGardenPage() {
             />
             <div
               className="ghrs-garden-cloud ghrs-garden-sway-slow"
-              style={{ top: '28%', right: '30%', width: '44px', height: '16px', animationDelay: '1s' }}
+              style={{
+                top: '28%',
+                right: '30%',
+                width: '44px',
+                height: '16px',
+                animationDelay: '1s',
+              }}
             />
             <div
               className="ghrs-garden-cloud ghrs-garden-sway-slow"
-              style={{ top: '14%', left: '55%', width: '50px', height: '18px', animationDelay: '2s' }}
+              style={{
+                top: '14%',
+                left: '55%',
+                width: '50px',
+                height: '18px',
+                animationDelay: '2s',
+              }}
             />
           </div>
 
@@ -174,10 +185,7 @@ export default function ChildGardenPage() {
             ))}
 
             {/* Small flowers */}
-            <span
-              className="ghrs-garden-flower"
-              style={{ bottom: '8px', left: '22%' }}
-            >
+            <span className="ghrs-garden-flower" style={{ bottom: '8px', left: '22%' }}>
               🌸
             </span>
             <span
@@ -291,10 +299,7 @@ export default function ChildGardenPage() {
           {nextLevel ? (
             <>
               <div className="ghrs-garden-xp-bar mb-2.5">
-                <div
-                  className="ghrs-garden-xp-fill"
-                  style={{ width: `${progressToNext}%` }}
-                />
+                <div className="ghrs-garden-xp-fill" style={{ width: `${progressToNext}%` }} />
               </div>
               <div className="flex items-center justify-between">
                 <p
@@ -313,10 +318,7 @@ export default function ChildGardenPage() {
             </>
           ) : (
             <div className="text-center py-2">
-              <p
-                className="text-[14px] font-bold"
-                style={{ color: 'var(--ghrs-green-600)' }}
-              >
+              <p className="text-[14px] font-bold" style={{ color: 'var(--ghrs-green-600)' }}>
                 وصلت لأعلى مستوى — حديقتك مزهرة
               </p>
             </div>
@@ -340,7 +342,10 @@ export default function ChildGardenPage() {
                 border: `1px solid ${isThirsty ? 'var(--ghrs-blue-200)' : 'var(--ghrs-green-200)'}`,
               }}
             >
-              <WaterIcon size={18} color={isThirsty ? 'var(--ghrs-blue-500)' : 'var(--ghrs-green-600)'} />
+              <WaterIcon
+                size={18}
+                color={isThirsty ? 'var(--ghrs-blue-500)' : 'var(--ghrs-green-600)'}
+              />
             </div>
             <div className="flex-1 min-w-0">
               <p
@@ -349,10 +354,7 @@ export default function ChildGardenPage() {
               >
                 {isThirsty ? 'اسقِ حديقتك' : 'حديقتك تنمو'}
               </p>
-              <p
-                className="text-[12px] mt-0.5"
-                style={{ color: 'var(--ghrs-text-secondary)' }}
-              >
+              <p className="text-[12px] mt-0.5" style={{ color: 'var(--ghrs-text-secondary)' }}>
                 أنجز مهامك واجمع XP لتنمو
               </p>
             </div>
@@ -460,10 +462,7 @@ export default function ChildGardenPage() {
           >
             <div className="flex items-center gap-2.5">
               <span className="text-base leading-none">🌳</span>
-              <p
-                className="text-[14px] font-bold"
-                style={{ color: 'var(--ghrs-text-primary)' }}
-              >
+              <p className="text-[14px] font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>
                 مراحل نمو حديقتي
               </p>
             </div>
@@ -494,8 +493,8 @@ export default function ChildGardenPage() {
               style={{ borderColor: 'var(--ghrs-border-default)' }}
             >
               {LEVELS.map((l) => {
-                const isCurrent = l.level === level.level
-                const isUnlocked = xp >= l.minXp
+                const isCurrent = l.level === level.level;
+                const isUnlocked = xp >= l.minXp;
                 return (
                   <div
                     key={l.level}
@@ -529,7 +528,7 @@ export default function ChildGardenPage() {
                       <LockIcon size={14} color="var(--ghrs-text-tertiary)" />
                     )}
                   </div>
-                )
+                );
               })}
             </div>
           </div>
@@ -538,5 +537,5 @@ export default function ChildGardenPage() {
 
       <ChildBottomNav />
     </div>
-  )
+  );
 }

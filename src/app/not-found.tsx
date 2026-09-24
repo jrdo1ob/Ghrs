@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import Link from 'next/link';
 
 export default function NotFound() {
   return (
@@ -8,16 +8,10 @@ export default function NotFound() {
     >
       <div className="text-center max-w-sm">
         <div className="text-6xl mb-4">🔍</div>
-        <h1
-          className="text-2xl font-bold mb-2"
-          style={{ color: 'var(--ghrs-text-primary)' }}
-        >
+        <h1 className="text-2xl font-bold mb-2" style={{ color: 'var(--ghrs-text-primary)' }}>
           الصفحة غير موجودة
         </h1>
-        <p
-          className="text-sm mb-6"
-          style={{ color: 'var(--ghrs-text-secondary)' }}
-        >
+        <p className="text-sm mb-6" style={{ color: 'var(--ghrs-text-secondary)' }}>
           عذراً، لم نتمكن من العثور على الصفحة التي تبحث عنها.
         </p>
         <Link
@@ -29,5 +23,5 @@ export default function NotFound() {
         </Link>
       </div>
     </div>
-  )
+  );
 }

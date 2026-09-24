@@ -1,53 +1,54 @@
-import type { Metadata, Viewport } from "next";
-import "./globals.css";
-import { ThemeProvider } from "@/lib/theme/provider";
-import OfflineHandler from "@/components/OfflineHandler";
-import AppDownloadBanner from "@/components/AppDownloadBanner";
-import DeepLinkHandler from "@/components/DeepLinkHandler";
-import CapacitorRouteHandler from "@/components/CapacitorRouteHandler";
+import type { Metadata, Viewport } from 'next';
+import './globals.css';
+import { ThemeProvider } from '@/lib/theme/provider';
+import OfflineHandler from '@/components/OfflineHandler';
+import AppDownloadBanner from '@/components/AppDownloadBanner';
+import DeepLinkHandler from '@/components/DeepLinkHandler';
+import CapacitorRouteHandler from '@/components/CapacitorRouteHandler';
 
 export const viewport: Viewport = {
-  width: "device-width",
+  width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: "#22c55e",
-  viewportFit: "cover",
-}
+  themeColor: '#22c55e',
+  viewportFit: 'cover',
+};
 
 export const metadata: Metadata = {
-  title: "غرس - GHRS | ازرع العادة، واحصد الإنجاز",
-  description: "تطبيق عائلي لبناء عادات إيجابية لدى الأطفال. حوّل الأعمال اليومية إلى تجربة نمو ممتعة مع نظام المكافآت والتحديات.",
+  title: 'غرس - GHRS | ازرع العادة، واحصد الإنجاز',
+  description:
+    'تطبيق عائلي لبناء عادات إيجابية لدى الأطفال. حوّل الأعمال اليومية إلى تجربة نمو ممتعة مع نظام المكافآت والتحديات.',
   icons: {
-    icon: "/favicon.ico",
+    icon: '/favicon.ico',
   },
-  manifest: "/manifest.json",
+  manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
-    statusBarStyle: "default",
-    title: "غرس",
+    statusBarStyle: 'default',
+    title: 'غرس',
   },
   openGraph: {
-    title: "منصة غرس | GHRS",
-    description: "تطبيق تربوي تفاعلي لبناء عادات الأطفال وتطوير مهاراتهم بنظام النقاط والمكافآت.",
-    url: "https://ghrs-cyan.vercel.app",
-    siteName: "غرس - GHRS",
+    title: 'منصة غرس | GHRS',
+    description: 'تطبيق تربوي تفاعلي لبناء عادات الأطفال وتطوير مهاراتهم بنظام النقاط والمكافآت.',
+    url: 'https://ghrs-cyan.vercel.app',
+    siteName: 'غرس - GHRS',
     images: [
       {
-        url: "https://ghrs-cyan.vercel.app/og-image.svg",
+        url: 'https://ghrs-cyan.vercel.app/og-image.svg',
         width: 1200,
         height: 630,
-        alt: "منصة غرس العائلية",
+        alt: 'منصة غرس العائلية',
       },
     ],
-    locale: "ar_BH",
-    type: "website",
+    locale: 'ar_BH',
+    type: 'website',
   },
   twitter: {
-    card: "summary_large_image",
-    title: "منصة غرس | GHRS",
-    description: "تطبيق تربوي تفاعلي لبناء عادات الأطفال وتطوير مهاراتهم بنظام النقاط والمكافآت.",
-    images: ["https://ghrs-cyan.vercel.app/og-image.svg"],
+    card: 'summary_large_image',
+    title: 'منصة غرس | GHRS',
+    description: 'تطبيق تربوي تفاعلي لبناء عادات الأطفال وتطوير مهاراتهم بنظام النقاط والمكافآت.',
+    images: ['https://ghrs-cyan.vercel.app/og-image.svg'],
   },
 };
 
@@ -66,13 +67,17 @@ export default function RootLayout({
           <CapacitorRouteHandler />
           {children}
         </ThemeProvider>
-        <script dangerouslySetInnerHTML={{ __html: `
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
           if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
               navigator.serviceWorker.register('/sw.js').catch(() => {})
             })
           }
-        `}} />
+        `,
+          }}
+        />
       </body>
     </html>
   );

@@ -1,16 +1,22 @@
-'use client'
+'use client';
 
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface CelebrationModalProps {
-  show: boolean
-  level: number
-  levelName: string
-  levelEmoji: string
-  onClose: () => void
+  show: boolean;
+  level: number;
+  levelName: string;
+  levelEmoji: string;
+  onClose: () => void;
 }
 
-export default function CelebrationModal({ show, level, levelName, levelEmoji, onClose }: CelebrationModalProps) {
+export default function CelebrationModal({
+  show,
+  level,
+  levelName,
+  levelEmoji,
+  onClose,
+}: CelebrationModalProps) {
   return (
     <AnimatePresence>
       {show && (
@@ -56,9 +62,13 @@ export default function CelebrationModal({ show, level, levelName, levelEmoji, o
             onClick={(e) => e.stopPropagation()}
           >
             {/* Glow effect */}
-            <div className="absolute inset-0 rounded-3xl opacity-20" style={{
-              background: 'radial-gradient(circle at center, var(--ghrs-amber-300) 0%, transparent 70%)'
-            }} />
+            <div
+              className="absolute inset-0 rounded-3xl opacity-20"
+              style={{
+                background:
+                  'radial-gradient(circle at center, var(--ghrs-amber-300) 0%, transparent 70%)',
+              }}
+            />
 
             {/* Emoji */}
             <motion.div
@@ -138,5 +148,5 @@ export default function CelebrationModal({ show, level, levelName, levelEmoji, o
         </motion.div>
       )}
     </AnimatePresence>
-  )
+  );
 }

@@ -1,21 +1,27 @@
-'use client'
+'use client';
 
-import React from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { StarIcon, CoinIcon, CheckIcon, ClockIcon } from '@/components/icons'
+import React from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { StarIcon, CoinIcon, CheckIcon, ClockIcon } from '@/components/icons';
 
 interface TaskCompletionFeedbackProps {
-  show: boolean
-  taskName: string
-  xpEarned: number
-  moneyEarned: number
-  needsApproval: boolean
-  onClose: () => void
-  formatMoney: (amount: number) => string
+  show: boolean;
+  taskName: string;
+  xpEarned: number;
+  moneyEarned: number;
+  needsApproval: boolean;
+  onClose: () => void;
+  formatMoney: (amount: number) => string;
 }
 
 export default function TaskCompletionFeedback({
-  show, taskName, xpEarned, moneyEarned, needsApproval, onClose, formatMoney
+  show,
+  taskName,
+  xpEarned,
+  moneyEarned,
+  needsApproval,
+  onClose,
+  formatMoney,
 }: TaskCompletionFeedbackProps) {
   return (
     <AnimatePresence>
@@ -43,12 +49,15 @@ export default function TaskCompletionFeedback({
               animate={{ scale: 1, rotate: 0 }}
               transition={{ delay: 0.15, type: 'spring', stiffness: 400, damping: 15 }}
               className="w-20 h-20 rounded-full mx-auto mb-5 flex items-center justify-center"
-              style={{ background: needsApproval ? 'var(--ghrs-amber-100)' : 'var(--ghrs-green-100)' }}
+              style={{
+                background: needsApproval ? 'var(--ghrs-amber-100)' : 'var(--ghrs-green-100)',
+              }}
             >
-              {needsApproval
-                ? <ClockIcon size={36} color="var(--ghrs-amber-600)" />
-                : <CheckIcon size={36} color="var(--ghrs-green-600)" />
-              }
+              {needsApproval ? (
+                <ClockIcon size={36} color="var(--ghrs-amber-600)" />
+              ) : (
+                <CheckIcon size={36} color="var(--ghrs-green-600)" />
+              )}
             </motion.div>
 
             {/* Title */}
@@ -69,10 +78,7 @@ export default function TaskCompletionFeedback({
               className="text-sm mb-5"
               style={{ color: 'var(--ghrs-text-secondary)' }}
             >
-              {needsApproval
-                ? 'تم إرسال المهمة للموافقة'
-                : taskName
-              }
+              {needsApproval ? 'تم إرسال المهمة للموافقة' : taskName}
             </motion.p>
 
             {/* Rewards */}
@@ -84,15 +90,37 @@ export default function TaskCompletionFeedback({
                 className="flex items-center justify-center gap-3 mb-6"
               >
                 {xpEarned > 0 && (
-                  <div className="flex items-center gap-2 px-4 py-2.5 rounded-2xl" style={{ background: 'var(--ghrs-amber-50)', border: '1.5px solid var(--ghrs-amber-200)' }}>
+                  <div
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-2xl"
+                    style={{
+                      background: 'var(--ghrs-amber-50)',
+                      border: '1.5px solid var(--ghrs-amber-200)',
+                    }}
+                  >
                     <StarIcon size={18} color="var(--ghrs-amber-600)" />
-                    <span className="text-base font-extrabold" style={{ color: 'var(--ghrs-amber-600)' }}>+{xpEarned}</span>
+                    <span
+                      className="text-base font-extrabold"
+                      style={{ color: 'var(--ghrs-amber-600)' }}
+                    >
+                      +{xpEarned}
+                    </span>
                   </div>
                 )}
                 {moneyEarned > 0 && (
-                  <div className="flex items-center gap-2 px-4 py-2.5 rounded-2xl" style={{ background: 'var(--ghrs-green-50)', border: '1.5px solid var(--ghrs-green-200)' }}>
+                  <div
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-2xl"
+                    style={{
+                      background: 'var(--ghrs-green-50)',
+                      border: '1.5px solid var(--ghrs-green-200)',
+                    }}
+                  >
                     <CoinIcon size={18} color="var(--ghrs-green-600)" />
-                    <span className="text-base font-extrabold" style={{ color: 'var(--ghrs-green-600)' }}>+{formatMoney(moneyEarned)}</span>
+                    <span
+                      className="text-base font-extrabold"
+                      style={{ color: 'var(--ghrs-green-600)' }}
+                    >
+                      +{formatMoney(moneyEarned)}
+                    </span>
                   </div>
                 )}
               </motion.div>
@@ -106,7 +134,9 @@ export default function TaskCompletionFeedback({
               whileTap={{ scale: 0.95 }}
               onClick={onClose}
               className="px-8 py-3 rounded-2xl text-sm font-bold text-white transition-all active:scale-95"
-              style={{ background: needsApproval ? 'var(--ghrs-amber-500)' : 'var(--ghrs-green-600)' }}
+              style={{
+                background: needsApproval ? 'var(--ghrs-amber-500)' : 'var(--ghrs-green-600)',
+              }}
             >
               {needsApproval ? 'حسناً' : 'ممتاز!'}
             </motion.button>
@@ -114,5 +144,5 @@ export default function TaskCompletionFeedback({
         </motion.div>
       )}
     </AnimatePresence>
-  )
+  );
 }

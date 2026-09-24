@@ -1,14 +1,11 @@
-import React from "react";
+import React from 'react';
 
 interface IllustrationProps {
   size?: number;
   className?: string;
 }
 
-export const GardenIllustration: React.FC<IllustrationProps> = ({
-  size = 200,
-  className = "",
-}) => (
+export const GardenIllustration: React.FC<IllustrationProps> = ({ size = 200, className = '' }) => (
   <svg
     width={size}
     height={size}
@@ -24,13 +21,69 @@ export const GardenIllustration: React.FC<IllustrationProps> = ({
     <circle cx="160" cy="40" r="20" fill="#fbbf24" />
     {/* Sun rays */}
     <line x1="160" y1="10" x2="160" y2="5" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" />
-    <line x1="160" y1="70" x2="160" y2="75" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" />
-    <line x1="130" y1="40" x2="125" y2="40" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" />
-    <line x1="190" y1="40" x2="195" y2="40" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" />
-    <line x1="140" y1="20" x2="136" y2="16" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" />
-    <line x1="180" y1="20" x2="184" y2="16" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" />
-    <line x1="140" y1="60" x2="136" y2="64" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" />
-    <line x1="180" y1="60" x2="184" y2="64" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" />
+    <line
+      x1="160"
+      y1="70"
+      x2="160"
+      y2="75"
+      stroke="#f59e0b"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+    <line
+      x1="130"
+      y1="40"
+      x2="125"
+      y2="40"
+      stroke="#f59e0b"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+    <line
+      x1="190"
+      y1="40"
+      x2="195"
+      y2="40"
+      stroke="#f59e0b"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+    <line
+      x1="140"
+      y1="20"
+      x2="136"
+      y2="16"
+      stroke="#f59e0b"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+    <line
+      x1="180"
+      y1="20"
+      x2="184"
+      y2="16"
+      stroke="#f59e0b"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+    <line
+      x1="140"
+      y1="60"
+      x2="136"
+      y2="64"
+      stroke="#f59e0b"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+    <line
+      x1="180"
+      y1="60"
+      x2="184"
+      y2="64"
+      stroke="#f59e0b"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
 
     {/* Clouds */}
     <g opacity="0.8">
@@ -45,22 +98,54 @@ export const GardenIllustration: React.FC<IllustrationProps> = ({
     </g>
 
     {/* Ground */}
-    <path d="M0 160 Q50 150 100 155 Q150 160 200 150 L200 200 L0 200 Z" fill="#22c55e" opacity="0.3" />
-    <path d="M0 170 Q50 165 100 168 Q150 172 200 165 L200 200 L0 200 Z" fill="#22c55e" opacity="0.2" />
+    <path
+      d="M0 160 Q50 150 100 155 Q150 160 200 150 L200 200 L0 200 Z"
+      fill="#22c55e"
+      opacity="0.3"
+    />
+    <path
+      d="M0 170 Q50 165 100 168 Q150 172 200 165 L200 200 L0 200 Z"
+      fill="#22c55e"
+      opacity="0.2"
+    />
 
     {/* Main sprout/tree */}
-    <line x1="100" y1="160" x2="100" y2="90" stroke="#92400e" strokeWidth="4" strokeLinecap="round" />
+    <line
+      x1="100"
+      y1="160"
+      x2="100"
+      y2="90"
+      stroke="#92400e"
+      strokeWidth="4"
+      strokeLinecap="round"
+    />
     {/* Main canopy */}
     <ellipse cx="100" cy="75" rx="30" ry="22" fill="#22c55e" opacity="0.8" />
     <ellipse cx="100" cy="70" rx="25" ry="18" fill="#4ade80" opacity="0.6" />
 
     {/* Left small tree */}
-    <line x1="50" y1="165" x2="50" y2="120" stroke="#92400e" strokeWidth="3" strokeLinecap="round" />
+    <line
+      x1="50"
+      y1="165"
+      x2="50"
+      y2="120"
+      stroke="#92400e"
+      strokeWidth="3"
+      strokeLinecap="round"
+    />
     <ellipse cx="50" cy="110" rx="18" ry="14" fill="#22c55e" opacity="0.7" />
     <ellipse cx="50" cy="107" rx="14" ry="10" fill="#4ade80" opacity="0.5" />
 
     {/* Right small tree */}
-    <line x1="150" y1="160" x2="150" y2="115" stroke="#92400e" strokeWidth="3" strokeLinecap="round" />
+    <line
+      x1="150"
+      y1="160"
+      x2="150"
+      y2="115"
+      stroke="#92400e"
+      strokeWidth="3"
+      strokeLinecap="round"
+    />
     <ellipse cx="150" cy="105" rx="18" ry="14" fill="#22c55e" opacity="0.7" />
     <ellipse cx="150" cy="102" rx="14" ry="10" fill="#4ade80" opacity="0.5" />
 
@@ -79,8 +164,20 @@ export const GardenIllustration: React.FC<IllustrationProps> = ({
     </g>
 
     {/* Small birds */}
-    <path d="M25 50 Q30 45 35 50" stroke="#64748b" strokeWidth="1.5" fill="none" strokeLinecap="round" />
-    <path d="M175 45 Q180 40 185 45" stroke="#64748b" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+    <path
+      d="M25 50 Q30 45 35 50"
+      stroke="#64748b"
+      strokeWidth="1.5"
+      fill="none"
+      strokeLinecap="round"
+    />
+    <path
+      d="M175 45 Q180 40 185 45"
+      stroke="#64748b"
+      strokeWidth="1.5"
+      fill="none"
+      strokeLinecap="round"
+    />
   </svg>
 );
 

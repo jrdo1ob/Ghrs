@@ -1,20 +1,20 @@
-'use client'
+'use client';
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react';
 
 export default function ThemeToggle() {
-  const [isDark, setIsDark] = useState(false)
+  const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
-    setIsDark(document.documentElement.getAttribute('data-theme') === 'dark')
-  }, [])
+    setIsDark(document.documentElement.getAttribute('data-theme') === 'dark');
+  }, []);
 
   const toggle = () => {
-    const newTheme = isDark ? 'light' : 'dark'
-    document.documentElement.setAttribute('data-theme', newTheme)
-    localStorage.setItem('ghrs-theme', newTheme)
-    setIsDark(!isDark)
-  }
+    const newTheme = isDark ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('ghrs-theme', newTheme);
+    setIsDark(!isDark);
+  };
 
   return (
     <button
@@ -30,5 +30,5 @@ export default function ThemeToggle() {
     >
       <span className="text-base leading-none">{isDark ? '☀️' : '🌙'}</span>
     </button>
-  )
+  );
 }

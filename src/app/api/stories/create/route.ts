@@ -1,38 +1,59 @@
-import { NextResponse, type NextRequest } from 'next/server'
-import { createServiceRoleClient } from '@/lib/supabase/service-role'
-import { validateRequestAuth, requireParentRole, verifyRecordBelongsToFamily } from '@/lib/auth/server-session'
+import { NextResponse, type NextRequest } from 'next/server';
+import { createServiceRoleClient } from '@/lib/supabase/service-role';
+import {
+  validateRequestAuth,
+  requireParentRole,
+  verifyRecordBelongsToFamily,
+} from '@/lib/auth/server-session';
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await validateRequestAuth(request)
+    const session = await validateRequestAuth(request);
     if (!session.success || !session.member) {
-      return NextResponse.json({ success: false, error: session.error }, { status: session.status })
+      return NextResponse.json(
+        { success: false, error: session.error },
+        { status: session.status }
+      );
     }
 
-    const member = session.member
+    const member = session.member;
 
-    const roleCheck = requireParentRole(member)
+    const roleCheck = requireParentRole(member);
     if (!roleCheck.ok) {
-      return NextResponse.json({ success: false, error: roleCheck.error }, { status: roleCheck.status })
+      return NextResponse.json(
+        { success: false, error: roleCheck.error },
+        { status: roleCheck.status }
+      );
     }
 
-    const { title, content, moral_value, reward_xp, assigned_to } = await request.json()
+    const { title, content, moral_value, reward_xp, assigned_to } = await request.json();
     if (!title || !content) {
-      return NextResponse.json({ success: false, error: 'عنوان القصة ونصها مطلوبان' }, { status: 400 })
+      return NextResponse.json(
+        { success: false, error: 'عنوان القصة ونصها مطلوبان' },
+        { status: 400 }
+      );
     }
 
     // family_id and created_by MUST come from the validated session, never from the browser
-    const supabase = createServiceRoleClient()
+    const supabase = createServiceRoleClient();
 
     // Verify the assigned child/member belongs to this family before creating
     if (assigned_to) {
-      const ownership = await verifyRecordBelongsToFamily(supabase, 'members', assigned_to, member.family_id)
+      const ownership = await verifyRecordBelongsToFamily(
+        supabase,
+        'members',
+        assigned_to,
+        member.family_id
+      );
       if (!ownership.ok) {
-        return NextResponse.json({ success: false, error: ownership.error }, { status: ownership.status })
+        return NextResponse.json(
+          { success: false, error: ownership.error },
+          { status: ownership.status }
+        );
       }
     }
 
-    const xp = typeof reward_xp === 'number' && reward_xp > 0 ? reward_xp : 5
+    const xp = typeof reward_xp === 'number' && reward_xp > 0 ? reward_xp : 5;
 
     // Insert the story for the session family
     const { data: story, error: storyError } = await supabase
@@ -49,42 +70,44 @@ export async function POST(request: NextRequest) {
         created_by: member.member_id,
       })
       .select()
-      .single()
+      .single();
 
     if (storyError || !story) {
-      console.error('[GHRS CREATE STORY] Insert story error:', storyError?.message)
+      console.error('[GHRS CREATE STORY] Insert story error:', storyError?.message);
       return NextResponse.json(
         { success: false, error: 'تعذر إنشاء القصة، حاول مرة أخرى' },
         { status: 500 }
-      )
+      );
     }
 
     // Create a reading task for the child, mirroring the original RPC behavior
-    const { error: taskError } = await supabase
-      .from('tasks')
-      .insert({
-        family_id: member.family_id,
-        title: 'اقرأ: ' + title,
-        description: 'قصة تربوية - ' + (moral_value || ''),
-        xp_reward: xp,
-        assigned_to: assigned_to ? [assigned_to] : null,
-        requires_approval: true,
-        is_active: true,
-        created_by: member.member_id,
-        story_content: content,
-      })
+    const { error: taskError } = await supabase.from('tasks').insert({
+      family_id: member.family_id,
+      title: 'اقرأ: ' + title,
+      description: 'قصة تربوية - ' + (moral_value || ''),
+      xp_reward: xp,
+      assigned_to: assigned_to ? [assigned_to] : null,
+      requires_approval: true,
+      is_active: true,
+      created_by: member.member_id,
+      story_content: content,
+    });
 
     if (taskError) {
-      console.error('[GHRS CREATE STORY] Insert task error:', taskError.message)
+      console.error('[GHRS CREATE STORY] Insert task error:', taskError.message);
       return NextResponse.json(
         { success: false, error: 'تعذر إنشاء القصة، حاول مرة أخرى' },
         { status: 500 }
-      )
+      );
     }
 
-    return NextResponse.json({ success: true, message: 'تم إنشاء القصة بنجاح', story_id: story.id })
+    return NextResponse.json({
+      success: true,
+      message: 'تم إنشاء القصة بنجاح',
+      story_id: story.id,
+    });
   } catch (err) {
-    console.error('[GHRS CREATE STORY] Unexpected error:', err)
-    return NextResponse.json({ success: false, error: 'حدث خطأ غير متوقع' }, { status: 500 })
+    console.error('[GHRS CREATE STORY] Unexpected error:', err);
+    return NextResponse.json({ success: false, error: 'حدث خطأ غير متوقع' }, { status: 500 });
   }
 }

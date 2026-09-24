@@ -1,146 +1,200 @@
-'use client'
+'use client';
 
-import { useState, useEffect, useMemo } from 'react'
-import { useRouter } from 'next/navigation'
-import { motion, AnimatePresence } from 'framer-motion'
-import { ChildBottomNav, EmptyState, Toast } from '@/components/layout'
-import { useFamilyCurrency } from '@/hooks/useFamilyCurrency'
-import RewardDetailsModal from '@/components/RewardDetailsModal'
-import RequestDetailsModal from '@/components/RequestDetailsModal'
-import ThemeToggle from '@/components/child/ThemeToggle'
-import ChildLoading from '@/components/child/ChildLoading'
-import { useSound } from '@/components/child/SoundManager'
-import { GiftsIcon, StarIcon, CoinIcon, ClockIcon, LockIcon, CheckIcon, RejectIcon, SparkleIcon } from '@/components/icons'
-import { getCurrentUser } from '@/lib/auth/helper'
+import { useState, useEffect, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ChildBottomNav, EmptyState, Toast } from '@/components/layout';
+import { useFamilyCurrency } from '@/hooks/useFamilyCurrency';
+import RewardDetailsModal from '@/components/RewardDetailsModal';
+import RequestDetailsModal from '@/components/RequestDetailsModal';
+import ThemeToggle from '@/components/child/ThemeToggle';
+import ChildLoading from '@/components/child/ChildLoading';
+import { useSound } from '@/components/child/SoundManager';
+import {
+  GiftsIcon,
+  StarIcon,
+  CoinIcon,
+  ClockIcon,
+  LockIcon,
+  CheckIcon,
+  RejectIcon,
+  SparkleIcon,
+} from '@/components/icons';
+import { getCurrentUser } from '@/lib/auth/helper';
 
 export default function ChildGiftsPage() {
-  const [gifts, setGifts] = useState<any[]>([])
-  const [redemptionRequests, setRedemptionRequests] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-  const [xp, setXp] = useState(0)
-  const [moneyBalance, setMoneyBalance] = useState(0)
-  const [redeeming, setRedeeming] = useState<string | null>(null)
-  const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
-  const [selectedGift, setSelectedGift] = useState<any>(null)
-  const [showGiftModal, setShowGiftModal] = useState(false)
-  const [selectedRequest, setSelectedRequest] = useState<any>(null)
-  const [showRequestModal, setShowRequestModal] = useState(false)
-  const [selectedStatus, setSelectedStatus] = useState<string | null>(null)
-  const [showStatusModal, setShowStatusModal] = useState(false)
-  const [childId, setChildId] = useState<string | null>(null)
-  const router = useRouter()
-  const { format: fmtMoney } = useFamilyCurrency()
-  const { play } = useSound()
+  const [gifts, setGifts] = useState<any[]>([]);
+  const [redemptionRequests, setRedemptionRequests] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [xp, setXp] = useState(0);
+  const [moneyBalance, setMoneyBalance] = useState(0);
+  const [redeeming, setRedeeming] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [selectedGift, setSelectedGift] = useState<any>(null);
+  const [showGiftModal, setShowGiftModal] = useState(false);
+  const [selectedRequest, setSelectedRequest] = useState<any>(null);
+  const [showRequestModal, setShowRequestModal] = useState(false);
+  const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
+  const [showStatusModal, setShowStatusModal] = useState(false);
+  const [childId, setChildId] = useState<string | null>(null);
+  const router = useRouter();
+  const { format: fmtMoney } = useFamilyCurrency();
+  const { play } = useSound();
 
   useEffect(() => {
     const getData = async () => {
-      const authUser = await getCurrentUser()
-      if (!authUser || authUser.role !== 'child') { router.push('/family-login'); return }
-      const childId = authUser.memberId
-      setChildId(childId)
+      const authUser = await getCurrentUser();
+      if (!authUser || authUser.role !== 'child') {
+        router.push('/family-login');
+        return;
+      }
+      const childId = authUser.memberId;
+      setChildId(childId);
 
       const response = await fetch('/api/child-mode/data', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ section: 'gifts' }),
-      })
-      const result = await response.json()
-      if (!response.ok || !result.success) { router.push('/family-login'); return }
+      });
+      const result = await response.json();
+      if (!response.ok || !result.success) {
+        router.push('/family-login');
+        return;
+      }
 
-      setGifts(result.gifts)
-      setRedemptionRequests(result.redemption_requests || [])
-      setXp(result.xp)
-      setMoneyBalance(result.money_balance)
+      setGifts(result.gifts);
+      setRedemptionRequests(result.redemption_requests || []);
+      setXp(result.xp);
+      setMoneyBalance(result.money_balance);
 
-      setLoading(false)
-    }
-    getData()
-  }, [])
+      setLoading(false);
+    };
+    getData();
+  }, []);
 
   const handleRedeem = async (giftId: string) => {
-    const authUser = await getCurrentUser()
-    if (!authUser || authUser.role !== 'child' || redeeming) return
+    const authUser = await getCurrentUser();
+    if (!authUser || authUser.role !== 'child' || redeeming) return;
 
-    const childId = authUser.memberId
-    setRedeeming(giftId)
-    setShowGiftModal(false)
+    const childId = authUser.memberId;
+    setRedeeming(giftId);
+    setShowGiftModal(false);
 
     try {
       const response = await fetch('/api/gifts/redeem', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ gift_id: giftId }),
-      })
+      });
 
-      const data = await response.json()
+      const data = await response.json();
 
       if (!response.ok || !data.success) {
-        setToast({ type: 'error', message: data.error || 'حدث خطأ' })
-        play('error')
-        return
+        setToast({ type: 'error', message: data.error || 'حدث خطأ' });
+        play('error');
+        return;
       }
 
       const refreshResponse = await fetch('/api/child-mode/data', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ section: 'gifts' }),
-      })
-      const refreshResult = await refreshResponse.json()
+      });
+      const refreshResult = await refreshResponse.json();
       if (refreshResponse.ok && refreshResult.success) {
-        setXp(refreshResult.xp)
-        setMoneyBalance(refreshResult.money_balance)
+        setXp(refreshResult.xp);
+        setMoneyBalance(refreshResult.money_balance);
       }
 
-      play('gift')
-      setToast({ type: 'success', message: 'تم طلب الهدية! انتظر موافقة الوالد' })
+      play('gift');
+      setToast({ type: 'success', message: 'تم طلب الهدية! انتظر موافقة الوالد' });
     } catch (err) {
-      console.error('[GHRS] Gift redeem error:', err)
-      setToast({ type: 'error', message: 'حدث خطأ أثناء طلب الهدية' })
-      play('error')
+      console.error('[GHRS] Gift redeem error:', err);
+      setToast({ type: 'error', message: 'حدث خطأ أثناء طلب الهدية' });
+      play('error');
     } finally {
-      setRedeeming(null)
+      setRedeeming(null);
     }
-  }
+  };
 
   const openGiftModal = (gift: any) => {
-    setSelectedGift(gift)
-    setShowGiftModal(true)
-  }
+    setSelectedGift(gift);
+    setShowGiftModal(true);
+  };
 
   const openRequestModal = (req: any) => {
-    setSelectedRequest(req)
-    setShowRequestModal(true)
-  }
+    setSelectedRequest(req);
+    setShowRequestModal(true);
+  };
 
   const openStatusModal = (status: string) => {
-    setSelectedStatus(status)
-    setShowStatusModal(true)
-  }
+    setSelectedStatus(status);
+    setShowStatusModal(true);
+  };
 
-  const statusConfig: Record<string, { label: string; color: string; bg: string; iconBg: string; icon: React.ReactNode }> = {
-    pending: { label: 'قيد الانتظار', color: 'var(--ghrs-amber-700)', bg: 'var(--ghrs-amber-50)', iconBg: 'var(--ghrs-amber-100)', icon: <ClockIcon size={22} color="var(--ghrs-amber-600)" /> },
-    rejected: { label: 'تم الرفض', color: 'var(--ghrs-red-600)', bg: 'var(--ghrs-red-50)', iconBg: 'var(--ghrs-red-100)', icon: <RejectIcon size={22} color="var(--ghrs-red-500)" /> },
-    approved: { label: 'تمت الموافقة', color: 'var(--ghrs-green-600)', bg: 'var(--ghrs-green-50)', iconBg: 'var(--ghrs-green-100)', icon: <CheckIcon size={22} color="var(--ghrs-green-500)" /> },
-    revoked: { label: 'تم سحب الموافقة', color: 'var(--ghrs-purple-600)', bg: 'var(--ghrs-purple-50)', iconBg: 'var(--ghrs-purple-100)', icon: <ClockIcon size={22} color="var(--ghrs-purple-500)" /> },
-  }
+  const statusConfig: Record<
+    string,
+    { label: string; color: string; bg: string; iconBg: string; icon: React.ReactNode }
+  > = {
+    pending: {
+      label: 'قيد الانتظار',
+      color: 'var(--ghrs-amber-700)',
+      bg: 'var(--ghrs-amber-50)',
+      iconBg: 'var(--ghrs-amber-100)',
+      icon: <ClockIcon size={22} color="var(--ghrs-amber-600)" />,
+    },
+    rejected: {
+      label: 'تم الرفض',
+      color: 'var(--ghrs-red-600)',
+      bg: 'var(--ghrs-red-50)',
+      iconBg: 'var(--ghrs-red-100)',
+      icon: <RejectIcon size={22} color="var(--ghrs-red-500)" />,
+    },
+    approved: {
+      label: 'تمت الموافقة',
+      color: 'var(--ghrs-green-600)',
+      bg: 'var(--ghrs-green-50)',
+      iconBg: 'var(--ghrs-green-100)',
+      icon: <CheckIcon size={22} color="var(--ghrs-green-500)" />,
+    },
+    revoked: {
+      label: 'تم سحب الموافقة',
+      color: 'var(--ghrs-purple-600)',
+      bg: 'var(--ghrs-purple-50)',
+      iconBg: 'var(--ghrs-purple-100)',
+      icon: <ClockIcon size={22} color="var(--ghrs-purple-500)" />,
+    },
+  };
 
   const groupedRequests = useMemo(() => {
     const groups: Record<string, typeof redemptionRequests> = {
-      pending: [], rejected: [], revoked: [], approved: [],
-    }
+      pending: [],
+      rejected: [],
+      revoked: [],
+      approved: [],
+    };
     for (const req of redemptionRequests) {
-      if (groups[req.status]) groups[req.status].push(req)
+      if (groups[req.status]) groups[req.status].push(req);
     }
-    return groups
-  }, [redemptionRequests])
+    return groups;
+  }, [redemptionRequests]);
 
   if (loading) {
-    return <ChildLoading text="جاري تحميل الهدايا..." icon={<GiftsIcon size={48} color="var(--ghrs-purple-500)" />} />
+    return (
+      <ChildLoading
+        text="جاري تحميل الهدايا..."
+        icon={<GiftsIcon size={48} color="var(--ghrs-purple-500)" />}
+      />
+    );
   }
 
-  const totalPending = groupedRequests.pending.length
-  const totalApproved = groupedRequests.approved.length
-  const hasHistory = totalPending > 0 || totalApproved > 0 || groupedRequests.rejected.length > 0 || groupedRequests.revoked.length > 0
+  const totalPending = groupedRequests.pending.length;
+  const totalApproved = groupedRequests.approved.length;
+  const hasHistory =
+    totalPending > 0 ||
+    totalApproved > 0 ||
+    groupedRequests.rejected.length > 0 ||
+    groupedRequests.revoked.length > 0;
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--ghrs-bg-primary)' }}>
@@ -149,7 +203,10 @@ export default function ChildGiftsPage() {
       <RewardDetailsModal
         show={showGiftModal}
         gift={selectedGift}
-        onClose={() => { setShowGiftModal(false); setSelectedGift(null) }}
+        onClose={() => {
+          setShowGiftModal(false);
+          setSelectedGift(null);
+        }}
         onRedeem={handleRedeem}
         childXp={xp}
         childMoney={moneyBalance}
@@ -160,7 +217,10 @@ export default function ChildGiftsPage() {
       <RequestDetailsModal
         show={showRequestModal}
         request={selectedRequest}
-        onClose={() => { setShowRequestModal(false); setSelectedRequest(null) }}
+        onClose={() => {
+          setShowRequestModal(false);
+          setSelectedRequest(null);
+        }}
         formatMoney={fmtMoney}
       />
 
@@ -213,10 +273,7 @@ export default function ChildGiftsPage() {
                 >
                   {xp}
                 </p>
-                <p
-                  className="text-[10px] font-bold"
-                  style={{ color: 'var(--ghrs-amber-700)' }}
-                >
+                <p className="text-[10px] font-bold" style={{ color: 'var(--ghrs-amber-700)' }}>
                   XP
                 </p>
               </div>
@@ -237,10 +294,7 @@ export default function ChildGiftsPage() {
                   >
                     {fmtMoney(moneyBalance)}
                   </p>
-                  <p
-                    className="text-[10px] font-bold"
-                    style={{ color: 'var(--ghrs-green-700)' }}
-                  >
+                  <p className="text-[10px] font-bold" style={{ color: 'var(--ghrs-green-700)' }}>
                     د.ب
                   </p>
                 </div>
@@ -268,16 +322,10 @@ export default function ChildGiftsPage() {
             >
               <span className="text-3xl leading-none">🎁</span>
             </div>
-            <p
-              className="text-[15px] font-bold"
-              style={{ color: 'var(--ghrs-text-primary)' }}
-            >
+            <p className="text-[15px] font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>
               ما في مكافآت حالياً
             </p>
-            <p
-              className="text-xs mt-1"
-              style={{ color: 'var(--ghrs-text-tertiary)' }}
-            >
+            <p className="text-xs mt-1" style={{ color: 'var(--ghrs-text-tertiary)' }}>
               اجمع XP واستنى الوالد يضيف مكافآت
             </p>
           </div>
@@ -301,14 +349,14 @@ export default function ChildGiftsPage() {
               </span>
             </div>
 
-            {gifts.map(gift => {
-              const canAfford = xp >= gift.cost_xp
-              const status = gift.redemption_status
-              const isPending = status === 'pending'
-              const isApproved = status === 'approved'
-              const isRejected = status === 'rejected'
-              const isRevoked = status === 'revoked'
-              const isBusy = redeeming === gift.id
+            {gifts.map((gift) => {
+              const canAfford = xp >= gift.cost_xp;
+              const status = gift.redemption_status;
+              const isPending = status === 'pending';
+              const isApproved = status === 'approved';
+              const isRejected = status === 'rejected';
+              const isRevoked = status === 'revoked';
+              const isBusy = redeeming === gift.id;
 
               return (
                 <div
@@ -391,7 +439,8 @@ export default function ChildGiftsPage() {
                             border: '1px solid var(--ghrs-border-default)',
                           }}
                         >
-                          <CoinIcon size={10} color="var(--ghrs-green-600)" /> {fmtMoney(gift.cost_money)}
+                          <CoinIcon size={10} color="var(--ghrs-green-600)" />{' '}
+                          {fmtMoney(gift.cost_money)}
                         </span>
                       )}
                     </div>
@@ -455,7 +504,9 @@ export default function ChildGiftsPage() {
                           disabled={!canAfford || isBusy}
                           className="flex-1 py-3 rounded-xl text-[13px] font-bold transition-all active:scale-[0.97]"
                           style={{
-                            background: canAfford ? 'var(--ghrs-purple-600)' : 'var(--ghrs-bg-secondary)',
+                            background: canAfford
+                              ? 'var(--ghrs-purple-600)'
+                              : 'var(--ghrs-bg-secondary)',
                             color: canAfford ? 'white' : 'var(--ghrs-text-tertiary)',
                             opacity: isBusy ? 0.7 : 1,
                           }}
@@ -477,7 +528,7 @@ export default function ChildGiftsPage() {
                     )}
                   </div>
                 </div>
-              )
+              );
             })}
           </div>
         )}
@@ -492,10 +543,10 @@ export default function ChildGiftsPage() {
               طلباتي السابقة
             </h2>
             <div className="grid grid-cols-2 gap-3">
-              {(['pending', 'rejected', 'approved', 'revoked'] as const).map(key => {
-                const sc = statusConfig[key]
-                const count = groupedRequests[key].length
-                if (count === 0) return null
+              {(['pending', 'rejected', 'approved', 'revoked'] as const).map((key) => {
+                const sc = statusConfig[key];
+                const count = groupedRequests[key].length;
+                if (count === 0) return null;
                 return (
                   <div
                     key={key}
@@ -514,10 +565,7 @@ export default function ChildGiftsPage() {
                       {sc.icon}
                     </div>
                     <div className="flex flex-col items-start min-w-0">
-                      <span
-                        className="text-[10px] font-bold"
-                        style={{ color: sc.color }}
-                      >
+                      <span className="text-[10px] font-bold" style={{ color: sc.color }}>
                         {sc.label}
                       </span>
                       <span
@@ -528,7 +576,7 @@ export default function ChildGiftsPage() {
                       </span>
                     </div>
                   </div>
-                )
+                );
               })}
             </div>
           </>
@@ -543,7 +591,10 @@ export default function ChildGiftsPage() {
               exit={{ opacity: 0 }}
               className="fixed inset-0 z-50 flex items-end md:items-center justify-center"
               style={{ background: 'rgba(0,0,0,0.5)' }}
-              onClick={() => { setShowStatusModal(false); setSelectedStatus(null) }}
+              onClick={() => {
+                setShowStatusModal(false);
+                setSelectedStatus(null);
+              }}
             >
               <motion.div
                 initial={{ opacity: 0, y: 50 }}
@@ -552,16 +603,26 @@ export default function ChildGiftsPage() {
                 transition={{ type: 'spring', damping: 25 }}
                 className="w-full md:max-w-sm max-h-[80vh] overflow-y-auto rounded-t-3xl md:rounded-2xl"
                 style={{ background: 'var(--ghrs-bg-card)' }}
-                onClick={e => e.stopPropagation()}
+                onClick={(e) => e.stopPropagation()}
               >
-                <div className="p-5 flex items-center justify-between" style={{ borderBottom: '1px solid var(--ghrs-border-default)' }}>
+                <div
+                  className="p-5 flex items-center justify-between"
+                  style={{ borderBottom: '1px solid var(--ghrs-border-default)' }}
+                >
                   <h3 className="text-sm font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>
-                    طلبات {statusConfig[selectedStatus].label} ({groupedRequests[selectedStatus].length})
+                    طلبات {statusConfig[selectedStatus].label} (
+                    {groupedRequests[selectedStatus].length})
                   </h3>
                   <button
-                    onClick={() => { setShowStatusModal(false); setSelectedStatus(null) }}
+                    onClick={() => {
+                      setShowStatusModal(false);
+                      setSelectedStatus(null);
+                    }}
                     className="p-2 rounded-lg"
-                    style={{ background: 'var(--ghrs-bg-tertiary)', color: 'var(--ghrs-text-secondary)' }}
+                    style={{
+                      background: 'var(--ghrs-bg-tertiary)',
+                      color: 'var(--ghrs-text-secondary)',
+                    }}
                   >
                     ✕
                   </button>
@@ -570,7 +631,11 @@ export default function ChildGiftsPage() {
                   {groupedRequests[selectedStatus].map((req: any) => (
                     <div
                       key={req.id}
-                      onClick={() => { setShowStatusModal(false); setSelectedStatus(null); openRequestModal(req) }}
+                      onClick={() => {
+                        setShowStatusModal(false);
+                        setSelectedStatus(null);
+                        openRequestModal(req);
+                      }}
                       className="cursor-pointer active:scale-[0.97] transition-all rounded-xl p-3.5 flex items-center gap-3"
                       style={{
                         background: 'var(--ghrs-bg-secondary)',
@@ -579,32 +644,62 @@ export default function ChildGiftsPage() {
                     >
                       <div
                         className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
-                        style={{ background: 'var(--ghrs-purple-50)', border: '1px solid var(--ghrs-purple-200)' }}
+                        style={{
+                          background: 'var(--ghrs-purple-50)',
+                          border: '1px solid var(--ghrs-purple-200)',
+                        }}
                       >
                         <GiftsIcon size={16} color="var(--ghrs-purple-600)" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs font-bold truncate" style={{ color: 'var(--ghrs-text-primary)' }}>{req.gift_name}</p>
+                        <p
+                          className="text-xs font-bold truncate"
+                          style={{ color: 'var(--ghrs-text-primary)' }}
+                        >
+                          {req.gift_name}
+                        </p>
                         <div className="flex items-center gap-2 mt-0.5">
                           {req.requested_xp != null && (
-                            <span className="text-[10px] font-bold" style={{ color: 'var(--ghrs-amber-600)' }}>
+                            <span
+                              className="text-[10px] font-bold"
+                              style={{ color: 'var(--ghrs-amber-600)' }}
+                            >
                               {req.requested_xp} XP
                             </span>
                           )}
                           {req.money_spent != null && req.money_spent > 0 && (
-                            <span className="text-[10px] font-bold" style={{ color: 'var(--ghrs-green-600)' }}>
+                            <span
+                              className="text-[10px] font-bold"
+                              style={{ color: 'var(--ghrs-green-600)' }}
+                            >
                               {fmtMoney(req.money_spent)}
                             </span>
                           )}
                         </div>
                       </div>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--ghrs-text-tertiary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0" style={{ transform: 'scaleX(-1)' }}>
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="var(--ghrs-text-tertiary)"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="flex-shrink-0"
+                        style={{ transform: 'scaleX(-1)' }}
+                      >
                         <polyline points="9 18 15 12 9 6" />
                       </svg>
                     </div>
                   ))}
                   {groupedRequests[selectedStatus].length === 0 && (
-                    <p className="text-center text-xs py-6" style={{ color: 'var(--ghrs-text-tertiary)' }}>لا توجد طلبات</p>
+                    <p
+                      className="text-center text-xs py-6"
+                      style={{ color: 'var(--ghrs-text-tertiary)' }}
+                    >
+                      لا توجد طلبات
+                    </p>
                   )}
                 </div>
               </motion.div>
@@ -615,5 +710,5 @@ export default function ChildGiftsPage() {
 
       <ChildBottomNav />
     </div>
-  )
+  );
 }

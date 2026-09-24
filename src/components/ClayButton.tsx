@@ -19,7 +19,8 @@ const ClayButton = forwardRef<HTMLButtonElement, ClayButtonProps>(
     const variantClasses = {
       green: 'ghrs-clay-btn',
       gold: 'ghrs-clay-btn ghrs-clay-btn-gold',
-      danger: 'ghrs-clay-btn bg-gradient-to-br from-red-100 to-red-200 text-red-700 shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff] hover:shadow-[8px_8px_16px_#d1d5db,-8px_-8px_16px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d5db,inset_-4px_-4px_8px_#ffffff]',
+      danger:
+        'ghrs-clay-btn bg-gradient-to-br from-red-100 to-red-200 text-red-700 shadow-[6px_6px_12px_#d1d5db,-6px_-6px_12px_#ffffff] hover:shadow-[8px_8px_16px_#d1d5db,-8px_-8px_16px_#ffffff] active:shadow-[inset_4px_4px_8px_#d1d5db,inset_-4px_-4px_8px_#ffffff]',
     };
 
     return (

@@ -1,44 +1,44 @@
-import { type NextRequest } from 'next/server'
-import { createServerClient } from '@supabase/ssr'
-import { createServiceRoleClient } from '@/lib/supabase/service-role'
+import { type NextRequest } from 'next/server';
+import { createServerClient } from '@supabase/ssr';
+import { createServiceRoleClient } from '@/lib/supabase/service-role';
 
 export interface SessionMember {
-  member_id: string
-  member_name: string
-  member_role: 'owner' | 'parent' | 'child'
-  family_id: string
+  member_id: string;
+  member_name: string;
+  member_role: 'owner' | 'parent' | 'child';
+  family_id: string;
 }
 
 export interface SessionValidationResult {
-  success: boolean
-  member?: SessionMember
-  error?: string
-  status?: number
+  success: boolean;
+  member?: SessionMember;
+  error?: string;
+  status?: number;
   /**
    * Which session type authorized the request:
    * - 'ghrs'    = HttpOnly ghrs_member_session cookie (Parent/Child code+PIN login)
    * - 'supabase' = Supabase Auth session (owner email/password or OAuth login)
    */
-  via?: 'ghrs' | 'supabase'
+  via?: 'ghrs' | 'supabase';
 }
 
 export async function validateSession(request: NextRequest): Promise<SessionValidationResult> {
-  const sessionToken = request.cookies.get('ghrs_member_session')?.value
+  const sessionToken = request.cookies.get('ghrs_member_session')?.value;
   if (!sessionToken) {
-    return { success: false, error: 'يجب تسجيل الدخول أولاً', status: 401 }
+    return { success: false, error: 'يجب تسجيل الدخول أولاً', status: 401 };
   }
 
-  const supabase = createServiceRoleClient()
+  const supabase = createServiceRoleClient();
   const { data: sessionData, error: sessionError } = await supabase.rpc('validate_member_session', {
     p_session_token: sessionToken,
-  })
+  });
 
   if (sessionError || !sessionData || sessionData.length === 0) {
-    return { success: false, error: 'جلسة غير صالحة أو منتهية', status: 401 }
+    return { success: false, error: 'جلسة غير صالحة أو منتهية', status: 401 };
   }
 
-  const member = sessionData[0] as SessionMember
-  return { success: true, member, via: 'ghrs' }
+  const member = sessionData[0] as SessionMember;
+  return { success: true, member, via: 'ghrs' };
 }
 
 /**
@@ -56,9 +56,9 @@ export async function validateSession(request: NextRequest): Promise<SessionVali
  */
 export async function validateRequestAuth(request: NextRequest): Promise<SessionValidationResult> {
   // Method 1: Internal GHRS member session (Parent/Child code+PIN)
-  const ghrsResult = await validateSession(request)
+  const ghrsResult = await validateSession(request);
   if (ghrsResult.success && ghrsResult.member) {
-    return ghrsResult
+    return ghrsResult;
   }
 
   // Method 2: Supabase Auth session (owner email/password or OAuth)
@@ -68,42 +68,42 @@ export async function validateRequestAuth(request: NextRequest): Promise<Session
     {
       cookies: {
         getAll() {
-          return request.cookies.getAll()
+          return request.cookies.getAll();
         },
         // Read-only validation — never write cookies from read APIs
         setAll() {},
       },
     }
-  )
+  );
 
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
   if (!user) {
-    return { success: false, error: 'يجب تسجيل الدخول أولاً', status: 401 }
+    return { success: false, error: 'يجب تسجيل الدخول أولاً', status: 401 };
   }
 
   // Map the supabase auth user to a GHRS member using service-role (bypass RLS)
-  const srv = createServiceRoleClient()
+  const srv = createServiceRoleClient();
 
   const { data: identities, error: identityError } = await srv
     .from('auth_identities')
     .select('member_id')
     .eq('auth_user_id', user.id)
-    .limit(1)
+    .limit(1);
 
   if (identityError || !identities || identities.length === 0) {
-    return { success: false, error: 'الحساب غير مرتبط بعضو في العائلة', status: 401 }
+    return { success: false, error: 'الحساب غير مرتبط بعضو في العائلة', status: 401 };
   }
 
   const { data: member, error: memberError } = await srv
     .from('members')
     .select('id, family_id, role, name')
     .eq('id', identities[0].member_id)
-    .single()
+    .single();
 
   if (memberError || !member) {
-    return { success: false, error: 'العضو غير موجود', status: 401 }
+    return { success: false, error: 'العضو غير موجود', status: 401 };
   }
 
   return {
@@ -115,14 +115,18 @@ export async function validateRequestAuth(request: NextRequest): Promise<Session
       member_role: member.role as SessionMember['member_role'],
       family_id: member.family_id,
     },
-  }
+  };
 }
 
-export function requireParentRole(member: SessionMember): { ok: boolean; error?: string; status?: number } {
+export function requireParentRole(member: SessionMember): {
+  ok: boolean;
+  error?: string;
+  status?: number;
+} {
   if (member.member_role !== 'parent' && member.member_role !== 'owner') {
-    return { ok: false, error: 'هذه العملية مخصصة للوالدين فقط', status: 403 }
+    return { ok: false, error: 'هذه العملية مخصصة للوالدين فقط', status: 403 };
   }
-  return { ok: true }
+  return { ok: true };
 }
 
 export async function verifyRecordBelongsToFamily(
@@ -136,19 +140,19 @@ export async function verifyRecordBelongsToFamily(
     .from(table)
     .select(`${familyColumn}`)
     .eq('id', recordId)
-    .single()
+    .single();
 
   if (error || !data) {
-    return { ok: false, error: 'السجل غير موجود', status: 404 }
+    return { ok: false, error: 'السجل غير موجود', status: 404 };
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const row = data as any
+  const row = data as any;
   if (row[familyColumn] !== familyId) {
-    return { ok: false, error: 'السجل لا ينتمي لعائلتك', status: 403 }
+    return { ok: false, error: 'السجل لا ينتمي لعائلتك', status: 403 };
   }
 
-  return { ok: true }
+  return { ok: true };
 }
 
 /**
@@ -162,27 +166,24 @@ export async function verifyMembersBelongToFamily(
   familyId: string
 ): Promise<{ ok: boolean; error?: string; status?: number }> {
   if (memberIds.length === 0) {
-    return { ok: true }
+    return { ok: true };
   }
 
-  const { data, error } = await supabase
-    .from('members')
-    .select('family_id')
-    .in('id', memberIds)
+  const { data, error } = await supabase.from('members').select('family_id').in('id', memberIds);
 
   if (error) {
-    return { ok: false, error: 'تعذر التحقق من الأعضاء', status: 500 }
+    return { ok: false, error: 'تعذر التحقق من الأعضاء', status: 500 };
   }
 
   if (!data || data.length !== memberIds.length) {
-    return { ok: false, error: 'أحد الأعضاء المعينين غير موجود', status: 404 }
+    return { ok: false, error: 'أحد الأعضاء المعينين غير موجود', status: 404 };
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const crossFamily = (data as any[]).some(row => row.family_id !== familyId)
+  const crossFamily = (data as any[]).some((row) => row.family_id !== familyId);
   if (crossFamily) {
-    return { ok: false, error: 'لا يمكن الإسناد لعضو خارج العائلة', status: 403 }
+    return { ok: false, error: 'لا يمكن الإسناد لعضو خارج العائلة', status: 403 };
   }
 
-  return { ok: true }
+  return { ok: true };
 }

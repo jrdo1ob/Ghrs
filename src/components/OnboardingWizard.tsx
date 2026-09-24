@@ -1,15 +1,15 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { useRouter } from 'next/navigation'
-import { ChildIcon, TasksIcon, CheckIcon, SparkleIcon } from '@/components/icons'
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useRouter } from 'next/navigation';
+import { ChildIcon, TasksIcon, CheckIcon, SparkleIcon } from '@/components/icons';
 
 interface OnboardingWizardProps {
-  familyId: string
-  childCount: number
-  taskCount: number
-  onComplete: () => void
+  familyId: string;
+  childCount: number;
+  taskCount: number;
+  onComplete: () => void;
 }
 
 const steps = [
@@ -47,74 +47,79 @@ const steps = [
     description: 'عندما ينجز طفلك مهمة، اعتمدها واحصل على مكافأة فورية.',
     detail: '.points dots reward.糖果 reward. stars reward.',
   },
-]
+];
 
-export default function OnboardingWizard({ familyId, childCount, taskCount, onComplete }: OnboardingWizardProps) {
-  const router = useRouter()
-  const [currentStep, setCurrentStep] = useState(0)
-  const [isVisible, setIsVisible] = useState(false)
+export default function OnboardingWizard({
+  familyId,
+  childCount,
+  taskCount,
+  onComplete,
+}: OnboardingWizardProps) {
+  const router = useRouter();
+  const [currentStep, setCurrentStep] = useState(0);
+  const [isVisible, setIsVisible] = useState(false);
 
   // Determine starting step based on family state
   useEffect(() => {
-    const storageKey = `ghrs-onboarding-completed:${familyId}`
-    const completed = localStorage.getItem(storageKey)
+    const storageKey = `ghrs-onboarding-completed:${familyId}`;
+    const completed = localStorage.getItem(storageKey);
     if (completed === 'true') {
-      onComplete()
-      return
+      onComplete();
+      return;
     }
 
     // Contextual starting step
-    let startStep = 0
+    let startStep = 0;
     if (childCount === 0) {
-      startStep = 1 // "Add your first child"
+      startStep = 1; // "Add your first child"
     } else if (taskCount === 0) {
-      startStep = 2 // "Create your first task"
+      startStep = 2; // "Create your first task"
     } else {
-      startStep = 3 // Skip to "Share login code"
+      startStep = 3; // Skip to "Share login code"
     }
 
-    setCurrentStep(startStep)
-    setIsVisible(true)
-  }, [familyId, childCount, taskCount, onComplete])
+    setCurrentStep(startStep);
+    setIsVisible(true);
+  }, [familyId, childCount, taskCount, onComplete]);
 
   const handleNext = () => {
     if (currentStep < steps.length - 1) {
-      setCurrentStep(currentStep + 1)
+      setCurrentStep(currentStep + 1);
     } else {
-      handleComplete()
+      handleComplete();
     }
-  }
+  };
 
   const handleBack = () => {
     if (currentStep > 0) {
-      setCurrentStep(currentStep - 1)
+      setCurrentStep(currentStep - 1);
     }
-  }
+  };
 
   const handleSkip = () => {
-    handleComplete()
-  }
+    handleComplete();
+  };
 
   const handleComplete = () => {
-    const storageKey = `ghrs-onboarding-completed:${familyId}`
-    localStorage.setItem(storageKey, 'true')
-    setIsVisible(false)
-    onComplete()
-  }
+    const storageKey = `ghrs-onboarding-completed:${familyId}`;
+    localStorage.setItem(storageKey, 'true');
+    setIsVisible(false);
+    onComplete();
+  };
 
   const handleAction = () => {
-    const step = steps[currentStep]
+    const step = steps[currentStep];
     if (step.href) {
-      handleComplete()
-      router.push(step.href)
+      handleComplete();
+      router.push(step.href);
     }
-  }
+  };
 
-  const step = steps[currentStep]
-  const isFirstStep = currentStep === 0
-  const isLastStep = currentStep === steps.length - 1
+  const step = steps[currentStep];
+  const isFirstStep = currentStep === 0;
+  const isLastStep = currentStep === steps.length - 1;
 
-  if (!isVisible) return null
+  if (!isVisible) return null;
 
   return (
     <AnimatePresence>
@@ -140,11 +145,12 @@ export default function OnboardingWizard({ familyId, childCount, taskCount, onCo
                 key={i}
                 className="w-2 h-2 rounded-full transition-colors"
                 style={{
-                  background: i === currentStep
-                    ? 'var(--ghrs-green-500)'
-                    : i < currentStep
-                      ? 'var(--ghrs-green-300)'
-                      : 'var(--ghrs-border-default)',
+                  background:
+                    i === currentStep
+                      ? 'var(--ghrs-green-500)'
+                      : i < currentStep
+                        ? 'var(--ghrs-green-300)'
+                        : 'var(--ghrs-border-default)',
                 }}
               />
             ))}
@@ -164,16 +170,10 @@ export default function OnboardingWizard({ familyId, childCount, taskCount, onCo
           >
             {step.title}
           </h2>
-          <p
-            className="text-sm text-center mb-2"
-            style={{ color: 'var(--ghrs-text-secondary)' }}
-          >
+          <p className="text-sm text-center mb-2" style={{ color: 'var(--ghrs-text-secondary)' }}>
             {step.description}
           </p>
-          <p
-            className="text-xs text-center mb-6"
-            style={{ color: 'var(--ghrs-text-tertiary)' }}
-          >
+          <p className="text-xs text-center mb-6" style={{ color: 'var(--ghrs-text-tertiary)' }}>
             {step.detail}
           </p>
 
@@ -229,5 +229,5 @@ export default function OnboardingWizard({ familyId, childCount, taskCount, onCo
         </motion.div>
       </motion.div>
     </AnimatePresence>
-  )
+  );
 }

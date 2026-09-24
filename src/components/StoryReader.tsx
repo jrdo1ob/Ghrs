@@ -1,44 +1,52 @@
-'use client'
+'use client';
 
-import { motion, AnimatePresence } from 'framer-motion'
-import { useState } from 'react'
-import { BookIcon, CheckIcon, PartyIcon } from '@/components/icons'
+import { motion, AnimatePresence } from 'framer-motion';
+import { useState } from 'react';
+import { BookIcon, CheckIcon, PartyIcon } from '@/components/icons';
 
 interface StoryReaderProps {
-  show: boolean
-  title: string
-  content: string
-  storyType?: string
-  storyUrl?: string
-  onClose: () => void
-  onComplete: () => void
+  show: boolean;
+  title: string;
+  content: string;
+  storyType?: string;
+  storyUrl?: string;
+  onClose: () => void;
+  onComplete: () => void;
 }
 
-export default function StoryReader({ show, title, content, storyType, storyUrl, onClose, onComplete }: StoryReaderProps) {
-  const [currentPage, setCurrentPage] = useState(0)
-  const [finished, setFinished] = useState(false)
+export default function StoryReader({
+  show,
+  title,
+  content,
+  storyType,
+  storyUrl,
+  onClose,
+  onComplete,
+}: StoryReaderProps) {
+  const [currentPage, setCurrentPage] = useState(0);
+  const [finished, setFinished] = useState(false);
 
   // Split content into pages (by paragraphs or sections)
-  const pages = content ? content.split('\n').filter(p => p.trim()) : [content]
+  const pages = content ? content.split('\n').filter((p) => p.trim()) : [content];
 
   const handleNext = () => {
     if (currentPage < pages.length - 1) {
-      setCurrentPage(currentPage + 1)
+      setCurrentPage(currentPage + 1);
     } else {
-      setFinished(true)
+      setFinished(true);
     }
-  }
+  };
 
   const handlePrev = () => {
     if (currentPage > 0) {
-      setCurrentPage(currentPage - 1)
+      setCurrentPage(currentPage - 1);
     }
-  }
+  };
 
   const handleComplete = () => {
-    onComplete()
-    onClose()
-  }
+    onComplete();
+    onClose();
+  };
 
   return (
     <AnimatePresence>
@@ -58,10 +66,19 @@ export default function StoryReader({ show, title, content, storyType, storyUrl,
             style={{ maxHeight: '85vh' }}
           >
             {/* Header */}
-            <div className="p-4 flex items-center justify-between" style={{ background: 'var(--ghrs-green-500)' }}>
-              <button onClick={onClose} className="text-white text-2xl" aria-label="إغلاق القصة">✕</button>
-              <h3 className="text-lg font-bold text-white truncate px-2"><BookIcon size={20} className="inline" /> {title}</h3>
-              <span className="text-sm text-white/80">{currentPage + 1}/{pages.length}</span>
+            <div
+              className="p-4 flex items-center justify-between"
+              style={{ background: 'var(--ghrs-green-500)' }}
+            >
+              <button onClick={onClose} className="text-white text-2xl" aria-label="إغلاق القصة">
+                ✕
+              </button>
+              <h3 className="text-lg font-bold text-white truncate px-2">
+                <BookIcon size={20} className="inline" /> {title}
+              </h3>
+              <span className="text-sm text-white/80">
+                {currentPage + 1}/{pages.length}
+              </span>
             </div>
 
             {/* Progress bar */}
@@ -90,12 +107,15 @@ export default function StoryReader({ show, title, content, storyType, storyUrl,
                       </div>
                     ) : null}
 
-                    <p className="text-lg leading-relaxed whitespace-pre-wrap" style={{ 
-                      color: 'var(--ghrs-text-primary)',
-                      fontFamily: "'Cairo', 'Amiri', sans-serif",
-                      fontSize: '1.15rem',
-                      lineHeight: '2',
-                    }}>
+                    <p
+                      className="text-lg leading-relaxed whitespace-pre-wrap"
+                      style={{
+                        color: 'var(--ghrs-text-primary)',
+                        fontFamily: "'Cairo', 'Amiri', sans-serif",
+                        fontSize: '1.15rem',
+                        lineHeight: '2',
+                      }}
+                    >
                       {pages[currentPage]}
                     </p>
                   </motion.div>
@@ -106,7 +126,9 @@ export default function StoryReader({ show, title, content, storyType, storyUrl,
                   animate={{ opacity: 1, scale: 1 }}
                   className="text-center py-8"
                 >
-                  <div className="mb-4"><PartyIcon size={48} /></div>
+                  <div className="mb-4">
+                    <PartyIcon size={48} />
+                  </div>
                   <h3 className="text-xl font-bold mb-2" style={{ color: 'var(--ghrs-green-700)' }}>
                     أحسنت! وصلت لنهاية القصة
                   </h3>
@@ -126,14 +148,19 @@ export default function StoryReader({ show, title, content, storyType, storyUrl,
 
             {/* Navigation */}
             {!finished && (
-              <div className="p-4 flex justify-between items-center" style={{ borderTop: '1px solid var(--ghrs-border-default)' }}>
+              <div
+                className="p-4 flex justify-between items-center"
+                style={{ borderTop: '1px solid var(--ghrs-border-default)' }}
+              >
                 <button
                   onClick={handlePrev}
                   disabled={currentPage === 0}
                   className="px-4 py-2 rounded-xl font-bold text-sm transition-all"
                   style={{
-                    background: currentPage === 0 ? 'var(--ghrs-bg-tertiary)' : 'var(--ghrs-bg-secondary)',
-                    color: currentPage === 0 ? 'var(--ghrs-text-tertiary)' : 'var(--ghrs-text-primary)',
+                    background:
+                      currentPage === 0 ? 'var(--ghrs-bg-tertiary)' : 'var(--ghrs-bg-secondary)',
+                    color:
+                      currentPage === 0 ? 'var(--ghrs-text-tertiary)' : 'var(--ghrs-text-primary)',
                   }}
                 >
                   السابق
@@ -146,7 +173,10 @@ export default function StoryReader({ show, title, content, storyType, storyUrl,
                       key={i}
                       className="w-2 h-2 rounded-full transition-all"
                       style={{
-                        background: i === currentPage ? 'var(--ghrs-green-500)' : 'var(--ghrs-border-default)',
+                        background:
+                          i === currentPage
+                            ? 'var(--ghrs-green-500)'
+                            : 'var(--ghrs-border-default)',
                         transform: i === currentPage ? 'scale(1.3)' : 'scale(1)',
                       }}
                     />
@@ -166,5 +196,5 @@ export default function StoryReader({ show, title, content, storyType, storyUrl,
         </motion.div>
       )}
     </AnimatePresence>
-  )
+  );
 }

@@ -1,98 +1,106 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { ChildBottomNav } from '@/components/layout'
-import { LEVELS, getLevel, getNextLevel, Level } from '@/lib/gamification'
-import ThemeToggle from '@/components/child/ThemeToggle'
-import ChildLoading from '@/components/child/ChildLoading'
-import AchievementBadge from '@/components/child/AchievementBadge'
-import { StarIcon, FireIcon, CheckIcon, TasksIcon, TrophyIcon, SparkleIcon, CoinIcon } from '@/components/icons'
-import { getCurrentUser } from '@/lib/auth/helper'
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { ChildBottomNav } from '@/components/layout';
+import { LEVELS, getLevel, getNextLevel, Level } from '@/lib/gamification';
+import ThemeToggle from '@/components/child/ThemeToggle';
+import ChildLoading from '@/components/child/ChildLoading';
+import AchievementBadge from '@/components/child/AchievementBadge';
+import {
+  StarIcon,
+  FireIcon,
+  CheckIcon,
+  TasksIcon,
+  TrophyIcon,
+  SparkleIcon,
+  CoinIcon,
+} from '@/components/icons';
+import { getCurrentUser } from '@/lib/auth/helper';
 
 export default function ChildProfilePage() {
-  const [member, setMember] = useState<any>(null)
-  const [xp, setXp] = useState(0)
-  const [totalTasks, setTotalTasks] = useState(0)
-  const [completedTasks, setCompletedTasks] = useState(0)
-  const [streak, setStreak] = useState(0)
-  const [achievements, setAchievements] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-  const router = useRouter()
+  const [member, setMember] = useState<any>(null);
+  const [xp, setXp] = useState(0);
+  const [totalTasks, setTotalTasks] = useState(0);
+  const [completedTasks, setCompletedTasks] = useState(0);
+  const [streak, setStreak] = useState(0);
+  const [achievements, setAchievements] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     const getData = async () => {
-      const authUser = await getCurrentUser()
+      const authUser = await getCurrentUser();
       if (!authUser || authUser.role !== 'child') {
-        router.push('/family-login')
-        return
+        router.push('/family-login');
+        return;
       }
 
       const response = await fetch('/api/child-mode/data', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ section: 'profile' }),
-      })
-      const result = await response.json()
+      });
+      const result = await response.json();
       if (!response.ok || !result.success) {
-        router.push('/family-login')
-        return
+        router.push('/family-login');
+        return;
       }
 
-      setMember(result.member)
-      setXp(result.xp)
-      setTotalTasks(result.total_tasks)
-      setCompletedTasks(result.completed_tasks)
-      setStreak(result.member.current_streak || 0)
-      setAchievements(result.achievements || [])
-      setLoading(false)
-    }
+      setMember(result.member);
+      setXp(result.xp);
+      setTotalTasks(result.total_tasks);
+      setCompletedTasks(result.completed_tasks);
+      setStreak(result.member.current_streak || 0);
+      setAchievements(result.achievements || []);
+      setLoading(false);
+    };
 
-    getData()
-  }, [])
+    getData();
+  }, []);
 
-  const level = getLevel(xp)
-  const nextLevel = getNextLevel(level)
+  const level = getLevel(xp);
+  const nextLevel = getNextLevel(level);
   const progressToNext = nextLevel
     ? Math.min(100, ((xp - level.minXp) / (nextLevel.minXp - level.minXp)) * 100)
-    : 100
+    : 100;
 
   const handleLogout = () => {
-    localStorage.removeItem('child_id')
-    localStorage.removeItem('family_id')
-    router.push('/family-login')
-  }
+    localStorage.removeItem('child_id');
+    localStorage.removeItem('family_id');
+    router.push('/family-login');
+  };
 
   if (loading) {
-    return <ChildLoading text="جاري تحميل الملف..." icon="👤" />
+    return <ChildLoading text="جاري تحميل الملف..." icon="👤" />;
   }
 
   // Achievements are now DB-driven from the API response
   // Compute progress based on requirement_type and current stats
   const achievementsWithProgress = achievements.map((a: any) => {
-    let current = 0
+    let current = 0;
     switch (a.requirement_type) {
       case 'xp_total':
-        current = xp
-        break
+        current = xp;
+        break;
       case 'tasks_completed':
-        current = completedTasks
-        break
+        current = completedTasks;
+        break;
       case 'streak':
       case 'streak_days':
-        current = streak
-        break
+        current = streak;
+        break;
       default:
-        current = 0
+        current = 0;
     }
     return {
       ...a,
       progress: { current, max: a.requirement_value },
-    }
-  })
+    };
+  });
 
-  const unlockedCount = achievementsWithProgress.filter((a: any) => a.unlocked).length
-  const totalAchievements = achievementsWithProgress.length
+  const unlockedCount = achievementsWithProgress.filter((a: any) => a.unlocked).length;
+  const totalAchievements = achievementsWithProgress.length;
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--ghrs-bg-primary)' }}>
@@ -285,10 +293,7 @@ export default function ChildProfilePage() {
             </>
           ) : (
             <div className="text-center py-1">
-              <p
-                className="text-[14px] font-bold"
-                style={{ color: 'var(--ghrs-green-600)' }}
-              >
+              <p className="text-[14px] font-bold" style={{ color: 'var(--ghrs-green-600)' }}>
                 وصلت لأعلى مستوى
               </p>
             </div>
@@ -446,5 +451,5 @@ export default function ChildProfilePage() {
 
       <ChildBottomNav />
     </div>
-  )
+  );
 }

@@ -1,17 +1,17 @@
-'use client'
+'use client';
 
-import { useState, useEffect, useRef } from 'react'
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
-import { ChildBottomNav, Toast } from '@/components/layout'
-import { useFamilyCurrency } from '@/hooks/useFamilyCurrency'
-import { getLevel, getNextLevel, Level } from '@/lib/gamification'
-import CelebrationModal from '@/components/CelebrationModal'
-import ParticleEffects from '@/components/ParticleEffects'
-import TaskCompletionFeedback from '@/components/child/TaskCompletionFeedback'
-import ThemeToggle from '@/components/child/ThemeToggle'
-import ChildLoading from '@/components/child/ChildLoading'
-import { useSound } from '@/components/child/SoundManager'
+import { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { ChildBottomNav, Toast } from '@/components/layout';
+import { useFamilyCurrency } from '@/hooks/useFamilyCurrency';
+import { getLevel, getNextLevel, Level } from '@/lib/gamification';
+import CelebrationModal from '@/components/CelebrationModal';
+import ParticleEffects from '@/components/ParticleEffects';
+import TaskCompletionFeedback from '@/components/child/TaskCompletionFeedback';
+import ThemeToggle from '@/components/child/ThemeToggle';
+import ChildLoading from '@/components/child/ChildLoading';
+import { useSound } from '@/components/child/SoundManager';
 import {
   StarIcon,
   CoinIcon,
@@ -21,155 +21,163 @@ import {
   SparkleIcon,
   LeafIcon,
   WaterIcon,
-} from '@/components/icons'
-import { getCurrentUser } from '@/lib/auth/helper'
+} from '@/components/icons';
+import { getCurrentUser } from '@/lib/auth/helper';
 
 export default function ChildModePage() {
-  const [tasks, setTasks] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-  const [member, setMember] = useState<any>(null)
-  const [xp, setXp] = useState(0)
-  const [completedToday, setCompletedToday] = useState<string[]>([])
-  const [pendingToday, setPendingToday] = useState<string[]>([])
-  const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
-  const [streak, setStreak] = useState(0)
-  const [moneyBalance, setMoneyBalance] = useState(0)
-  const [completingTask, setCompletingTask] = useState<string | null>(null)
-  const [dailyGoal, setDailyGoal] = useState<{ target: number; completed: number; reached: boolean } | null>(null)
-  const [showCelebration, setShowCelebration] = useState(false)
-  const [celebrationLevel, setCelebrationLevel] = useState<Level | null>(null)
-  const [showConfetti, setShowConfetti] = useState(false)
-  const [showCompletionFeedback, setShowCompletionFeedback] = useState(false)
+  const [tasks, setTasks] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [member, setMember] = useState<any>(null);
+  const [xp, setXp] = useState(0);
+  const [completedToday, setCompletedToday] = useState<string[]>([]);
+  const [pendingToday, setPendingToday] = useState<string[]>([]);
+  const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [streak, setStreak] = useState(0);
+  const [moneyBalance, setMoneyBalance] = useState(0);
+  const [completingTask, setCompletingTask] = useState<string | null>(null);
+  const [dailyGoal, setDailyGoal] = useState<{
+    target: number;
+    completed: number;
+    reached: boolean;
+  } | null>(null);
+  const [showCelebration, setShowCelebration] = useState(false);
+  const [celebrationLevel, setCelebrationLevel] = useState<Level | null>(null);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [showCompletionFeedback, setShowCompletionFeedback] = useState(false);
   const [completionFeedback, setCompletionFeedback] = useState<{
-    taskName: string
-    xp: number
-    money: number
-    needsApproval: boolean
-  } | null>(null)
-  const prevLevelRef = useRef<Level | null>(null)
-  const router = useRouter()
-  const { format: fmtMoney } = useFamilyCurrency()
-  const { play } = useSound()
+    taskName: string;
+    xp: number;
+    money: number;
+    needsApproval: boolean;
+  } | null>(null);
+  const prevLevelRef = useRef<Level | null>(null);
+  const router = useRouter();
+  const { format: fmtMoney } = useFamilyCurrency();
+  const { play } = useSound();
 
   useEffect(() => {
     const getData = async () => {
       try {
-        const authUser = await getCurrentUser()
+        const authUser = await getCurrentUser();
         if (!authUser || authUser.role !== 'child') {
-          router.push('/family-login')
-          return
+          router.push('/family-login');
+          return;
         }
 
         const response = await fetch('/api/child-mode/data', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ section: 'home' }),
-        })
-        const result = await response.json()
+        });
+        const result = await response.json();
         if (!response.ok || !result.success) {
-          router.push('/family-login')
-          return
+          router.push('/family-login');
+          return;
         }
 
-        setMember(result.member)
-        setStreak(result.member.current_streak || 0)
-        setTasks(result.tasks)
-        setXp(result.xp)
-        setMoneyBalance(result.money_balance)
-        setCompletedToday(result.completed_today)
-        setPendingToday(result.pending_today)
+        setMember(result.member);
+        setStreak(result.member.current_streak || 0);
+        setTasks(result.tasks);
+        setXp(result.xp);
+        setMoneyBalance(result.money_balance);
+        setCompletedToday(result.completed_today);
+        setPendingToday(result.pending_today);
         if (result.daily_goal) {
-          setDailyGoal(result.daily_goal)
+          setDailyGoal(result.daily_goal);
         }
 
         if (result.recent_manual) {
           setTimeout(() => {
-            setToast({ type: result.recent_manual.type, message: result.recent_manual.message })
-          }, 1500)
+            setToast({ type: result.recent_manual.type, message: result.recent_manual.message });
+          }, 1500);
         }
       } catch (err) {
-        console.error('[GHRS] Home data fetch error:', err)
-        setToast({ type: 'error', message: 'حدث خطأ أثناء تحميل البيانات' })
+        console.error('[GHRS] Home data fetch error:', err);
+        setToast({ type: 'error', message: 'حدث خطأ أثناء تحميل البيانات' });
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    getData()
-  }, [])
+    getData();
+  }, []);
 
-  const level = getLevel(xp)
-  const nextLevel = getNextLevel(level)
+  const level = getLevel(xp);
+  const nextLevel = getNextLevel(level);
   const progressToNext = nextLevel
     ? ((xp - level.minXp) / (nextLevel.minXp - level.minXp)) * 100
-    : 100
+    : 100;
 
   useEffect(() => {
     if (prevLevelRef.current && level.level > prevLevelRef.current.level) {
-      setCelebrationLevel(level)
-      setShowCelebration(true)
-      play('levelup')
+      setCelebrationLevel(level);
+      setShowCelebration(true);
+      play('levelup');
     }
-    prevLevelRef.current = level
-  }, [level, play])
+    prevLevelRef.current = level;
+  }, [level, play]);
 
   // Daily goal celebration
-  const prevGoalRef = useRef<boolean>(false)
+  const prevGoalRef = useRef<boolean>(false);
   useEffect(() => {
     if (dailyGoal && dailyGoal.reached && !prevGoalRef.current) {
-      setShowConfetti(true)
-      setTimeout(() => setShowConfetti(false), 2500)
-      play('complete')
-      setToast({ type: 'success', message: '🎯 أحسنت! أنجزت هدفك اليومي!' })
+      setShowConfetti(true);
+      setTimeout(() => setShowConfetti(false), 2500);
+      play('complete');
+      setToast({ type: 'success', message: '🎯 أحسنت! أنجزت هدفك اليومي!' });
     }
-    prevGoalRef.current = dailyGoal?.reached || false
-  }, [dailyGoal, play])
+    prevGoalRef.current = dailyGoal?.reached || false;
+  }, [dailyGoal, play]);
 
   // Streak milestone celebration
-  const prevStreakRef = useRef<number>(0)
+  const prevStreakRef = useRef<number>(0);
   useEffect(() => {
-    if (streak > 0 && streak > prevStreakRef.current && (streak === 7 || streak === 14 || streak === 21 || streak === 30)) {
-      setShowConfetti(true)
-      setTimeout(() => setShowConfetti(false), 2500)
-      play('levelup')
-      setToast({ type: 'success', message: `🔥 مبروك! سلسلة ${streak} أيام متتالية!` })
+    if (
+      streak > 0 &&
+      streak > prevStreakRef.current &&
+      (streak === 7 || streak === 14 || streak === 21 || streak === 30)
+    ) {
+      setShowConfetti(true);
+      setTimeout(() => setShowConfetti(false), 2500);
+      play('levelup');
+      setToast({ type: 'success', message: `🔥 مبروك! سلسلة ${streak} أيام متتالية!` });
     }
-    prevStreakRef.current = streak
-  }, [streak, play])
+    prevStreakRef.current = streak;
+  }, [streak, play]);
 
   const handleCompleteTask = async (taskId: string) => {
-    const authUser = await getCurrentUser()
-    if (!authUser || authUser.role !== 'child' || completingTask) return
+    const authUser = await getCurrentUser();
+    if (!authUser || authUser.role !== 'child' || completingTask) return;
 
-    setCompletingTask(taskId)
+    setCompletingTask(taskId);
 
     try {
       const response = await fetch('/api/tasks/complete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ task_id: taskId }),
-      })
+      });
 
-      const result = await response.json()
+      const result = await response.json();
 
       if (!response.ok || !result.success) {
-        setToast({ type: 'error', message: result.error || 'حدث خطأ أثناء إنجاز المهمة' })
-        setCompletingTask(null)
-        play('error')
-        return
+        setToast({ type: 'error', message: result.error || 'حدث خطأ أثناء إنجاز المهمة' });
+        setCompletingTask(null);
+        play('error');
+        return;
       }
 
-      const task = tasks.find(t => t.id === taskId)
-      const needsApproval = task?.requires_approval !== false
+      const task = tasks.find((t) => t.id === taskId);
+      const needsApproval = task?.requires_approval !== false;
 
-      setPendingToday(prev => [...prev, taskId])
+      setPendingToday((prev) => [...prev, taskId]);
 
       if (!needsApproval) {
-        setShowConfetti(true)
-        setTimeout(() => setShowConfetti(false), 2500)
-        play('complete')
+        setShowConfetti(true);
+        setTimeout(() => setShowConfetti(false), 2500);
+        play('complete');
       } else {
-        play('click')
+        play('click');
       }
 
       setCompletionFeedback({
@@ -177,36 +185,30 @@ export default function ChildModePage() {
         xp: task?.xp_reward || 0,
         money: task?.money_reward || 0,
         needsApproval,
-      })
-      setShowCompletionFeedback(true)
+      });
+      setShowCompletionFeedback(true);
     } catch (err) {
-      console.error('[GHRS] Complete task error:', err)
-      setToast({ type: 'error', message: 'حدث خطأ أثناء إنجاز المهمة' })
+      console.error('[GHRS] Complete task error:', err);
+      setToast({ type: 'error', message: 'حدث خطأ أثناء إنجاز المهمة' });
     } finally {
-      setCompletingTask(null)
+      setCompletingTask(null);
     }
-  }
+  };
 
   if (loading) {
-    return <ChildLoading text="جاري التحميل..." />
+    return <ChildLoading text="جاري التحميل..." />;
   }
 
-  const totalTasks = tasks.length
-  const completedCount = completedToday.length
-  const pendingCount = pendingToday.length
-  const isMaxLevel = !nextLevel
-  const allTasksDone = totalTasks > 0 && completedCount === totalTasks
-  const hasPendingOnly = totalTasks > 0 && completedCount === 0 && pendingCount > 0
+  const totalTasks = tasks.length;
+  const completedCount = completedToday.length;
+  const pendingCount = pendingToday.length;
+  const isMaxLevel = !nextLevel;
+  const allTasksDone = totalTasks > 0 && completedCount === totalTasks;
+  const hasPendingOnly = totalTasks > 0 && completedCount === 0 && pendingCount > 0;
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--ghrs-bg-primary)' }}>
-      {toast && (
-        <Toast
-          type={toast.type}
-          message={toast.message}
-          onClose={() => setToast(null)}
-        />
-      )}
+      {toast && <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />}
 
       <CelebrationModal
         show={showCelebration}
@@ -225,8 +227,8 @@ export default function ChildModePage() {
         moneyEarned={completionFeedback?.money || 0}
         needsApproval={completionFeedback?.needsApproval ?? true}
         onClose={() => {
-          setShowCompletionFeedback(false)
-          setCompletionFeedback(null)
+          setShowCompletionFeedback(false);
+          setCompletionFeedback(null);
         }}
         formatMoney={fmtMoney}
       />
@@ -263,9 +265,7 @@ export default function ChildModePage() {
                 className="text-[13px] font-medium mt-0.5"
                 style={{ color: 'var(--ghrs-text-secondary)' }}
               >
-                {isMaxLevel
-                  ? 'حديقتك مزهرة — كمّل إنجازك'
-                  : 'مستعد تكبر حديقتك اليوم؟'}
+                {isMaxLevel ? 'حديقتك مزهرة — كمّل إنجازك' : 'مستعد تكبر حديقتك اليوم؟'}
               </p>
             </div>
           </div>
@@ -326,7 +326,9 @@ export default function ChildModePage() {
                   className="flex items-center px-1"
                   style={{ color: 'var(--ghrs-text-tertiary)' }}
                 >
-                  <span className="text-base leading-none" style={{ direction: 'ltr' }}>←</span>
+                  <span className="text-base leading-none" style={{ direction: 'ltr' }}>
+                    ←
+                  </span>
                 </div>
 
                 <div className="flex items-center gap-2.5">
@@ -384,10 +386,7 @@ export default function ChildModePage() {
             </>
           ) : (
             <div className="text-center py-1">
-              <p
-                className="text-sm font-bold"
-                style={{ color: 'var(--ghrs-green-600)' }}
-              >
+              <p className="text-sm font-bold" style={{ color: 'var(--ghrs-green-600)' }}>
                 وصلت لأعلى مستوى!
               </p>
             </div>
@@ -414,22 +413,28 @@ export default function ChildModePage() {
               <div
                 className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md"
                 style={{
-                  background: completedCount === totalTasks
-                    ? 'var(--ghrs-surface-success)'
-                    : 'var(--ghrs-bg-secondary)',
+                  background:
+                    completedCount === totalTasks
+                      ? 'var(--ghrs-surface-success)'
+                      : 'var(--ghrs-bg-secondary)',
                   border: '1px solid var(--ghrs-border-default)',
                 }}
               >
                 <CheckIcon
                   size={11}
-                  color={completedCount === totalTasks ? 'var(--ghrs-green-600)' : 'var(--ghrs-text-secondary)'}
+                  color={
+                    completedCount === totalTasks
+                      ? 'var(--ghrs-green-600)'
+                      : 'var(--ghrs-text-secondary)'
+                  }
                 />
                 <span
                   className="text-[11px] font-bold tabular-nums"
                   style={{
-                    color: completedCount === totalTasks
-                      ? 'var(--ghrs-green-700)'
-                      : 'var(--ghrs-text-secondary)',
+                    color:
+                      completedCount === totalTasks
+                        ? 'var(--ghrs-green-700)'
+                        : 'var(--ghrs-text-secondary)',
                   }}
                 >
                   {completedCount}/{totalTasks}
@@ -450,16 +455,10 @@ export default function ChildModePage() {
               >
                 <span className="text-3xl leading-none">🎉</span>
               </div>
-              <p
-                className="text-sm font-bold"
-                style={{ color: 'var(--ghrs-text-primary)' }}
-              >
+              <p className="text-sm font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>
                 ما في مهام اليوم
               </p>
-              <p
-                className="text-xs mt-1"
-                style={{ color: 'var(--ghrs-text-tertiary)' }}
-              >
+              <p className="text-xs mt-1" style={{ color: 'var(--ghrs-text-tertiary)' }}>
                 استرح وتمتّع بيومك
               </p>
             </div>
@@ -491,9 +490,7 @@ export default function ChildModePage() {
                   }}
                 >
                   <div className="flex items-center gap-2">
-                    <span className="text-sm">
-                      {dailyGoal.reached ? '🎉' : '🎯'}
-                    </span>
+                    <span className="text-sm">{dailyGoal.reached ? '🎉' : '🎯'}</span>
                     <span
                       className="text-xs font-bold"
                       style={{ color: 'var(--ghrs-text-primary)' }}
@@ -517,10 +514,10 @@ export default function ChildModePage() {
               {/* Task cards */}
               <div className="space-y-2.5">
                 {tasks.slice(0, 4).map((task) => {
-                  const isCompleted = completedToday.includes(task.id)
-                  const isPending = pendingToday.includes(task.id)
-                  const isQuran = task.task_type === 'quran'
-                  const isDua = task.task_type === 'dua'
+                  const isCompleted = completedToday.includes(task.id);
+                  const isPending = pendingToday.includes(task.id);
+                  const isQuran = task.task_type === 'quran';
+                  const isDua = task.task_type === 'dua';
 
                   return (
                     <div
@@ -613,9 +610,7 @@ export default function ChildModePage() {
                       {/* Action button */}
                       <button
                         onClick={() => handleCompleteTask(task.id)}
-                        disabled={
-                          isCompleted || isPending || completingTask === task.id
-                        }
+                        disabled={isCompleted || isPending || completingTask === task.id}
                         className="px-3.5 py-2 rounded-lg text-[11px] font-bold transition-all active:scale-95 flex-shrink-0"
                         style={{
                           background: isCompleted
@@ -624,10 +619,7 @@ export default function ChildModePage() {
                               ? 'var(--ghrs-amber-500)'
                               : 'var(--ghrs-green-600)',
                           color: 'white',
-                          opacity:
-                            isCompleted || isPending || completingTask === task.id
-                              ? 0.6
-                              : 1,
+                          opacity: isCompleted || isPending || completingTask === task.id ? 0.6 : 1,
                         }}
                       >
                         {isCompleted
@@ -639,7 +631,7 @@ export default function ChildModePage() {
                               : 'أنجز!'}
                       </button>
                     </div>
-                  )
+                  );
                 })}
 
                 {/* Show more link */}
@@ -681,10 +673,7 @@ export default function ChildModePage() {
             >
               <FireIcon size={14} color="var(--ghrs-amber-600)" />
             </div>
-            <p
-              className="text-[13px] font-bold"
-              style={{ color: 'var(--ghrs-text-primary)' }}
-            >
+            <p className="text-[13px] font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>
               يوم {streak} متواصل — كمّل على نفس الإيقاع
             </p>
           </div>
@@ -693,5 +682,5 @@ export default function ChildModePage() {
 
       <ChildBottomNav />
     </div>
-  )
+  );
 }

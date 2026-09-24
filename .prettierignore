@@ -1,0 +1,16 @@
+node_modules
+.next
+out
+build
+coverage
+test-results
+playwright-report
+blob-report
+playwright/.cache
+.vercel
+.android
+android
+.prettierrc
+*.tsbuildinfo
+next-env.d.ts
+package-lock.json

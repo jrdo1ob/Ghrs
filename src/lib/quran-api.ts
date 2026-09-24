@@ -2,24 +2,24 @@
 // Free, reliable, and supports full tashkeel (diacritics)
 
 export interface SurahInfo {
-  number: number
-  name: string
-  englishName: string
-  numberOfAyahs: number
+  number: number;
+  name: string;
+  englishName: string;
+  numberOfAyahs: number;
 }
 
 export interface AyahText {
-  number: number
-  text: string
-  numberInSurah: number
+  number: number;
+  text: string;
+  numberInSurah: number;
 }
 
 export interface SurahData {
-  number: number
-  name: string
-  englishName: string
-  numberOfAyahs: number
-  ayahs: AyahText[]
+  number: number;
+  name: string;
+  englishName: string;
+  numberOfAyahs: number;
+  ayahs: AyahText[];
 }
 
 // Juz Amma surah list (78-114)
@@ -61,14 +61,14 @@ export const JUZ_AMMA: SurahInfo[] = [
   { number: 112, name: 'الإخْلَاص', englishName: 'Al-Ikhlas', numberOfAyahs: 4 },
   { number: 113, name: 'الفَلَق', englishName: 'Al-Falaq', numberOfAyahs: 5 },
   { number: 114, name: 'النَّاس', englishName: 'An-Nas', numberOfAyahs: 6 },
-]
+];
 
 // Fetch surah data from Quran API (Uthmani script with tashkeel)
 export async function fetchSurahAyahs(surahNumber: number): Promise<SurahData> {
-  const res = await fetch(`https://api.alquran.cloud/v1/surah/${surahNumber}/quran-uthmani`)
-  if (!res.ok) throw new Error(`Failed to fetch surah ${surahNumber}`)
-  const data = await res.json()
-  if (data.code !== 200) throw new Error(data.status || 'API error')
+  const res = await fetch(`https://api.alquran.cloud/v1/surah/${surahNumber}/quran-uthmani`);
+  if (!res.ok) throw new Error(`Failed to fetch surah ${surahNumber}`);
+  const data = await res.json();
+  if (data.code !== 200) throw new Error(data.status || 'API error');
 
   return {
     number: data.data.number,
@@ -80,7 +80,7 @@ export async function fetchSurahAyahs(surahNumber: number): Promise<SurahData> {
       text: a.text,
       numberInSurah: a.numberInSurah,
     })),
-  }
+  };
 }
 
 // Fetch specific ayah range from a surah
@@ -89,17 +89,17 @@ export async function fetchAyahRange(
   fromAyah: number,
   toAyah: number
 ): Promise<{ text: string; ayahs: AyahText[] }> {
-  const surah = await fetchSurahAyahs(surahNumber)
+  const surah = await fetchSurahAyahs(surahNumber);
   const filtered = surah.ayahs.filter(
     (a) => a.numberInSurah >= fromAyah && a.numberInSurah <= toAyah
-  )
+  );
   return {
     text: filtered.map((a) => a.text).join('\n\n'),
     ayahs: filtered,
-  }
+  };
 }
 
 // Get surah info by number
 export function getSurahInfo(number: number): SurahInfo | undefined {
-  return JUZ_AMMA.find((s) => s.number === number)
+  return JUZ_AMMA.find((s) => s.number === number);
 }

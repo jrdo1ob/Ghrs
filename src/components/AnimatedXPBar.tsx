@@ -24,9 +24,7 @@ export default function AnimatedXPBar({
     <div className={`w-full ${className}`}>
       {showLabel && (
         <div className="flex justify-between items-center mb-1.5 text-sm">
-          <span className="font-semibold text-ghrs-text-secondary">
-            XP
-          </span>
+          <span className="font-semibold text-ghrs-text-secondary">XP</span>
           <span className="font-bold text-ghrs-brand-gold">
             {current.toLocaleString()} / {max.toLocaleString()}
           </span>

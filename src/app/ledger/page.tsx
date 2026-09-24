@@ -1,46 +1,56 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { ParentBottomNav, ParentSidebar, PageHeader, EmptyState, Toast, Skeleton } from '@/components/layout'
-import { getCurrentUser, AuthUser } from '@/lib/auth/helper'
-import { useFamilyCurrency } from '@/hooks/useFamilyCurrency'
-import { ChildIcon, StarIcon, CoinIcon, LeafIcon, CrownIcon, MotherIcon } from '@/components/icons'
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import {
+  ParentBottomNav,
+  ParentSidebar,
+  PageHeader,
+  EmptyState,
+  Toast,
+  Skeleton,
+} from '@/components/layout';
+import { getCurrentUser, AuthUser } from '@/lib/auth/helper';
+import { useFamilyCurrency } from '@/hooks/useFamilyCurrency';
+import { ChildIcon, StarIcon, CoinIcon, LeafIcon, CrownIcon, MotherIcon } from '@/components/icons';
 
 interface Transaction {
-  id: string
-  member_id: string
-  amount: number
-  source: string
-  description: string | null
-  created_at: string
-  type?: string
-  status?: string
+  id: string;
+  member_id: string;
+  amount: number;
+  source: string;
+  description: string | null;
+  created_at: string;
+  type?: string;
+  status?: string;
 }
 
 export default function LedgerPage() {
-  const [authUser, setAuthUser] = useState<AuthUser | null>(null)
-  const [children, setChildren] = useState<any[]>([])
-  const [selectedChild, setSelectedChild] = useState<string>('all')
-  const [xpTransactions, setXpTransactions] = useState<Transaction[]>([])
-  const [moneyTransactions, setMoneyTransactions] = useState<Transaction[]>([])
-  const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<'xp' | 'money'>('xp')
-  const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
-  const router = useRouter()
-  const { format: fmtMoney, symbol: currencySymbol } = useFamilyCurrency()
+  const [authUser, setAuthUser] = useState<AuthUser | null>(null);
+  const [children, setChildren] = useState<any[]>([]);
+  const [selectedChild, setSelectedChild] = useState<string>('all');
+  const [xpTransactions, setXpTransactions] = useState<Transaction[]>([]);
+  const [moneyTransactions, setMoneyTransactions] = useState<Transaction[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'xp' | 'money'>('xp');
+  const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const router = useRouter();
+  const { format: fmtMoney, symbol: currencySymbol } = useFamilyCurrency();
 
   useEffect(() => {
     const init = async () => {
-      const user = await getCurrentUser()
-      if (!user || user.role === 'child') { router.push('/family-login'); return }
-      setAuthUser(user)
+      const user = await getCurrentUser();
+      if (!user || user.role === 'child') {
+        router.push('/family-login');
+        return;
+      }
+      setAuthUser(user);
 
-      await loadData('all')
-      setLoading(false)
-    }
-    init()
-  }, [])
+      await loadData('all');
+      setLoading(false);
+    };
+    init();
+  }, []);
 
   const loadData = async (childId: string) => {
     // All ledger + member data is resolved server-side (family-scoped)
@@ -48,35 +58,41 @@ export default function LedgerPage() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ child_id: childId }),
-    })
-    const result = await response.json()
-    if (!response.ok || !result.success) return
+    });
+    const result = await response.json();
+    if (!response.ok || !result.success) return;
 
-    setChildren(result.members)
-    setXpTransactions(result.xp_transactions)
-    setMoneyTransactions(result.money_transactions)
-  }
+    setChildren(result.members);
+    setXpTransactions(result.xp_transactions);
+    setMoneyTransactions(result.money_transactions);
+  };
 
   const handleChildChange = async (childId: string) => {
-    setSelectedChild(childId)
-    await loadData(childId)
-  }
+    setSelectedChild(childId);
+    await loadData(childId);
+  };
 
-  const getChildName = (id: string) => children.find(c => c.id === id)?.name || '—'
+  const getChildName = (id: string) => children.find((c) => c.id === id)?.name || '—';
 
-  const getXpTotal = () => xpTransactions.reduce((sum, t) => sum + t.amount, 0)
-  const getMoneyTotal = () => moneyTransactions.reduce((sum, t) => sum + (t.type === 'earned' ? t.amount : -t.amount), 0)
+  const getXpTotal = () => xpTransactions.reduce((sum, t) => sum + t.amount, 0);
+  const getMoneyTotal = () =>
+    moneyTransactions.reduce((sum, t) => sum + (t.type === 'earned' ? t.amount : -t.amount), 0);
 
   if (loading) {
     return (
       <div className="min-h-screen" style={{ background: 'var(--ghrs-bg-primary)' }}>
         <ParentSidebar />
         <div className="md:mr-[var(--ghrs-sidebar-width)] pb-24 md:pb-8 p-4 md:p-8">
-          <div className="max-w-4xl mx-auto"><div className="space-y-4"><Skeleton className="h-32 w-full" /><Skeleton className="h-32 w-full" /></div></div>
+          <div className="max-w-4xl mx-auto">
+            <div className="space-y-4">
+              <Skeleton className="h-32 w-full" />
+              <Skeleton className="h-32 w-full" />
+            </div>
+          </div>
         </div>
         <ParentBottomNav />
       </div>
-    )
+    );
   }
 
   return (
@@ -85,56 +101,124 @@ export default function LedgerPage() {
       <ParentSidebar />
       <div className="md:mr-[var(--ghrs-sidebar-width)] pb-24 md:pb-8">
         <div className="p-4 md:p-8 max-w-4xl mx-auto">
-          <PageHeader title="سجل المعاملات" subtitle="حركة النقاط والرصيد المالي لكل طفل" backHref="/dashboard" />
+          <PageHeader
+            title="سجل المعاملات"
+            subtitle="حركة النقاط والرصيد المالي لكل طفل"
+            backHref="/dashboard"
+          />
 
           {/* Child Selector */}
-          <div className="flex gap-1.5 mb-4 overflow-x-auto pb-2 border-b" style={{ borderColor: 'var(--ghrs-border-default)' }}>
-            <button onClick={() => handleChildChange('all')}
+          <div
+            className="flex gap-1.5 mb-4 overflow-x-auto pb-2 border-b"
+            style={{ borderColor: 'var(--ghrs-border-default)' }}
+          >
+            <button
+              onClick={() => handleChildChange('all')}
               className="px-3 py-2 text-xs font-bold transition-all border-b-2 whitespace-nowrap"
-              style={{ borderColor: selectedChild === 'all' ? 'var(--ghrs-green-600)' : 'transparent', color: selectedChild === 'all' ? 'var(--ghrs-text-primary)' : 'var(--ghrs-text-tertiary)' }}>
+              style={{
+                borderColor: selectedChild === 'all' ? 'var(--ghrs-green-600)' : 'transparent',
+                color:
+                  selectedChild === 'all'
+                    ? 'var(--ghrs-text-primary)'
+                    : 'var(--ghrs-text-tertiary)',
+              }}
+            >
               الجميع
             </button>
-            {children.filter(c => c.role === 'child').map(child => (
-              <button key={child.id} onClick={() => handleChildChange(child.id)}
-                className="px-3 py-2 text-xs font-bold transition-all border-b-2 whitespace-nowrap"
-                style={{ borderColor: selectedChild === child.id ? 'var(--ghrs-green-600)' : 'transparent', color: selectedChild === child.id ? 'var(--ghrs-text-primary)' : 'var(--ghrs-text-tertiary)' }}>
-                {child.name}
-              </button>
-            ))}
+            {children
+              .filter((c) => c.role === 'child')
+              .map((child) => (
+                <button
+                  key={child.id}
+                  onClick={() => handleChildChange(child.id)}
+                  className="px-3 py-2 text-xs font-bold transition-all border-b-2 whitespace-nowrap"
+                  style={{
+                    borderColor:
+                      selectedChild === child.id ? 'var(--ghrs-green-600)' : 'transparent',
+                    color:
+                      selectedChild === child.id
+                        ? 'var(--ghrs-text-primary)'
+                        : 'var(--ghrs-text-tertiary)',
+                  }}
+                >
+                  {child.name}
+                </button>
+              ))}
           </div>
 
           {/* Summary Cards */}
           <div className="grid grid-cols-2 gap-3 mb-5">
             <div className="ghrs-card p-4 flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'var(--ghrs-surface-pending)', border: '1px solid var(--ghrs-amber-200)' }}>
+              <div
+                className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
+                style={{
+                  background: 'var(--ghrs-surface-pending)',
+                  border: '1px solid var(--ghrs-amber-200)',
+                }}
+              >
                 <StarIcon size={18} color="var(--ghrs-amber-600)" />
               </div>
               <div className="min-w-0">
-                <div className="text-xl font-extrabold tabular-nums leading-none" style={{ color: 'var(--ghrs-text-primary)' }}>{getXpTotal()}</div>
-                <div className="text-xs mt-1" style={{ color: 'var(--ghrs-text-tertiary)' }}>إجمالي النقاط</div>
+                <div
+                  className="text-xl font-extrabold tabular-nums leading-none"
+                  style={{ color: 'var(--ghrs-text-primary)' }}
+                >
+                  {getXpTotal()}
+                </div>
+                <div className="text-xs mt-1" style={{ color: 'var(--ghrs-text-tertiary)' }}>
+                  إجمالي النقاط
+                </div>
               </div>
             </div>
             <div className="ghrs-card p-4 flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'var(--ghrs-surface-success)', border: '1px solid var(--ghrs-green-200)' }}>
+              <div
+                className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
+                style={{
+                  background: 'var(--ghrs-surface-success)',
+                  border: '1px solid var(--ghrs-green-200)',
+                }}
+              >
                 <CoinIcon size={18} color="var(--ghrs-green-600)" />
               </div>
               <div className="min-w-0">
-                <div className="text-xl font-extrabold tabular-nums leading-none" style={{ color: 'var(--ghrs-text-primary)' }}>{fmtMoney(getMoneyTotal())}</div>
-                <div className="text-xs mt-1" style={{ color: 'var(--ghrs-text-tertiary)' }}>إجمالي الرصيد</div>
+                <div
+                  className="text-xl font-extrabold tabular-nums leading-none"
+                  style={{ color: 'var(--ghrs-text-primary)' }}
+                >
+                  {fmtMoney(getMoneyTotal())}
+                </div>
+                <div className="text-xs mt-1" style={{ color: 'var(--ghrs-text-tertiary)' }}>
+                  إجمالي الرصيد
+                </div>
               </div>
             </div>
           </div>
 
           {/* Tabs */}
-          <div className="flex gap-1.5 mb-4 border-b" style={{ borderColor: 'var(--ghrs-border-default)' }}>
-            <button onClick={() => setActiveTab('xp')}
+          <div
+            className="flex gap-1.5 mb-4 border-b"
+            style={{ borderColor: 'var(--ghrs-border-default)' }}
+          >
+            <button
+              onClick={() => setActiveTab('xp')}
               className="px-3 py-2 text-xs font-bold transition-all border-b-2 flex items-center gap-1"
-              style={{ borderColor: activeTab === 'xp' ? 'var(--ghrs-green-600)' : 'transparent', color: activeTab === 'xp' ? 'var(--ghrs-text-primary)' : 'var(--ghrs-text-tertiary)' }}>
+              style={{
+                borderColor: activeTab === 'xp' ? 'var(--ghrs-green-600)' : 'transparent',
+                color:
+                  activeTab === 'xp' ? 'var(--ghrs-text-primary)' : 'var(--ghrs-text-tertiary)',
+              }}
+            >
               <StarIcon size={12} /> النقاط ({xpTransactions.length})
             </button>
-            <button onClick={() => setActiveTab('money')}
+            <button
+              onClick={() => setActiveTab('money')}
               className="px-3 py-2 text-xs font-bold transition-all border-b-2 flex items-center gap-1"
-              style={{ borderColor: activeTab === 'money' ? 'var(--ghrs-green-600)' : 'transparent', color: activeTab === 'money' ? 'var(--ghrs-text-primary)' : 'var(--ghrs-text-tertiary)' }}>
+              style={{
+                borderColor: activeTab === 'money' ? 'var(--ghrs-green-600)' : 'transparent',
+                color:
+                  activeTab === 'money' ? 'var(--ghrs-text-primary)' : 'var(--ghrs-text-tertiary)',
+              }}
+            >
               <CoinIcon size={12} /> الأموال ({moneyTransactions.length})
             </button>
           </div>
@@ -143,47 +227,109 @@ export default function LedgerPage() {
           <div className="space-y-2">
             {activeTab === 'xp' ? (
               xpTransactions.length === 0 ? (
-                <EmptyState icon={<StarIcon size={32} />} title="لا توجد معاملات" description="لم تُسجل أي نقاط بعد" />
-              ) : xpTransactions.map(tx => (
-                <div key={tx.id} className="ghrs-card p-3 flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3 min-w-0 flex-1">
-                    <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
-                      style={{ background: tx.amount > 0 ? 'var(--ghrs-green-50)' : 'var(--ghrs-red-50)' }}>
-                      {tx.amount > 0 ? <StarIcon size={16} color="var(--ghrs-green-600)" /> : <span className="text-red-500 font-bold text-lg">-</span>}
+                <EmptyState
+                  icon={<StarIcon size={32} />}
+                  title="لا توجد معاملات"
+                  description="لم تُسجل أي نقاط بعد"
+                />
+              ) : (
+                xpTransactions.map((tx) => (
+                  <div
+                    key={tx.id}
+                    className="ghrs-card p-3 flex items-center justify-between gap-3"
+                  >
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <div
+                        className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
+                        style={{
+                          background: tx.amount > 0 ? 'var(--ghrs-green-50)' : 'var(--ghrs-red-50)',
+                        }}
+                      >
+                        {tx.amount > 0 ? (
+                          <StarIcon size={16} color="var(--ghrs-green-600)" />
+                        ) : (
+                          <span className="text-red-500 font-bold text-lg">-</span>
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <p
+                          className="text-sm font-bold truncate"
+                          style={{ color: 'var(--ghrs-text-primary)' }}
+                        >
+                          {getChildName(tx.member_id)}
+                        </p>
+                        <p
+                          className="text-xs truncate"
+                          style={{ color: 'var(--ghrs-text-secondary)' }}
+                        >
+                          {tx.description || tx.source}
+                        </p>
+                        <p className="text-[10px]" style={{ color: 'var(--ghrs-text-tertiary)' }}>
+                          {new Date(tx.created_at).toLocaleString('ar')}
+                        </p>
+                      </div>
                     </div>
-                    <div className="min-w-0">
-                      <p className="text-sm font-bold truncate" style={{ color: 'var(--ghrs-text-primary)' }}>
-                        {getChildName(tx.member_id)}
-                      </p>
-                      <p className="text-xs truncate" style={{ color: 'var(--ghrs-text-secondary)' }}>{tx.description || tx.source}</p>
-                      <p className="text-[10px]" style={{ color: 'var(--ghrs-text-tertiary)' }}>{new Date(tx.created_at).toLocaleString('ar')}</p>
-                    </div>
+                    <span
+                      className="text-base font-extrabold tabular-nums flex-shrink-0"
+                      style={{
+                        color: tx.amount > 0 ? 'var(--ghrs-green-600)' : 'var(--ghrs-red-600)',
+                      }}
+                    >
+                      {tx.amount > 0 ? '+' : ''}
+                      {tx.amount}
+                    </span>
                   </div>
-                  <span className="text-base font-extrabold tabular-nums flex-shrink-0" style={{ color: tx.amount > 0 ? 'var(--ghrs-green-600)' : 'var(--ghrs-red-600)' }}>
-                    {tx.amount > 0 ? '+' : ''}{tx.amount}
-                  </span>
-                </div>
-              ))
+                ))
+              )
+            ) : moneyTransactions.length === 0 ? (
+              <EmptyState
+                icon={<CoinIcon size={32} />}
+                title="لا توجد معاملات"
+                description="لم يُسجل أي رصيد مالي بعد"
+              />
             ) : (
-              moneyTransactions.length === 0 ? (
-                <EmptyState icon={<CoinIcon size={32} />} title="لا توجد معاملات" description="لم يُسجل أي رصيد مالي بعد" />
-              ) : moneyTransactions.map(tx => (
+              moneyTransactions.map((tx) => (
                 <div key={tx.id} className="ghrs-card p-3 flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3 min-w-0 flex-1">
-                    <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
-                      style={{ background: tx.type === 'earned' ? 'var(--ghrs-green-50)' : 'var(--ghrs-red-50)' }}>
-                      {tx.type === 'earned' ? <CoinIcon size={16} color="var(--ghrs-green-600)" /> : <span className="text-red-500 font-bold text-lg">-</span>}
+                    <div
+                      className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
+                      style={{
+                        background:
+                          tx.type === 'earned' ? 'var(--ghrs-green-50)' : 'var(--ghrs-red-50)',
+                      }}
+                    >
+                      {tx.type === 'earned' ? (
+                        <CoinIcon size={16} color="var(--ghrs-green-600)" />
+                      ) : (
+                        <span className="text-red-500 font-bold text-lg">-</span>
+                      )}
                     </div>
                     <div className="min-w-0">
-                      <p className="text-sm font-bold truncate" style={{ color: 'var(--ghrs-text-primary)' }}>
+                      <p
+                        className="text-sm font-bold truncate"
+                        style={{ color: 'var(--ghrs-text-primary)' }}
+                      >
                         {getChildName(tx.member_id)}
                       </p>
-                      <p className="text-xs truncate" style={{ color: 'var(--ghrs-text-secondary)' }}>{tx.description || tx.source}</p>
-                      <p className="text-[10px]" style={{ color: 'var(--ghrs-text-tertiary)' }}>{new Date(tx.created_at).toLocaleString('ar')}</p>
+                      <p
+                        className="text-xs truncate"
+                        style={{ color: 'var(--ghrs-text-secondary)' }}
+                      >
+                        {tx.description || tx.source}
+                      </p>
+                      <p className="text-[10px]" style={{ color: 'var(--ghrs-text-tertiary)' }}>
+                        {new Date(tx.created_at).toLocaleString('ar')}
+                      </p>
                     </div>
                   </div>
-                  <span className="text-base font-extrabold tabular-nums flex-shrink-0" style={{ color: tx.type === 'earned' ? 'var(--ghrs-green-600)' : 'var(--ghrs-red-600)' }}>
-                    {tx.type === 'earned' ? '+' : '-'}{fmtMoney(tx.amount)}
+                  <span
+                    className="text-base font-extrabold tabular-nums flex-shrink-0"
+                    style={{
+                      color: tx.type === 'earned' ? 'var(--ghrs-green-600)' : 'var(--ghrs-red-600)',
+                    }}
+                  >
+                    {tx.type === 'earned' ? '+' : '-'}
+                    {fmtMoney(tx.amount)}
                   </span>
                 </div>
               ))
@@ -193,5 +339,5 @@ export default function LedgerPage() {
       </div>
       <ParentBottomNav />
     </div>
-  )
+  );
 }

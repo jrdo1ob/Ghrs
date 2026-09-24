@@ -1,8 +1,15 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { ParentBottomNav, ParentSidebar, PageHeader, EmptyState, Toast, Skeleton } from '@/components/layout'
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import {
+  ParentBottomNav,
+  ParentSidebar,
+  PageHeader,
+  EmptyState,
+  Toast,
+  Skeleton,
+} from '@/components/layout';
 
 const SURAHS = [
   { number: 1, name: 'الفاتحة', ayahs: 7 },
@@ -15,15 +22,15 @@ const SURAHS = [
   { number: 8, name: 'الأنفال', ayahs: 75 },
   { number: 9, name: 'التوبة', ayahs: 129 },
   { number: 10, name: 'يونس', ayahs: 109 },
-]
+];
 
 export default function QuranPage() {
-  const [progress, setProgress] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-  const [selectedSurah, setSelectedSurah] = useState<number | null>(null)
-  const [selectedAyah, setSelectedAyah] = useState<number>(1)
-  const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
-  const router = useRouter()
+  const [progress, setProgress] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedSurah, setSelectedSurah] = useState<number | null>(null);
+  const [selectedAyah, setSelectedAyah] = useState<number>(1);
+  const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const getProgress = async () => {
@@ -32,19 +39,22 @@ export default function QuranPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({}),
-      })
-      const result = await response.json()
-      if (!response.ok || !result.success) { router.push('/owner-login'); return }
+      });
+      const result = await response.json();
+      if (!response.ok || !result.success) {
+        router.push('/owner-login');
+        return;
+      }
 
-      setProgress(result.progress)
-      setLoading(false)
-    }
+      setProgress(result.progress);
+      setLoading(false);
+    };
 
-    getProgress()
-  }, [])
+    getProgress();
+  }, []);
 
   const handleAddProgress = async () => {
-    if (!selectedSurah) return
+    if (!selectedSurah) return;
 
     // Recorded server-side for the authenticated member — member_id is derived
     // from the validated session, never trusted from the browser.
@@ -52,23 +62,23 @@ export default function QuranPage() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ surah: selectedSurah, ayah: selectedAyah }),
-    })
-    const result = await response.json()
+    });
+    const result = await response.json();
 
     if (!response.ok || !result.success) {
-      setToast({ type: 'error', message: result.error || 'حدث خطأ أثناء إضافة التقدم' })
-      return
+      setToast({ type: 'error', message: result.error || 'حدث خطأ أثناء إضافة التقدم' });
+      return;
     }
 
-    setProgress([...progress, result.record])
-    setSelectedSurah(null)
-    setSelectedAyah(1)
-    setToast({ type: 'success', message: 'تم إضافة التقدم بنجاح!' })
-  }
+    setProgress([...progress, result.record]);
+    setSelectedSurah(null);
+    setSelectedAyah(1);
+    setToast({ type: 'success', message: 'تم إضافة التقدم بنجاح!' });
+  };
 
   const getSurahProgress = (surahNumber: number) => {
-    return progress.filter(p => p.surah === surahNumber).length
-  }
+    return progress.filter((p) => p.surah === surahNumber).length;
+  };
 
   if (loading) {
     return (
@@ -87,32 +97,24 @@ export default function QuranPage() {
         </div>
         <ParentBottomNav />
       </div>
-    )
+    );
   }
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--ghrs-bg-primary)' }}>
-      {toast && (
-        <Toast 
-          type={toast.type} 
-          message={toast.message} 
-          onClose={() => setToast(null)} 
-        />
-      )}
+      {toast && <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />}
 
       <ParentSidebar />
 
       <div className="md:mr-[var(--ghrs-sidebar-width)] pb-24 md:pb-8">
         <div className="p-4 md:p-8 max-w-4xl mx-auto">
-          <PageHeader 
-            title="القرآن"
-            subtitle="تتبع تقدم الحفظ"
-            backHref="/dashboard"
-          />
+          <PageHeader title="القرآن" subtitle="تتبع تقدم الحفظ" backHref="/dashboard" />
 
           {/* Add Progress Form */}
           <div className="ghrs-card p-4 mb-5">
-            <h2 className="text-sm font-bold mb-3" style={{ color: 'var(--ghrs-text-primary)' }}>إضافة تقدم جديد</h2>
+            <h2 className="text-sm font-bold mb-3" style={{ color: 'var(--ghrs-text-primary)' }}>
+              إضافة تقدم جديد
+            </h2>
             <div className="grid grid-cols-2 gap-3 mb-3">
               <div>
                 <label className="ghrs-label">السورة</label>
@@ -122,7 +124,7 @@ export default function QuranPage() {
                   className="ghrs-input"
                 >
                   <option value="">اختر السورة</option>
-                  {SURAHS.map(surah => (
+                  {SURAHS.map((surah) => (
                     <option key={surah.number} value={surah.number}>
                       {surah.name}
                     </option>
@@ -151,25 +153,36 @@ export default function QuranPage() {
 
           {/* Surahs Grid */}
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            {SURAHS.map(surah => {
-              const surahProgress = getSurahProgress(surah.number)
-              const percentage = Math.min(100, Math.round((surahProgress / surah.ayahs) * 100))
+            {SURAHS.map((surah) => {
+              const surahProgress = getSurahProgress(surah.number);
+              const percentage = Math.min(100, Math.round((surahProgress / surah.ayahs) * 100));
               return (
                 <div key={surah.number} className="ghrs-card p-3.5">
-                  <h3 className="text-sm font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>{surah.name}</h3>
-                  <p className="text-[10px] mt-0.5" style={{ color: 'var(--ghrs-text-tertiary)' }}>{surah.ayahs} آية</p>
+                  <h3 className="text-sm font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>
+                    {surah.name}
+                  </h3>
+                  <p className="text-[10px] mt-0.5" style={{ color: 'var(--ghrs-text-tertiary)' }}>
+                    {surah.ayahs} آية
+                  </p>
                   <div className="ghrs-progress-bar my-2">
-                    <div
-                      className="ghrs-progress-fill"
-                      style={{ width: `${percentage}%` }}
-                    />
+                    <div className="ghrs-progress-fill" style={{ width: `${percentage}%` }} />
                   </div>
                   <div className="flex justify-between items-center mt-1">
-                    <p className="text-xs font-bold tabular-nums" style={{ color: 'var(--ghrs-green-600)' }}>{percentage}%</p>
-                    <p className="text-[10px] tabular-nums" style={{ color: 'var(--ghrs-text-tertiary)' }}>{surahProgress}/{surah.ayahs}</p>
+                    <p
+                      className="text-xs font-bold tabular-nums"
+                      style={{ color: 'var(--ghrs-green-600)' }}
+                    >
+                      {percentage}%
+                    </p>
+                    <p
+                      className="text-[10px] tabular-nums"
+                      style={{ color: 'var(--ghrs-text-tertiary)' }}
+                    >
+                      {surahProgress}/{surah.ayahs}
+                    </p>
                   </div>
                 </div>
-              )
+              );
             })}
           </div>
         </div>
@@ -177,5 +190,5 @@ export default function QuranPage() {
 
       <ParentBottomNav />
     </div>
-  )
+  );
 }

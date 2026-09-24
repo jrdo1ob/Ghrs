@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 
 interface IconProps {
   size?: number;
@@ -9,20 +9,20 @@ interface IconProps {
 const defaultProps = (size: number, className: string, color: string) => ({
   width: size,
   height: size,
-  viewBox: "0 0 24 24",
-  fill: "none",
+  viewBox: '0 0 24 24',
+  fill: 'none',
   stroke: color,
-  strokeWidth: "2",
-  strokeLinecap: "round" as const,
-  strokeLinejoin: "round" as const,
+  strokeWidth: '2',
+  strokeLinecap: 'round' as const,
+  strokeLinejoin: 'round' as const,
   className: `inline-block flex-shrink-0 ${className}`,
 });
 
 // 1. TasksIcon - Notepad with green sprout
 export const TasksIcon: React.FC<IconProps> = ({
   size = 24,
-  className = "",
-  color = "currentColor",
+  className = '',
+  color = 'currentColor',
 }) => (
   <svg {...defaultProps(size, className, color)}>
     <rect x="4" y="4" width="16" height="18" rx="2" />
@@ -38,8 +38,8 @@ export const TasksIcon: React.FC<IconProps> = ({
 // 2. GiftsIcon - Gift box with sparkles
 export const GiftsIcon: React.FC<IconProps> = ({
   size = 24,
-  className = "",
-  color = "currentColor",
+  className = '',
+  color = 'currentColor',
 }) => (
   <svg {...defaultProps(size, className, color)}>
     <rect x="3" y="10" width="18" height="11" rx="1.5" />
@@ -57,8 +57,8 @@ export const GiftsIcon: React.FC<IconProps> = ({
 // 3. XPIcon - Star with green base
 export const XPIcon: React.FC<IconProps> = ({
   size = 24,
-  className = "",
-  color = "currentColor",
+  className = '',
+  color = 'currentColor',
 }) => (
   <svg {...defaultProps(size, className, color)}>
     <circle cx="12" cy="12" r="10" fill="#f59e0b" opacity="0.1" stroke="none" />
@@ -75,7 +75,13 @@ export const XPIcon: React.FC<IconProps> = ({
       opacity="0.3"
       stroke="none"
     />
-    <path d="M10 22 Q12 24 14 22" stroke="#22c55e" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+    <path
+      d="M10 22 Q12 24 14 22"
+      stroke="#22c55e"
+      strokeWidth="1.5"
+      fill="none"
+      strokeLinecap="round"
+    />
     <circle cx="12" cy="22" r="1" fill="#22c55e" stroke="none" />
   </svg>
 );
@@ -83,8 +89,8 @@ export const XPIcon: React.FC<IconProps> = ({
 // 4. StreakIcon - Flame with sparkles
 export const StreakIcon: React.FC<IconProps> = ({
   size = 24,
-  className = "",
-  color = "currentColor",
+  className = '',
+  color = 'currentColor',
 }) => (
   <svg {...defaultProps(size, className, color)}>
     <path
@@ -109,28 +115,46 @@ export const StreakIcon: React.FC<IconProps> = ({
 // 5. GardenIcon - Family tree with leaves
 export const GardenIcon: React.FC<IconProps> = ({
   size = 24,
-  className = "",
-  color = "currentColor",
+  className = '',
+  color = 'currentColor',
 }) => (
   <svg {...defaultProps(size, className, color)}>
     <path d="M12 22 L12 12" stroke="#92400e" strokeWidth="2.5" strokeLinecap="round" />
     <ellipse cx="12" cy="8" rx="5" ry="4" fill="none" stroke="#22c55e" strokeWidth="2" />
-    <path d="M12 15 Q6 13 5 9" stroke="#92400e" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+    <path
+      d="M12 15 Q6 13 5 9"
+      stroke="#92400e"
+      strokeWidth="1.5"
+      fill="none"
+      strokeLinecap="round"
+    />
     <circle cx="5" cy="8" r="2.5" fill="none" stroke="#22c55e" strokeWidth="1.5" />
-    <path d="M12 15 Q18 13 19 9" stroke="#92400e" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+    <path
+      d="M12 15 Q18 13 19 9"
+      stroke="#92400e"
+      strokeWidth="1.5"
+      fill="none"
+      strokeLinecap="round"
+    />
     <circle cx="19" cy="8" r="2.5" fill="none" stroke="#22c55e" strokeWidth="1.5" />
     <path d="M10 6 Q9 4 11 5" fill="#22c55e" stroke="none" />
     <path d="M14 6 Q15 4 13 5" fill="#22c55e" stroke="none" />
     <path d="M12 5 Q12 3 12 5" fill="#22c55e" stroke="none" />
-    <path d="M8 22 Q12 20 16 22" stroke="#92400e" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+    <path
+      d="M8 22 Q12 20 16 22"
+      stroke="#92400e"
+      strokeWidth="1.5"
+      fill="none"
+      strokeLinecap="round"
+    />
   </svg>
 );
 
 // 6. LogoIcon - Arabic letter غ as sprout
 export const LogoIcon: React.FC<IconProps> = ({
   size = 24,
-  className = "",
-  color = "currentColor",
+  className = '',
+  color = 'currentColor',
 }) => (
   <svg {...defaultProps(size, className, color)}>
     <path
@@ -141,18 +165,30 @@ export const LogoIcon: React.FC<IconProps> = ({
       strokeLinecap="round"
     />
     <path d="M7 16 L7 20" stroke="#92400e" strokeWidth="2" strokeLinecap="round" />
-    <path d="M12 4 Q16 1 18 3" stroke="#22c55e" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+    <path
+      d="M12 4 Q16 1 18 3"
+      stroke="#22c55e"
+      strokeWidth="1.5"
+      fill="none"
+      strokeLinecap="round"
+    />
     <path d="M17 3 L19 2" stroke="#22c55e" strokeWidth="1.5" fill="none" strokeLinecap="round" />
     <circle cx="12" cy="2" r="1.5" fill="#22c55e" stroke="none" />
-    <path d="M12 12 Q14 10 13 12" stroke="#22c55e" strokeWidth="1" fill="none" strokeLinecap="round" />
+    <path
+      d="M12 12 Q14 10 13 12"
+      stroke="#22c55e"
+      strokeWidth="1"
+      fill="none"
+      strokeLinecap="round"
+    />
   </svg>
 );
 
 // 7. ChildIcon - Friendly child face
 export const ChildIcon: React.FC<IconProps> = ({
   size = 24,
-  className = "",
-  color = "currentColor",
+  className = '',
+  color = 'currentColor',
 }) => (
   <svg {...defaultProps(size, className, color)}>
     <circle cx="12" cy="10" r="6" />
@@ -170,8 +206,8 @@ export const ChildIcon: React.FC<IconProps> = ({
 // 8. LockIcon - Lock/padlock
 export const LockIcon: React.FC<IconProps> = ({
   size = 24,
-  className = "",
-  color = "currentColor",
+  className = '',
+  color = 'currentColor',
 }) => (
   <svg {...defaultProps(size, className, color)}>
     <rect x="5" y="11" width="14" height="10" rx="2" />
@@ -184,8 +220,8 @@ export const LockIcon: React.FC<IconProps> = ({
 // 9. CheckIcon - Checkmark
 export const CheckIcon: React.FC<IconProps> = ({
   size = 24,
-  className = "",
-  color = "currentColor",
+  className = '',
+  color = 'currentColor',
 }) => (
   <svg {...defaultProps(size, className, color)}>
     <path d="M5 12 L10 17 L19 7" />
@@ -195,8 +231,8 @@ export const CheckIcon: React.FC<IconProps> = ({
 // 10. ClockIcon - Clock/pending
 export const ClockIcon: React.FC<IconProps> = ({
   size = 24,
-  className = "",
-  color = "currentColor",
+  className = '',
+  color = 'currentColor',
 }) => (
   <svg {...defaultProps(size, className, color)}>
     <circle cx="12" cy="12" r="9" />
@@ -207,8 +243,8 @@ export const ClockIcon: React.FC<IconProps> = ({
 // 11. PauseIcon - Pause bars
 export const PauseIcon: React.FC<IconProps> = ({
   size = 24,
-  className = "",
-  color = "currentColor",
+  className = '',
+  color = 'currentColor',
 }) => (
   <svg {...defaultProps(size, className, color)}>
     <rect x="6" y="5" width="4" height="14" rx="1" />
@@ -219,8 +255,8 @@ export const PauseIcon: React.FC<IconProps> = ({
 // 12. PlayIcon - Play triangle
 export const PlayIcon: React.FC<IconProps> = ({
   size = 24,
-  className = "",
-  color = "currentColor",
+  className = '',
+  color = 'currentColor',
 }) => (
   <svg {...defaultProps(size, className, color)}>
     <path d="M6 4 L20 12 L6 20 Z" fill={color} stroke="none" />
@@ -230,8 +266,8 @@ export const PlayIcon: React.FC<IconProps> = ({
 // 13. EditIcon - Pencil/edit
 export const EditIcon: React.FC<IconProps> = ({
   size = 24,
-  className = "",
-  color = "currentColor",
+  className = '',
+  color = 'currentColor',
 }) => (
   <svg {...defaultProps(size, className, color)}>
     <path d="M16 3 L21 8 L8 21 L3 21 L3 16 Z" />
@@ -242,8 +278,8 @@ export const EditIcon: React.FC<IconProps> = ({
 // 14. DeleteIcon - Trash can
 export const DeleteIcon: React.FC<IconProps> = ({
   size = 24,
-  className = "",
-  color = "currentColor",
+  className = '',
+  color = 'currentColor',
 }) => (
   <svg {...defaultProps(size, className, color)}>
     <path d="M3 6 H21" />
@@ -257,8 +293,8 @@ export const DeleteIcon: React.FC<IconProps> = ({
 // 15. BookIcon - Open book
 export const BookIcon: React.FC<IconProps> = ({
   size = 24,
-  className = "",
-  color = "currentColor",
+  className = '',
+  color = 'currentColor',
 }) => (
   <svg {...defaultProps(size, className, color)}>
     <path d="M2 4 C2 4 5 3 12 5 C19 3 22 4 22 4 V20 C22 20 19 19 12 21 C5 19 2 20 2 20 Z" />
@@ -272,8 +308,8 @@ export const BookIcon: React.FC<IconProps> = ({
 // 16. StarIcon - Star
 export const StarIcon: React.FC<IconProps> = ({
   size = 24,
-  className = "",
-  color = "currentColor",
+  className = '',
+  color = 'currentColor',
 }) => (
   <svg {...defaultProps(size, className, color)}>
     <path
@@ -289,13 +325,21 @@ export const StarIcon: React.FC<IconProps> = ({
 // 17. CoinIcon - Coin/money
 export const CoinIcon: React.FC<IconProps> = ({
   size = 24,
-  className = "",
-  color = "currentColor",
+  className = '',
+  color = 'currentColor',
 }) => (
   <svg {...defaultProps(size, className, color)}>
     <circle cx="12" cy="12" r="9" />
     <circle cx="12" cy="12" r="6" opacity="0.3" />
-    <text x="12" y="16" textAnchor="middle" fontSize="10" fontWeight="bold" fill="#f59e0b" stroke="none">
+    <text
+      x="12"
+      y="16"
+      textAnchor="middle"
+      fontSize="10"
+      fontWeight="bold"
+      fill="#f59e0b"
+      stroke="none"
+    >
       $
     </text>
   </svg>
@@ -304,8 +348,8 @@ export const CoinIcon: React.FC<IconProps> = ({
 // 18. TrophyIcon - Trophy cup
 export const TrophyIcon: React.FC<IconProps> = ({
   size = 24,
-  className = "",
-  color = "currentColor",
+  className = '',
+  color = 'currentColor',
 }) => (
   <svg {...defaultProps(size, className, color)}>
     <path d="M6 4 H18 V12 C18 16 15 19 12 19 C9 19 6 16 6 12 Z" />
@@ -320,8 +364,8 @@ export const TrophyIcon: React.FC<IconProps> = ({
 // 19. ShieldIcon - Shield
 export const ShieldIcon: React.FC<IconProps> = ({
   size = 24,
-  className = "",
-  color = "currentColor",
+  className = '',
+  color = 'currentColor',
 }) => (
   <svg {...defaultProps(size, className, color)}>
     <path d="M12 2 L3 6 V12 C3 17 7 21 12 22 C17 21 21 17 21 12 V6 Z" />
@@ -332,8 +376,8 @@ export const ShieldIcon: React.FC<IconProps> = ({
 // 20. PartyIcon - Party popper
 export const PartyIcon: React.FC<IconProps> = ({
   size = 24,
-  className = "",
-  color = "currentColor",
+  className = '',
+  color = 'currentColor',
 }) => (
   <svg {...defaultProps(size, className, color)}>
     <path d="M4 20 L2 22 L4 20 C2 18 2 14 4 12 L18 2 C20 1 22 2 22 4 L12 18 C10 20 6 22 4 20 Z" />
@@ -348,8 +392,8 @@ export const PartyIcon: React.FC<IconProps> = ({
 // 21. UserIcon - User silhouette
 export const UserIcon: React.FC<IconProps> = ({
   size = 24,
-  className = "",
-  color = "currentColor",
+  className = '',
+  color = 'currentColor',
 }) => (
   <svg {...defaultProps(size, className, color)}>
     <circle cx="12" cy="8" r="4" />
@@ -360,8 +404,8 @@ export const UserIcon: React.FC<IconProps> = ({
 // 22. CopyIcon - Copy/clipboard
 export const CopyIcon: React.FC<IconProps> = ({
   size = 24,
-  className = "",
-  color = "currentColor",
+  className = '',
+  color = 'currentColor',
 }) => (
   <svg {...defaultProps(size, className, color)}>
     <rect x="8" y="8" width="12" height="14" rx="2" />
@@ -372,8 +416,8 @@ export const CopyIcon: React.FC<IconProps> = ({
 // 23. MenuIcon - Three dots
 export const MenuIcon: React.FC<IconProps> = ({
   size = 24,
-  className = "",
-  color = "currentColor",
+  className = '',
+  color = 'currentColor',
 }) => (
   <svg {...defaultProps(size, className, color)}>
     <circle cx="12" cy="5" r="1.5" fill={color} stroke="none" />
@@ -385,8 +429,8 @@ export const MenuIcon: React.FC<IconProps> = ({
 // 24. CrownIcon - Crown
 export const CrownIcon: React.FC<IconProps> = ({
   size = 24,
-  className = "",
-  color = "currentColor",
+  className = '',
+  color = 'currentColor',
 }) => (
   <svg {...defaultProps(size, className, color)}>
     <path d="M2 18 L4 7 L8 12 L12 4 L16 12 L20 7 L22 18 Z" />
@@ -400,8 +444,8 @@ export const CrownIcon: React.FC<IconProps> = ({
 // 25. MotherIcon - Mother figure
 export const MotherIcon: React.FC<IconProps> = ({
   size = 24,
-  className = "",
-  color = "currentColor",
+  className = '',
+  color = 'currentColor',
 }) => (
   <svg {...defaultProps(size, className, color)}>
     <circle cx="12" cy="7" r="4" />
@@ -417,8 +461,8 @@ export const MotherIcon: React.FC<IconProps> = ({
 // 26. PlusIcon - Plus sign
 export const PlusIcon: React.FC<IconProps> = ({
   size = 24,
-  className = "",
-  color = "currentColor",
+  className = '',
+  color = 'currentColor',
 }) => (
   <svg {...defaultProps(size, className, color)}>
     <line x1="12" y1="5" x2="12" y2="19" />
@@ -429,8 +473,8 @@ export const PlusIcon: React.FC<IconProps> = ({
 // 27. LeafIcon - Leaf
 export const LeafIcon: React.FC<IconProps> = ({
   size = 24,
-  className = "",
-  color = "currentColor",
+  className = '',
+  color = 'currentColor',
 }) => (
   <svg {...defaultProps(size, className, color)}>
     <path d="M4 20 Q4 10 14 4 Q20 2 22 4 Q20 8 16 14 Q10 20 4 20 Z" />
@@ -443,8 +487,8 @@ export const LeafIcon: React.FC<IconProps> = ({
 // 28. WaterIcon - Water drop
 export const WaterIcon: React.FC<IconProps> = ({
   size = 24,
-  className = "",
-  color = "currentColor",
+  className = '',
+  color = 'currentColor',
 }) => (
   <svg {...defaultProps(size, className, color)}>
     <path d="M12 2 Q12 2 6 12 Q3 17 6 20 Q9 23 12 23 Q15 23 18 20 Q21 17 18 12 Q12 2 12 2 Z" />
@@ -455,26 +499,32 @@ export const WaterIcon: React.FC<IconProps> = ({
 // 29. SparkleIcon - Sparkle
 export const SparkleIcon: React.FC<IconProps> = ({
   size = 24,
-  className = "",
-  color = "currentColor",
+  className = '',
+  color = 'currentColor',
 }) => (
   <svg {...defaultProps(size, className, color)}>
     <path d="M12 2 L13 9 L20 10 L13 11 L12 18 L11 11 L4 10 L11 9 Z" fill={color} stroke="none" />
-    <path d="M19 15 L19.5 17 L21 17.5 L19.5 18 L19 20 L18.5 18 L17 17.5 L18.5 17 Z" fill={color} stroke="none" />
-    <path d="M5 16 L5.3 17.5 L7 17.7 L5.3 18 L5 19.5 L4.7 18 L3 17.7 L4.7 17 Z" fill={color} stroke="none" />
+    <path
+      d="M19 15 L19.5 17 L21 17.5 L19.5 18 L19 20 L18.5 18 L17 17.5 L18.5 17 Z"
+      fill={color}
+      stroke="none"
+    />
+    <path
+      d="M5 16 L5.3 17.5 L7 17.7 L5.3 18 L5 19.5 L4.7 18 L3 17.7 L4.7 17 Z"
+      fill={color}
+      stroke="none"
+    />
   </svg>
 );
 
 // 30. FireIcon - Fire/flame
 export const FireIcon: React.FC<IconProps> = ({
   size = 24,
-  className = "",
-  color = "currentColor",
+  className = '',
+  color = 'currentColor',
 }) => (
   <svg {...defaultProps(size, className, color)}>
-    <path
-      d="M12 2 C12 2 6 8 6 14 C6 18 8.5 21 12 21 C15.5 21 18 18 18 14 C18 8 12 2 12 2Z"
-    />
+    <path d="M12 2 C12 2 6 8 6 14 C6 18 8.5 21 12 21 C15.5 21 18 18 18 14 C18 8 12 2 12 2Z" />
     <path
       d="M12 8 C12 8 9 12 9 15 C9 17 10 18.5 12 18.5 C14 18.5 15 17 15 15 C15 12 12 8 12 8Z"
       opacity="0.4"
@@ -485,8 +535,8 @@ export const FireIcon: React.FC<IconProps> = ({
 // 31. HeartIcon - Heart
 export const HeartIcon: React.FC<IconProps> = ({
   size = 24,
-  className = "",
-  color = "currentColor",
+  className = '',
+  color = 'currentColor',
 }) => (
   <svg {...defaultProps(size, className, color)}>
     <path
@@ -500,8 +550,8 @@ export const HeartIcon: React.FC<IconProps> = ({
 // 32. SchoolIcon - School building
 export const SchoolIcon: React.FC<IconProps> = ({
   size = 24,
-  className = "",
-  color = "currentColor",
+  className = '',
+  color = 'currentColor',
 }) => (
   <svg {...defaultProps(size, className, color)}>
     <path d="M3 22 V10 L12 4 L21 10 V22" />
@@ -517,8 +567,8 @@ export const SchoolIcon: React.FC<IconProps> = ({
 // 33. QuranIcon - Quran/book
 export const QuranIcon: React.FC<IconProps> = ({
   size = 24,
-  className = "",
-  color = "currentColor",
+  className = '',
+  color = 'currentColor',
 }) => (
   <svg {...defaultProps(size, className, color)}>
     <path d="M2 4 C2 4 5 3 12 5 C19 3 22 4 22 4 V20 C22 20 19 19 12 21 C5 19 2 20 2 20 Z" />
@@ -533,8 +583,8 @@ export const QuranIcon: React.FC<IconProps> = ({
 // 34. SettingsIcon - Gear
 export const SettingsIcon: React.FC<IconProps> = ({
   size = 24,
-  className = "",
-  color = "currentColor",
+  className = '',
+  color = 'currentColor',
 }) => (
   <svg {...defaultProps(size, className, color)}>
     <circle cx="12" cy="12" r="3" />
@@ -545,8 +595,8 @@ export const SettingsIcon: React.FC<IconProps> = ({
 // 35. HomeIcon - House
 export const HomeIcon: React.FC<IconProps> = ({
   size = 24,
-  className = "",
-  color = "currentColor",
+  className = '',
+  color = 'currentColor',
 }) => (
   <svg {...defaultProps(size, className, color)}>
     <path d="M3 12 L12 3 L21 12" />
@@ -557,8 +607,8 @@ export const HomeIcon: React.FC<IconProps> = ({
 // 36. RejectIcon - X mark
 export const RejectIcon: React.FC<IconProps> = ({
   size = 24,
-  className = "",
-  color = "currentColor",
+  className = '',
+  color = 'currentColor',
 }) => (
   <svg {...defaultProps(size, className, color)}>
     <line x1="6" y1="6" x2="18" y2="18" />
@@ -569,8 +619,8 @@ export const RejectIcon: React.FC<IconProps> = ({
 // 37. FamilyIcon - Family group
 export const FamilyIcon: React.FC<IconProps> = ({
   size = 24,
-  className = "",
-  color = "currentColor",
+  className = '',
+  color = 'currentColor',
 }) => (
   <svg {...defaultProps(size, className, color)}>
     <circle cx="8" cy="7" r="3" />
@@ -585,11 +635,17 @@ export const FamilyIcon: React.FC<IconProps> = ({
 // 38. WarningIcon - Warning triangle
 export const WarningIcon: React.FC<IconProps> = ({
   size = 24,
-  className = "",
-  color = "currentColor",
+  className = '',
+  color = 'currentColor',
 }) => (
   <svg {...defaultProps(size, className, color)}>
-    <path d="M12 2 L22 20 H2 Z" fill="#f59e0b" stroke="#f59e0b" strokeWidth="2" strokeLinejoin="round" />
+    <path
+      d="M12 2 L22 20 H2 Z"
+      fill="#f59e0b"
+      stroke="#f59e0b"
+      strokeWidth="2"
+      strokeLinejoin="round"
+    />
     <line x1="12" y1="9" x2="12" y2="14" stroke="white" strokeWidth="2" />
     <circle cx="12" cy="17" r="1" fill="white" stroke="none" />
   </svg>
@@ -598,8 +654,8 @@ export const WarningIcon: React.FC<IconProps> = ({
 // 39. InfoIcon - Info circle
 export const InfoIcon: React.FC<IconProps> = ({
   size = 24,
-  className = "",
-  color = "currentColor",
+  className = '',
+  color = 'currentColor',
 }) => (
   <svg {...defaultProps(size, className, color)}>
     <circle cx="12" cy="12" r="10" />
@@ -611,8 +667,8 @@ export const InfoIcon: React.FC<IconProps> = ({
 // 40. EmptyIcon - Empty state icon
 export const EmptyIcon: React.FC<IconProps> = ({
   size = 24,
-  className = "",
-  color = "currentColor",
+  className = '',
+  color = 'currentColor',
 }) => (
   <svg {...defaultProps(size, className, color)}>
     <rect x="3" y="3" width="18" height="18" rx="3" opacity="0.3" />

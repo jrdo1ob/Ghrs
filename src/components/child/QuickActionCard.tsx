@@ -1,16 +1,21 @@
-'use client'
+'use client';
 
-import React from 'react'
-import Link from 'next/link'
+import React from 'react';
+import Link from 'next/link';
 
 interface QuickActionCardProps {
-  href: string
-  icon: React.ReactNode
-  label: string
-  color?: string
+  href: string;
+  icon: React.ReactNode;
+  label: string;
+  color?: string;
 }
 
-export default function QuickActionCard({ href, icon, label, color = 'var(--ghrs-green-50)' }: QuickActionCardProps) {
+export default function QuickActionCard({
+  href,
+  icon,
+  label,
+  color = 'var(--ghrs-green-50)',
+}: QuickActionCardProps) {
   return (
     <Link
       href={href}
@@ -21,10 +26,15 @@ export default function QuickActionCard({ href, icon, label, color = 'var(--ghrs
         boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
       }}
     >
-      <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: color }}>
+      <div
+        className="w-12 h-12 rounded-xl flex items-center justify-center"
+        style={{ background: color }}
+      >
         {icon}
       </div>
-      <span className="text-xs font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>{label}</span>
+      <span className="text-xs font-bold" style={{ color: 'var(--ghrs-text-primary)' }}>
+        {label}
+      </span>
     </Link>
-  )
+  );
 }

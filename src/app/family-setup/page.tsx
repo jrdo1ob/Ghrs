@@ -1,88 +1,100 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import { createClient } from '@/lib/supabase/client'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react';
+import { createClient } from '@/lib/supabase/client';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 export default function FamilySetupPage() {
-  const [familyName, setFamilyName] = useState('')
-  const [ownerName, setOwnerName] = useState('')
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [checking, setChecking] = useState(true)
-  const router = useRouter()
-  const supabase = createClient()
+  const [familyName, setFamilyName] = useState('');
+  const [ownerName, setOwnerName] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [checking, setChecking] = useState(true);
+  const router = useRouter();
+  const supabase = createClient();
 
   useEffect(() => {
     const checkExisting = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) {
-        router.push('/owner-login')
-        return
+        router.push('/owner-login');
+        return;
       }
 
       // Check if user already has a family (server-side to avoid direct DB access)
-      const checkResp = await fetch('/api/family-setup/check-identity', { method: 'POST' })
-      const checkData = await checkResp.json()
+      const checkResp = await fetch('/api/family-setup/check-identity', { method: 'POST' });
+      const checkData = await checkResp.json();
 
       if (checkData?.hasFamily) {
-        router.push('/dashboard')
-        return
+        router.push('/dashboard');
+        return;
       }
 
-      setChecking(false)
-    }
+      setChecking(false);
+    };
 
-    checkExisting()
-  }, [])
+    checkExisting();
+  }, []);
 
   const handleSetup = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError('')
+    e.preventDefault();
+    setLoading(true);
+    setError('');
 
-    const { data: { user } } = await supabase.auth.getUser()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) {
-      router.push('/owner-login')
-      return
+      router.push('/owner-login');
+      return;
     }
 
     const response = await fetch('/api/family-setup', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ family_name: familyName, owner_name: ownerName }),
-    })
-    const result = await response.json()
+    });
+    const result = await response.json();
 
     if (!response.ok || !result.success) {
-      setError(result.error || 'حدث خطأ')
-      setLoading(false)
-      return
+      setError(result.error || 'حدث خطأ');
+      setLoading(false);
+      return;
     }
 
-    router.push('/dashboard')
-  }
+    router.push('/dashboard');
+  };
 
   if (checking) {
     return (
-      <main className="min-h-screen flex items-center justify-center" style={{ background: 'var(--ghrs-bg-primary)' }}>
+      <main
+        className="min-h-screen flex items-center justify-center"
+        style={{ background: 'var(--ghrs-bg-primary)' }}
+      >
         <div className="text-center">
           <div className="text-5xl mb-4 animate-bounce">🌱</div>
           <p style={{ color: 'var(--ghrs-text-secondary)' }}>جاري التحميل...</p>
         </div>
       </main>
-    )
+    );
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center p-4" style={{ background: 'var(--ghrs-bg-primary)' }}>
+    <main
+      className="min-h-screen flex items-center justify-center p-4"
+      style={{ background: 'var(--ghrs-bg-primary)' }}
+    >
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2">
             <span className="text-4xl">🌱</span>
-            <span className="text-2xl font-bold" style={{ color: 'var(--ghrs-green-700)' }}>غرس</span>
+            <span className="text-2xl font-bold" style={{ color: 'var(--ghrs-green-700)' }}>
+              غرس
+            </span>
           </Link>
           <h1 className="text-2xl font-bold mt-6" style={{ color: 'var(--ghrs-text-primary)' }}>
             إعداد العائلة
@@ -95,14 +107,26 @@ export default function FamilySetupPage() {
         {/* Setup Form */}
         <div className="ghrs-card p-8">
           {error && (
-            <div className="mb-4 p-3 rounded-xl text-sm font-semibold" style={{ background: 'var(--ghrs-red-50)', color: 'var(--ghrs-red-600)', border: '1px solid var(--ghrs-red-200)' }}>
+            <div
+              className="mb-4 p-3 rounded-xl text-sm font-semibold"
+              style={{
+                background: 'var(--ghrs-red-50)',
+                color: 'var(--ghrs-red-600)',
+                border: '1px solid var(--ghrs-red-200)',
+              }}
+            >
               {error}
             </div>
           )}
 
           <form onSubmit={handleSetup} className="space-y-4">
             <div>
-              <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--ghrs-text-secondary)' }}>اسم العائلة</label>
+              <label
+                className="block text-sm font-semibold mb-2"
+                style={{ color: 'var(--ghrs-text-secondary)' }}
+              >
+                اسم العائلة
+              </label>
               <input
                 type="text"
                 value={familyName}
@@ -114,7 +138,12 @@ export default function FamilySetupPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--ghrs-text-secondary)' }}>اسمك (ولي الأمر)</label>
+              <label
+                className="block text-sm font-semibold mb-2"
+                style={{ color: 'var(--ghrs-text-secondary)' }}
+              >
+                اسمك (ولي الأمر)
+              </label>
               <input
                 type="text"
                 value={ownerName}
@@ -143,5 +172,5 @@ export default function FamilySetupPage() {
         </div>
       </div>
     </main>
-  )
+  );
 }

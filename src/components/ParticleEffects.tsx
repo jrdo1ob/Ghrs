@@ -51,10 +51,14 @@ export default function ParticleEffects({ active, onComplete }: ParticleEffectsP
 
   const getEmoji = (type: string) => {
     switch (type) {
-      case 'leaf': return leafEmojis[Math.floor(Math.random() * leafEmojis.length)];
-      case 'star': return starEmojis[Math.floor(Math.random() * starEmojis.length)];
-      case 'sparkle': return sparkleEmojis[Math.floor(Math.random() * sparkleEmojis.length)];
-      default: return '✨';
+      case 'leaf':
+        return leafEmojis[Math.floor(Math.random() * leafEmojis.length)];
+      case 'star':
+        return starEmojis[Math.floor(Math.random() * starEmojis.length)];
+      case 'sparkle':
+        return sparkleEmojis[Math.floor(Math.random() * sparkleEmojis.length)];
+      default:
+        return '✨';
     }
   };
 

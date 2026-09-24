@@ -1,16 +1,16 @@
-'use client'
+'use client';
 
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface ConfirmDialogProps {
-  show: boolean
-  title: string
-  message: string
-  confirmText?: string
-  cancelText?: string
-  variant?: 'danger' | 'warning' | 'info'
-  onConfirm: () => void
-  onCancel: () => void
+  show: boolean;
+  title: string;
+  message: string;
+  confirmText?: string;
+  cancelText?: string;
+  variant?: 'danger' | 'warning' | 'info';
+  onConfirm: () => void;
+  onCancel: () => void;
 }
 
 const variantConfig = {
@@ -32,7 +32,7 @@ const variantConfig = {
     confirmHover: 'hover:bg-[var(--ghrs-blue-700)]',
     iconBg: 'bg-[var(--ghrs-blue-50)]',
   },
-}
+};
 
 export default function ConfirmDialog({
   show,
@@ -44,7 +44,7 @@ export default function ConfirmDialog({
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
-  const config = variantConfig[variant]
+  const config = variantConfig[variant];
 
   return (
     <AnimatePresence>
@@ -66,21 +66,17 @@ export default function ConfirmDialog({
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex flex-col items-center text-center">
-              <div className={`w-16 h-16 rounded-full ${config.iconBg} flex items-center justify-center text-4xl mb-4`}>
+              <div
+                className={`w-16 h-16 rounded-full ${config.iconBg} flex items-center justify-center text-4xl mb-4`}
+              >
                 {config.icon}
               </div>
 
-              <h3
-                className="text-lg font-bold mb-2"
-                style={{ color: 'var(--ghrs-text-primary)' }}
-              >
+              <h3 className="text-lg font-bold mb-2" style={{ color: 'var(--ghrs-text-primary)' }}>
                 {title}
               </h3>
 
-              <p
-                className="text-sm mb-6"
-                style={{ color: 'var(--ghrs-text-secondary)' }}
-              >
+              <p className="text-sm mb-6" style={{ color: 'var(--ghrs-text-secondary)' }}>
                 {message}
               </p>
 
@@ -112,5 +108,5 @@ export default function ConfirmDialog({
         </motion.div>
       )}
     </AnimatePresence>
-  )
+  );
 }

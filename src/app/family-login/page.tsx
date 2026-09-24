@@ -1,39 +1,39 @@
-'use client'
+'use client';
 
-import { useState, useEffect, Suspense } from 'react'
-import Link from 'next/link'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useState, useEffect, Suspense } from 'react';
+import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 function FamilyLoginContent() {
-  const searchParams = useSearchParams()
+  const searchParams = useSearchParams();
   const [loginCode, setLoginCode] = useState(() => {
     // Pre-fill from URL param or localStorage
-    const urlCode = searchParams.get('code')
-    if (urlCode) return urlCode
+    const urlCode = searchParams.get('code');
+    if (urlCode) return urlCode;
     if (typeof window !== 'undefined') {
-      return localStorage.getItem('family_code') || ''
+      return localStorage.getItem('family_code') || '';
     }
-    return ''
-  })
-  const [pin, setPin] = useState('')
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [isDirectLink, setIsDirectLink] = useState(false)
-  const router = useRouter()
+    return '';
+  });
+  const [pin, setPin] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [isDirectLink, setIsDirectLink] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
-    const code = searchParams.get('code')
+    const code = searchParams.get('code');
     if (code) {
-      setIsDirectLink(true)
-      setLoginCode(code)
+      setIsDirectLink(true);
+      setLoginCode(code);
     }
-  }, [searchParams])
+  }, [searchParams]);
 
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (loading) return // Prevent duplicate submissions
-    setLoading(true)
-    setError('')
+    e.preventDefault();
+    if (loading) return; // Prevent duplicate submissions
+    setLoading(true);
+    setError('');
 
     try {
       // Step 1: Call secure server-side login API
@@ -41,14 +41,14 @@ function FamilyLoginContent() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ loginCode: loginCode.toUpperCase(), pin }),
-      })
+      });
 
-      const result = await response.json()
+      const result = await response.json();
 
       if (!response.ok || !result.success) {
-        setError(result.error || 'الكود أو الرمز غير صحيح')
-        setLoading(false)
-        return
+        setError(result.error || 'الكود أو الرمز غير صحيح');
+        setLoading(false);
+        return;
       }
 
       // Step 2: Validate session BEFORE navigation
@@ -57,51 +57,56 @@ function FamilyLoginContent() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({}),
-      })
+      });
 
-      const validateResult = await validateResponse.json()
+      const validateResult = await validateResponse.json();
 
       if (!validateResponse.ok || !validateResult.success) {
-        setError('فشل التحقق من الجلسة، حاول مرة أخرى')
-        setLoading(false)
-        return
+        setError('فشل التحقق من الجلسة، حاول مرة أخرى');
+        setLoading(false);
+        return;
       }
 
       // Step 3: Confirm role matches
       if (validateResult.member.role !== result.role) {
-        setError('خطأ في بيانات الجلسة')
-        setLoading(false)
-        return
+        setError('خطأ في بيانات الجلسة');
+        setLoading(false);
+        return;
       }
 
       // Step 4: Store only role and name in localStorage (for UI purposes only)
-      localStorage.setItem('ghrs_session_role', result.role)
-      localStorage.setItem('family_code', loginCode.toUpperCase())
+      localStorage.setItem('ghrs_session_role', result.role);
+      localStorage.setItem('family_code', loginCode.toUpperCase());
       if (result.name) {
-        localStorage.setItem('member_name', result.name)
+        localStorage.setItem('member_name', result.name);
       }
 
       // Step 5: Navigate based on role (session is now confirmed valid)
       if (result.role === 'child') {
-        router.push('/child-mode')
+        router.push('/child-mode');
       } else {
-        router.push('/dashboard')
+        router.push('/dashboard');
       }
     } catch (err) {
-      console.error('[GHRS LOGIN] Error:', err)
-      setError('حدث خطأ أثناء تسجيل الدخول')
-      setLoading(false)
+      console.error('[GHRS LOGIN] Error:', err);
+      setError('حدث خطأ أثناء تسجيل الدخول');
+      setLoading(false);
     }
-  }
+  };
 
   return (
-    <main className="min-h-screen flex items-center justify-center p-4" style={{ background: 'var(--ghrs-bg-primary)' }}>
+    <main
+      className="min-h-screen flex items-center justify-center p-4"
+      style={{ background: 'var(--ghrs-bg-primary)' }}
+    >
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2">
             <span className="text-4xl">🌱</span>
-            <span className="text-2xl font-bold" style={{ color: 'var(--ghrs-green-700)' }}>غرس</span>
+            <span className="text-2xl font-bold" style={{ color: 'var(--ghrs-green-700)' }}>
+              غرس
+            </span>
           </Link>
           <h1 className="text-2xl font-bold mt-6" style={{ color: 'var(--ghrs-text-primary)' }}>
             {isDirectLink ? 'مرحباً بك 🌱' : 'دخول أفراد العائلة'}
@@ -114,14 +119,26 @@ function FamilyLoginContent() {
         {/* Login Form */}
         <div className="ghrs-card p-8">
           {error && (
-            <div className="mb-4 p-3 rounded-xl text-sm font-semibold" style={{ background: 'var(--ghrs-red-50)', color: 'var(--ghrs-red-600)', border: '1px solid var(--ghrs-red-200)' }}>
+            <div
+              className="mb-4 p-3 rounded-xl text-sm font-semibold"
+              style={{
+                background: 'var(--ghrs-red-50)',
+                color: 'var(--ghrs-red-600)',
+                border: '1px solid var(--ghrs-red-200)',
+              }}
+            >
               {error}
             </div>
           )}
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--ghrs-text-secondary)' }}>كود الدخول</label>
+              <label
+                className="block text-sm font-semibold mb-2"
+                style={{ color: 'var(--ghrs-text-secondary)' }}
+              >
+                كود الدخول
+              </label>
               <input
                 type="text"
                 value={loginCode}
@@ -132,14 +149,22 @@ function FamilyLoginContent() {
                 autoFocus
               />
               {!isDirectLink && (
-                <p className="text-xs mt-2 text-center" style={{ color: 'var(--ghrs-text-tertiary)' }}>
+                <p
+                  className="text-xs mt-2 text-center"
+                  style={{ color: 'var(--ghrs-text-tertiary)' }}
+                >
                   مثال: KXNZX2-101 للطفل، KXNZX2-001 للأب/الأم
                 </p>
               )}
             </div>
 
             <div>
-              <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--ghrs-text-secondary)' }}>رمز PIN</label>
+              <label
+                className="block text-sm font-semibold mb-2"
+                style={{ color: 'var(--ghrs-text-secondary)' }}
+              >
+                رمز PIN
+              </label>
               <input
                 type="password"
                 inputMode="numeric"
@@ -170,31 +195,40 @@ function FamilyLoginContent() {
         {!isDirectLink && (
           <div className="mt-6 text-center space-y-2">
             <p>
-              <Link href="/owner-login" className="font-bold" style={{ color: 'var(--ghrs-green-600)' }}>
+              <Link
+                href="/owner-login"
+                className="font-bold"
+                style={{ color: 'var(--ghrs-green-600)' }}
+              >
                 دخول المالك بالبريد الإلكتروني
               </Link>
             </p>
             <p className="text-xs" style={{ color: 'var(--ghrs-text-tertiary)' }}>
-             ᵈ든 للأب، الأم، والطفل. استخدم كود العائلة + رمز PIN
+              ᵈ든 للأب، الأم، والطفل. استخدم كود العائلة + رمز PIN
             </p>
           </div>
         )}
       </div>
     </main>
-  )
+  );
 }
 
 export default function FamilyLoginPage() {
   return (
-    <Suspense fallback={
-      <main className="min-h-screen flex items-center justify-center" style={{ background: 'var(--ghrs-bg-primary)' }}>
-        <div className="text-center">
-          <div className="text-5xl mb-4 animate-bounce">🌱</div>
-          <p style={{ color: 'var(--ghrs-text-secondary)' }}>جاري التحميل...</p>
-        </div>
-      </main>
-    }>
+    <Suspense
+      fallback={
+        <main
+          className="min-h-screen flex items-center justify-center"
+          style={{ background: 'var(--ghrs-bg-primary)' }}
+        >
+          <div className="text-center">
+            <div className="text-5xl mb-4 animate-bounce">🌱</div>
+            <p style={{ color: 'var(--ghrs-text-secondary)' }}>جاري التحميل...</p>
+          </div>
+        </main>
+      }
+    >
       <FamilyLoginContent />
     </Suspense>
-  )
+  );
 }

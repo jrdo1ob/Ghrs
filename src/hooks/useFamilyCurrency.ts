@@ -1,10 +1,10 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import { CURRENCIES } from '@/lib/currency'
+import { useState, useEffect } from 'react';
+import { CURRENCIES } from '@/lib/currency';
 
 export function useFamilyCurrency() {
-  const [currency, setCurrency] = useState<string>('KWD')
+  const [currency, setCurrency] = useState<string>('KWD');
 
   useEffect(() => {
     const fetchCurrency = async () => {
@@ -15,19 +15,19 @@ export function useFamilyCurrency() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({}),
-        })
-        const data = await response.json()
-        if (data?.success && data.currency) setCurrency(data.currency)
+        });
+        const data = await response.json();
+        if (data?.success && data.currency) setCurrency(data.currency);
       } catch (err) {
-        console.error('[GHRS FAMILY CURRENCY] Fetch error:', err)
+        console.error('[GHRS FAMILY CURRENCY] Fetch error:', err);
       }
-    }
+    };
 
-    fetchCurrency()
-  }, [])
+    fetchCurrency();
+  }, []);
 
-  const symbol = CURRENCIES[currency]?.symbol || 'د.ك'
-  const format = (amount: number) => `${amount} ${symbol}`
+  const symbol = CURRENCIES[currency]?.symbol || 'د.ك';
+  const format = (amount: number) => `${amount} ${symbol}`;
 
-  return { currency, symbol, format }
+  return { currency, symbol, format };
 }

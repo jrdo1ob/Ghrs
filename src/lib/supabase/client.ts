@@ -1,6 +1,6 @@
-'use client'
+'use client';
 
-import { createBrowserClient } from '@supabase/ssr'
+import { createBrowserClient } from '@supabase/ssr';
 
 export function createClient() {
   return createBrowserClient(
@@ -15,5 +15,5 @@ export function createClient() {
         storage: typeof window !== 'undefined' ? window.localStorage : undefined,
       },
     }
-  )
+  );
 }
