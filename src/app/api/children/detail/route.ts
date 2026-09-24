@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     // Fetch child profile
     const { data: child, error: childError } = await supabase
       .from('members')
-      .select('id, name, role, login_code, current_streak, longest_streak, grace_shields, last_active_date')
+      .select('id, name, role, current_streak, longest_streak, grace_shields, last_active_date')
       .eq('id', child_id)
       .single()
 

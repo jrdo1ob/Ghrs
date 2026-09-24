@@ -113,11 +113,6 @@ export default function ChildDetailPage() {
                 <p className="text-sm" style={{ color: 'var(--ghrs-text-secondary)' }}>
                   المستوى: {level.name} — {level.description}
                 </p>
-                {child?.login_code && (
-                  <p className="text-xs font-mono mt-1" style={{ color: 'var(--ghrs-text-tertiary)', direction: 'ltr' }}>
-                    {child.login_code}
-                  </p>
-                )}
               </div>
             </div>
 
