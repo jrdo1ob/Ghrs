@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { createServiceRoleClient } from '@/lib/supabase/service-role';
 import { validateSession } from '@/lib/auth/server-session';
+import { notifyParents } from '@/lib/notifications/helper';
 
 export async function POST(request: NextRequest) {
   try {
@@ -41,6 +42,16 @@ export async function POST(request: NextRequest) {
       const message = (result && result.message) || error?.message || 'حدث خطأ';
       return NextResponse.json({ success: false, error: message }, { status: 500 });
     }
+
+    // Notify parents about the gift redemption request
+    notifyParents(member.family_id, {
+      senderMemberId: member.member_id,
+      type: 'gift_request',
+      title: 'طلب استبدال هدية',
+      body: `طلب ${member.member_name} استبدال هدية`,
+      referenceType: 'gift',
+      referenceId: gift_id,
+    });
 
     return NextResponse.json({ success: true, message: result.message });
   } catch (err) {

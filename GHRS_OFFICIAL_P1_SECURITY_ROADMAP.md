@@ -1064,19 +1064,76 @@ Product Phase 2 is **PASS — PRODUCTION VERIFIED**. Proceed to **Product Phase 
 
 | Attribute | Value |
 |---|---|
-| **Status** | **TODO / PLANNING** |
-| **Date** | 2026-09-22 |
+| **Status** | **PASS — In-App Notification Center Implemented** |
+| **Date** | 2026-09-26 |
+| **Migration** | `080_notifications.sql` (notifications table, RLS, 5 functions, pg_cron) |
+| **E2E** | `e2e/security/p4-notifications.spec.ts` (14 tests) |
 
-**Candidate scope:**
-- In-app Notification Center — Centralized list of events
-- Real-time Event Notifications — Extend Supabase realtime to gifts, withdrawals, approvals
-- Pending Approval Notifications — Alert parents to items needing action
-- Gift Redemption Notifications — Alert parents when children request gifts
-- Withdrawal Request Notifications — Alert parents when children request withdrawals
-- Streak/Goal Notifications — Reminders and milestones
-- Push Notifications — Browser/native push for critical events
+**Implemented Items:**
 
-**Important:** Do not implement Push Notifications before defining the notification event model and UX. Push notifications require backend infrastructure, service worker changes, and user consent flows.
+#### 4A: Notification Database Schema — PASS
+
+| Attribute | Value |
+|---|---|
+| **Table** | `notifications` with family_id, recipient_member_id, sender_member_id, type, title, body, reference_type, reference_id, is_read, created_at |
+| **RLS** | Enabled, service_role only (browser roles blocked) |
+| **Functions** | `create_notification`, `mark_notification_read`, `mark_all_notifications_read`, `get_unread_notification_count`, `cleanup_old_notifications` |
+| **Cleanup** | pg_cron daily at 04:00 UTC, 90-day retention |
+| **Indexes** | recipient+read+created_at, family+created_at |
+
+#### 4B: Notification Triggers — PASS
+
+| Attribute | Value |
+|---|---|
+| **Gift redemption** | `POST /api/gifts/redeem` → notify parents |
+| **Withdrawal request** | `POST /api/withdrawals/request` → notify parents |
+| **Gift approval** | `POST /api/gifts/approve` → notify child |
+| **Task approval** | `POST /api/tasks/approve` → notify child |
+
+#### 4C: Notification API Routes — PASS
+
+| Attribute | Value |
+|---|---|
+| **List** | `POST /api/notifications` — paginated, family-scoped, resolves sender names |
+| **Read** | `POST /api/notifications/read` — mark single as read |
+| **Read All** | `POST /api/notifications/read-all` — mark all as read |
+| **Unread Count** | `POST /api/notifications/unread-count` — badge count |
+
+#### 4D: Notification UI — PASS
+
+| Attribute | Value |
+|---|---|
+| **Page** | `/notifications` — parent-only notification center with list, empty state, mark-all-read, load-more |
+| **Sidebar** | Notifications entry in "More" section with BellIcon |
+| **Middleware** | `/notifications` added to `parentOnlyRoutes` |
+| **BellIcon** | New icon added to icons.tsx |
+
+#### 4E: E2E Tests — PASS (14/14)
+
+| Test | Status |
+|---|---|
+| Auth: unauthenticated → redirect | PASS |
+| Auth: child → redirect | PASS |
+| Auth: parent loads page | PASS |
+| Empty state renders | PASS |
+| API: list returns correct structure | PASS |
+| API: unread count returns correct structure | PASS |
+| API: mark all read works | PASS |
+| API: mark single read works | PASS |
+| Gift redemption triggers notification | PASS |
+| Withdrawal request triggers notification | PASS |
+| Notifications are family-scoped | PASS |
+| Dashboard regression | PASS |
+| Child mode regression | PASS |
+| Analytics regression | PASS |
+
+### Push Notifications — DEFERRED
+
+Push Notifications are explicitly deferred per the roadmap: "Do not implement Push Notifications before defining the notification event model and UX. Push notifications require backend infrastructure, service worker changes, and user consent flows." The current implementation provides the in-app notification center foundation that push notifications would build upon.
+
+### Streak/Goal Notifications — NOT IMPLEMENTED (Intentional)
+
+Streak milestones and daily goal celebrations are currently handled by client-side confetti + toast in the child-mode page. These are child-facing celebrations, not parent-facing notifications. Implementing server-side notifications for these would require a product decision about whether parents should also be notified of child milestones. This is intentionally deferred.
 
 ---
 

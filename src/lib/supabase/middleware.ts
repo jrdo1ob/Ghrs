@@ -37,6 +37,7 @@ const parentOnlyRoutes = [
   '/reward-bank',
   '/gift-approvals',
   '/analytics',
+  '/notifications',
 ];
 
 const childOnlyRoutes = ['/child-mode'];

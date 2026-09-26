@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { createServiceRoleClient } from '@/lib/supabase/service-role';
 import { validateRequestAuth, requireParentRole } from '@/lib/auth/server-session';
+import { createNotification } from '@/lib/notifications/helper';
 
 export async function POST(request: NextRequest) {
   try {
@@ -40,6 +41,26 @@ export async function POST(request: NextRequest) {
     if (error || !result || !result.success) {
       const message = (result && result.message) || error?.message || 'حدث خطأ';
       return NextResponse.json({ success: false, error: message }, { status: 500 });
+    }
+
+    // Look up the child who made the redemption request
+    const { data: redemption } = await supabase
+      .from('gift_redemptions')
+      .select('member_id')
+      .eq('id', redemption_id)
+      .single();
+
+    if (redemption?.member_id) {
+      createNotification({
+        familyId: member.family_id,
+        recipientMemberId: redemption.member_id,
+        senderMemberId: member.member_id,
+        type: 'gift_approved',
+        title: 'تم الموافقة على الهدية',
+        body: `تمت الموافقة على طلب الهدية من ${member.member_name}`,
+        referenceType: 'gift',
+        referenceId: redemption_id,
+      });
     }
 
     return NextResponse.json({

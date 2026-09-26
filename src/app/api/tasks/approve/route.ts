@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { createServiceRoleClient } from '@/lib/supabase/service-role';
 import { validateRequestAuth, requireParentRole } from '@/lib/auth/server-session';
+import { createNotification } from '@/lib/notifications/helper';
 
 export async function POST(request: NextRequest) {
   try {
@@ -71,6 +72,28 @@ export async function POST(request: NextRequest) {
         { success: false, error: 'حدث خطأ أثناء الاعتماد' },
         { status: 500 }
       );
+    }
+
+    // Look up the child who completed the task and notify them
+    const { data: completion } = await supabase
+      .from('task_completions')
+      .select('member_id')
+      .eq('id', completion_id)
+      .single();
+
+    if (completion?.member_id) {
+      createNotification({
+        familyId: session.member.family_id,
+        recipientMemberId: completion.member_id,
+        senderMemberId: session.member.member_id,
+        type: approve ? 'task_approved' : 'task_rejected',
+        title: approve ? 'تمت الموافقة على المهمة' : 'تم رفض المهمة',
+        body: approve
+          ? `تمت الموافقة على مهمتك من ${session.member.member_name}`
+          : `تم رفض مهمتك${reason ? ': ' + reason : ''}`,
+        referenceType: 'task',
+        referenceId: completion_id,
+      });
     }
 
     // 7. Return success

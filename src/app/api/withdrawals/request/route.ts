@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { createServiceRoleClient } from '@/lib/supabase/service-role';
 import { validateSession } from '@/lib/auth/server-session';
+import { notifyParents } from '@/lib/notifications/helper';
 
 export async function POST(request: NextRequest) {
   try {
@@ -74,6 +75,16 @@ export async function POST(request: NextRequest) {
     if (error) {
       return NextResponse.json({ success: false, error: 'حدث خطأ' }, { status: 500 });
     }
+
+    // Notify parents about the withdrawal request
+    notifyParents(member.family_id, {
+      senderMemberId: member.member_id,
+      type: 'withdrawal_request',
+      title: 'طلب سحب أموال',
+      body: `طلب ${member.member_name} سحب ${amount} د.ك`,
+      referenceType: 'withdrawal',
+      referenceId: data.id,
+    });
 
     return NextResponse.json({ success: true, message: 'تم إرسال طلب السحب بنجاح' });
   } catch (err) {

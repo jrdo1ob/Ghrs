@@ -23,6 +23,7 @@ import {
   ClockIcon,
   HomeIcon,
   TrophyIcon,
+  BellIcon,
 } from '@/components/icons';
 
 /* ===== Parent Bottom Navigation (Mobile) ===== */
@@ -84,6 +85,7 @@ export function ParentSidebar() {
   ];
 
   const moreTabs = [
+    { href: '/notifications', label: 'الإشعارات', icon: <BellIcon size={18} /> },
     { href: '/analytics', label: 'التحليلات', icon: <TrophyIcon size={18} /> },
     { href: '/activity', label: 'سجل النشاط', icon: <ClockIcon size={18} /> },
     { href: '/ledger', label: 'سجل المعاملات', icon: <CoinIcon size={18} /> },
