@@ -213,13 +213,13 @@ These rules are established in:
 | H1 | Login flow: predictable code + PIN + no rate limiting | HIGH | PASS |
 | H2 | `scheduled_task_instances` isolation hole | HIGH | PASS |
 | H3 | No brute-force protection on PIN verification | HIGH | PASS |
-| M1 | `SECURITY DEFINER` functions lack `SET search_path` | MEDIUM | PARTIAL |
+| M1 | `SECURITY DEFINER` functions lack `SET search_path` | MEDIUM | PASS |
 | M2 | Middleware role enforcement is client-side only | MEDIUM | PASS |
 | M3 | No security response headers | MEDIUM | PARTIAL |
 | M4 | Data integrity bugs in reward/penalty engine | MEDIUM | PASS |
 | L1 | Browser-side session persistence via localStorage | LOW | PARTIAL |
 | L2 | Verbose OAuth/logout logging | LOW | TODO |
-| L3 | `user_sessions` no cleanup sweep | LOW | TODO |
+| L3 | `user_sessions` no cleanup sweep | LOW | PASS |
 | L4 | Legacy DB tooling (setup-db.js/setup.sql) | LOW | PASS |
 | I1 | Dependency versions not checked | INFORMATIONAL | TODO |
 | I2 | Untracked migration drift | INFORMATIONAL | PASS |
@@ -227,7 +227,7 @@ These rules are established in:
 | I4 | Inconsistent server-auth helpers | INFORMATIONAL | PASS |
 | I5 | RPC-internal auth dead for code+PIN users | INFORMATIONAL | DOCUMENTED |
 | I6 | `dangerouslySetInnerHTML` with static content | INFORMATIONAL | TODO |
-| I7 | OAuth callback ignores `next` param | INFORMATIONAL | TODO |
+| I7 | OAuth callback ignores `next` param | INFORMATIONAL | PASS |
 
 ### Phase 0 Production Findings (by severity)
 
@@ -241,8 +241,8 @@ These rules are established in:
 | Achievement engine mismatch | P2 | PASS |
 | `check_and_award_achievements` not called | P2 | PASS |
 | A1: Achievement "النبتة النامية" 10/10 locked | P2 | **PASS — PRODUCTION VERIFIED** (2026-09-23) |
-| Most SECURITY DEFINER functions lack search_path | P2/P3 | PARTIAL |
-| `user_sessions` no expiry sweep | P3 | TODO |
+| Most SECURITY DEFINER functions lack search_path | P2/P3 | PASS |
+| `user_sessions` no expiry sweep | P3 | PASS |
 | `achievement_definitions` write access | P3 | PASS (by design) |
 
 ---
@@ -367,7 +367,7 @@ These rules are established in:
 
 | Finding | Classification | Detail |
 |---|---|---|
-| **S1** — No `user_sessions` cleanup | **P1 Operational / Security Hardening** | Expired rows accumulate indefinitely; no auth bypass (rejected by `expires_at > NOW()`); storage hygiene gap. Carry forward as P1 task. |
+| **S1** — No `user_sessions` cleanup | **P1 Operational / Security Hardening** | Expired rows accumulate indefinitely; no auth bypass (rejected by `expires_at > NOW()`); storage hygiene gap. ~~Carry forward as P1 task.~~ **RESOLVED** — Migration 079 created `cleanup_expired_user_sessions()` + pg_cron daily at 03:00 UTC. |
 | **S2** — `validateSession` vs `validateRequestAuth` on 3 routes | **RETRACTED as security finding → INFO** | All 3 routes (`/api/tasks/complete`, `/api/withdrawals/request`, `/api/gifts/redeem`) are intentionally child-only with explicit `role === 'child'` checks. `validateSession` vs `validateRequestAuth` has zero security impact because owner lacks the `ghrs_member_session` cookie and parent fails the role check regardless. `/api/withdrawals/request` has no frontend callers (dead code). **Do NOT carry forward as security remediation.** |
 | **S3** — No session expiry warning | **P2 UX / Session Experience** | Carry forward as P2 task. |
 | **S4** — No sliding/refresh TTL for GHRS sessions | **P2 UX / Session Experience** | Fixed 30-day TTL is explicit and enforced. Carry forward as P2 task. |

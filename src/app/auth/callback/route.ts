@@ -116,7 +116,7 @@ export async function GET(request: Request) {
 
       logAuthSuccess('auth.login.success', { member_id: identity.member_id, via: 'oauth' });
 
-      const response = NextResponse.redirect(`${origin}/dashboard`);
+      const response = NextResponse.redirect(`${origin}${next}`);
 
       // Set session cookie with INTERNAL session token (NOT JWT)
       response.cookies.set('ghrs_member_session', sessionToken, {
