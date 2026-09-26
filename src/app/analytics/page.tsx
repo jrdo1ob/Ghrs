@@ -18,6 +18,8 @@ import {
 
 type Granularity = 'day' | 'week';
 type RangeKey = '7' | '30' | '90';
+type SortKey = 'xp_earned' | 'money_earned' | 'tasks_completed' | 'tasks_approved';
+type SortDir = 'asc' | 'desc';
 
 interface TrendBucket {
   bucket: string;
@@ -81,6 +83,8 @@ export default function AnalyticsPage() {
 
   const [rangeKey, setRangeKey] = useState<RangeKey>('30');
   const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
+  const [compareSortKey, setCompareSortKey] = useState<SortKey>('xp_earned');
+  const [compareSortDir, setCompareSortDir] = useState<SortDir>('desc');
 
   const [summaryChildren, setSummaryChildren] = useState<SummaryChild[]>([]);
   const [trendChildren, setTrendChildren] = useState<ChildTrend[]>([]);
@@ -523,6 +527,122 @@ export default function AnalyticsPage() {
                           {fmtMoney(snapshotChild.money_earned)}
                         </p>
                       </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Child Progress Comparison */}
+              {summaryChildren.length > 1 && (
+                <div className="ghrs-card p-4 mb-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2
+                      className="text-sm font-bold"
+                      style={{ color: 'var(--ghrs-text-primary)' }}
+                    >
+                      مقارنة التقدم
+                    </h2>
+                    <div className="flex gap-1">
+                      {([
+                        { key: 'xp_earned' as SortKey, label: 'XP' },
+                        { key: 'money_earned' as SortKey, label: 'الأموال' },
+                        { key: 'tasks_completed' as SortKey, label: 'المهام' },
+                        { key: 'tasks_approved' as SortKey, label: 'المعتمدة' },
+                      ]).map((opt) => (
+                        <button
+                          key={opt.key}
+                          onClick={() => {
+                            if (compareSortKey === opt.key) {
+                              setCompareSortDir(compareSortDir === 'desc' ? 'asc' : 'desc');
+                            } else {
+                              setCompareSortKey(opt.key);
+                              setCompareSortDir('desc');
+                            }
+                          }}
+                          className="px-2 py-1 rounded text-[10px] font-bold transition-all"
+                          style={{
+                            background:
+                              compareSortKey === opt.key
+                                ? 'var(--ghrs-green-50)'
+                                : 'var(--ghrs-bg-secondary)',
+                            color:
+                              compareSortKey === opt.key
+                                ? 'var(--ghrs-green-700)'
+                                : 'var(--ghrs-text-tertiary)',
+                            border: `1px solid ${compareSortKey === opt.key ? 'var(--ghrs-green-200)' : 'transparent'}`,
+                          }}
+                          aria-pressed={compareSortKey === opt.key}
+                        >
+                          {opt.label}
+                          {compareSortKey === opt.key && (
+                            <span className="mr-0.5">{compareSortDir === 'desc' ? '↓' : '↑'}</span>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="overflow-x-auto">
+                    <div className="space-y-3">
+                      {[...summaryChildren]
+                        .sort((a, b) => {
+                          const diff = (a[compareSortKey] || 0) - (b[compareSortKey] || 0);
+                          return compareSortDir === 'desc' ? -diff : diff;
+                        })
+                        .map((child, idx) => {
+                          const maxVal = Math.max(
+                            ...summaryChildren.map((c) => c[compareSortKey] || 0),
+                            1
+                          );
+                          const pct = maxVal > 0 ? ((child[compareSortKey] || 0) / maxVal) * 100 : 0;
+                          const barColors: Record<SortKey, string> = {
+                            xp_earned: 'var(--ghrs-amber-500)',
+                            money_earned: 'var(--ghrs-green-500)',
+                            tasks_completed: 'var(--ghrs-blue-500)',
+                            tasks_approved: 'var(--ghrs-green-600)',
+                          };
+
+                          return (
+                            <div key={child.childId} className="flex items-center gap-3">
+                              <span
+                                className="text-[10px] font-bold w-4 text-center tabular-nums"
+                                style={{ color: 'var(--ghrs-text-tertiary)' }}
+                              >
+                                {idx + 1}
+                              </span>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center justify-between mb-1">
+                                  <span
+                                    className="text-xs font-bold truncate"
+                                    style={{ color: 'var(--ghrs-text-primary)' }}
+                                  >
+                                    {child.name}
+                                  </span>
+                                  <span
+                                    className="text-xs font-extrabold tabular-nums ml-2 flex-shrink-0"
+                                    style={{ color: 'var(--ghrs-text-primary)' }}
+                                  >
+                                    {compareSortKey === 'money_earned'
+                                      ? fmtMoney(child[compareSortKey] || 0)
+                                      : child[compareSortKey] || 0}
+                                  </span>
+                                </div>
+                                <div
+                                  className="w-full h-2 rounded-full overflow-hidden"
+                                  style={{ background: 'var(--ghrs-bg-secondary)' }}
+                                >
+                                  <div
+                                    className="h-full rounded-full transition-all duration-500"
+                                    style={{
+                                      width: `${Math.max(pct, child[compareSortKey] > 0 ? 4 : 0)}%`,
+                                      background: barColors[compareSortKey],
+                                    }}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
                     </div>
                   </div>
                 </div>
