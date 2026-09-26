@@ -43,6 +43,8 @@ interface SummaryChild {
   money_earned: number;
   tasks_completed: number;
   tasks_approved: number;
+  current_streak: number;
+  longest_streak: number;
 }
 
 const RANGE_OPTIONS: { key: RangeKey; label: string; days: number; granularity: Granularity }[] = [
@@ -183,36 +185,11 @@ export default function AnalyticsPage() {
     ? trendChildren.find((c) => c.childId === selectedChildId)
     : trendChildren[0];
 
-  // Simple streak estimate from trends: count consecutive non-zero activity buckets
-  const computeStreak = (trends: TrendBucket[]): { current: number; longest: number } => {
-    if (!trends.length) return { current: 0, longest: 0 };
-    let longest = 0;
-    let current = 0;
-    let tempStreak = 0;
-    // Iterate from oldest to newest
-    for (let i = 0; i < trends.length; i++) {
-      const hasActivity = trends[i].xp_earned > 0 || trends[i].tasks_completed > 0;
-      if (hasActivity) {
-        tempStreak++;
-        longest = Math.max(longest, tempStreak);
-      } else {
-        tempStreak = 0;
-      }
-    }
-    // Current streak = count from most recent bucket backwards
-    current = 0;
-    for (let i = trends.length - 1; i >= 0; i--) {
-      const hasActivity = trends[i].xp_earned > 0 || trends[i].tasks_completed > 0;
-      if (hasActivity) {
-        current++;
-      } else {
-        break;
-      }
-    }
-    return { current, longest };
-  };
-
-  const streak = snapshotTrends ? computeStreak(snapshotTrends.trends) : { current: 0, longest: 0 };
+  // Use canonical DB streak values (maintained by update_member_streak RPC, requires 100% task completion)
+  // DG2 fix: replaced incorrect client-side any-activity computation with authoritative DB values
+  const streak = snapshotChild
+    ? { current: snapshotChild.current_streak || 0, longest: snapshotChild.longest_streak || 0 }
+    : { current: 0, longest: 0 };
 
   if (loading) {
     return (

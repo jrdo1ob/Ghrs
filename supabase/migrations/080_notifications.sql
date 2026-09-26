@@ -89,7 +89,7 @@ CREATE OR REPLACE FUNCTION public.create_notification(
 RETURNS UUID
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public
+SET search_path = public, extensions
 AS $BODY$
 DECLARE
   v_notification_id UUID;
@@ -140,7 +140,7 @@ CREATE OR REPLACE FUNCTION public.mark_notification_read(
 RETURNS BOOLEAN
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public
+SET search_path = public, extensions
 AS $BODY$
 DECLARE
   v_updated BOOLEAN;
@@ -166,7 +166,7 @@ CREATE OR REPLACE FUNCTION public.mark_all_notifications_read(
 RETURNS INTEGER
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public
+SET search_path = public, extensions
 AS $BODY$
 DECLARE
   v_count INTEGER;
@@ -191,7 +191,7 @@ CREATE OR REPLACE FUNCTION public.get_unread_notification_count(
 RETURNS INTEGER
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public
+SET search_path = public, extensions
 AS $BODY$
 DECLARE
   v_count INTEGER;
@@ -213,7 +213,7 @@ CREATE OR REPLACE FUNCTION public.cleanup_old_notifications()
 RETURNS void
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public
+SET search_path = public, extensions
 AS $BODY$
 BEGIN
   DELETE FROM public.notifications

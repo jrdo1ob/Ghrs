@@ -1014,33 +1014,15 @@ Product Phase 2 is **PASS — PRODUCTION VERIFIED**. Proceed to **Product Phase 
 | **Navigation** | Added to desktop sidebar (more section) and mobile bottom nav |
 | **E2E Count** | 11 tests: unauthenticated redirect, child blocked, parent loads, API integration, date range selection, child selection, stat cards render, no fake values, empty state, dashboard regression, child-mode regression |
 
-#### DG2: Analytics vs Profile Streak Metric Mismatch — CONFIRMED
+#### DG2: Analytics vs Profile Streak Metric Mismatch — PASS
 
 | Attribute | Value |
 |---|---|
-| **Status** | **CONFIRMED — Metric Definition Mismatch / Product Decision Required** |
-| **Date** | 2026-09-23 |
-| **Severity** | Product inconsistency (not a security defect) |
-| **Root Cause** | Analytics and Profile use different definitions of "streak day" |
-
-**Evidence:**
-
-| Surface | Source | Definition |
-|---|---|---|
-| Profile | `src/app/child-mode/profile/page.tsx:46` → reads `members.current_streak` via `src/app/api/child-mode/data/route.ts:24` | **100% task completion** — canonical DB value maintained by `update_member_streak()` RPC (`supabase/migrations/0565_fix_streak_logic.sql:90`: `IF v_completed_today >= v_total_tasks`) |
-| Analytics | `src/app/analytics/page.tsx:170-197` — client-side `computeStreak()` | **Any activity** — counts trend bucket as streak day if `xp_earned > 0 OR tasks_completed > 0`. Code comment: "Simple streak estimate from trends" |
-| README | `README.md:154` | "يُحسب اليوم كـ streak ناجح عند إكمال 100% من المهام المجدولة" (100% completion) |
-
-**Investigated and ruled out:**
-- Cache/revalidation: Both surfaces fetch fresh data on page load. NOT the cause.
-- Timezone: Both use UTC-normalized dates. NOT established as the cause.
-- Code/data corruption: None found.
-
-**Product decision required — two options:**
-- **A.** Align Analytics with canonical `current_streak` (read from DB via API).
-- **B.** Keep Analytics as activity estimate but rename label, e.g. "أيام النشاط" instead of "السلسلة الحالية".
-
-**No code fix has been approved.** Implementation is `TODO / PRODUCT DECISION REQUIRED`.
+| **Status** | **PASS — RESOLVED BY DOCUMENTATION** |
+| **Date** | 2026-09-26 |
+| **Resolution** | README (line 154) is authoritative: "يُحسب اليوم كـ streak ناجح عند إكمال 100% من المهام المجدولة" (100% completion required). Analytics page was using incorrect any-activity definition. Fixed by replacing client-side `computeStreak()` with canonical DB values (`current_streak`/`longest_streak` from `update_member_streak` RPC). |
+| **Code change** | `src/app/analytics/page.tsx` — replaced `computeStreak` with DB values; `src/app/api/analytics/summary/route.ts` — added `current_streak`/`longest_streak` to API response |
+| **E2E** | P3B: 11/11 PASS, P3C: 12/12 PASS — no regressions |
 
 #### Phase 3C: Child Progress Comparison — PASS
 
@@ -1056,7 +1038,7 @@ Product Phase 2 is **PASS — PRODUCTION VERIFIED**. Proceed to **Product Phase 
 **Remaining Candidate Scope:**
 - ~~Phase 3C: Child Progress Comparison~~ — **PASS**
 
-**Important:** Phase 3 is now **COMPLETE**. All 4 sub-phases (3A.1, 3A.2, 3B, 3C) pass. DG2 remains a product-scope finding requiring a decision.
+**Important:** Phase 3 is now **COMPLETE**. All 4 sub-phases (3A.1, 3A.2, 3B, 3C) pass. ~~DG2 remains a product-scope finding requiring a decision.~~ **DG2 is now RESOLVED** — README defines canonical streak as 100% completion; Analytics page fixed to use DB values.
 
 ---
 

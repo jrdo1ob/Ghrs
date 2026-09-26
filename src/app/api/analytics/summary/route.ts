@@ -112,7 +112,7 @@ export async function POST(request: NextRequest) {
     // Get children in this family
     const childQuery = supabase
       .from('members')
-      .select('id, name')
+      .select('id, name, current_streak, longest_streak')
       .eq('family_id', familyId)
       .eq('role', 'child')
       .eq('is_deleted', false)
@@ -187,13 +187,15 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const enrichedChildren = childList.map((child: { id: string; name: string }) => ({
+    const enrichedChildren = childList.map((child: { id: string; name: string; current_streak: number; longest_streak: number }) => ({
       childId: child.id,
       name: child.name,
       xp_earned: xpByChild[child.id] || 0,
       money_earned: moneyByChild[child.id] || 0,
       tasks_completed: completedByChild[child.id] || 0,
       tasks_approved: approvedByChild[child.id] || 0,
+      current_streak: child.current_streak || 0,
+      longest_streak: child.longest_streak || 0,
     }));
 
     return NextResponse.json({
