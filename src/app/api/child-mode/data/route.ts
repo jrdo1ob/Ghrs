@@ -274,7 +274,7 @@ export async function POST(request: NextRequest) {
       await Promise.all([
         supabase.from('xp_transactions').select('amount').eq('member_id', memberId),
         supabase.from('tasks').select('id').eq('family_id', familyId).eq('is_active', true),
-        supabase.from('task_completions').select('id').eq('member_id', memberId),
+        supabase.from('task_completions').select('id').eq('member_id', memberId).eq('approved', true),
         supabase
           .from('member_achievements')
           .select('achievement_id, earned_at')
