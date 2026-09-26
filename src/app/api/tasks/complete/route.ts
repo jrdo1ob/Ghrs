@@ -1,6 +1,11 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { createServiceRoleClient } from '@/lib/supabase/service-role';
 
+// L1: Rate limit scope for child task completion
+const RATE_LIMIT_SCOPE = 'task-complete:300s';
+const RATE_LIMIT_WINDOW_SECONDS = 300;
+const RATE_LIMIT_MAX_ATTEMPTS = 30;
+
 export async function POST(request: NextRequest) {
   try {
     // 1. Read session token from HttpOnly cookie
@@ -49,6 +54,27 @@ export async function POST(request: NextRequest) {
 
     // 5. Get verified member_id from session (NOT from browser)
     const verifiedMemberId = member.member_id;
+
+    // L1: Rate limit — keyed by member_id (child-specific)
+    const { data: limitData, error: limitError } = await supabase.rpc('check_rate_limit', {
+      p_scope: RATE_LIMIT_SCOPE,
+      p_key: verifiedMemberId,
+      p_window_seconds: RATE_LIMIT_WINDOW_SECONDS,
+      p_max_attempts: RATE_LIMIT_MAX_ATTEMPTS,
+    });
+
+    if (limitError) {
+      console.error('[GHRS COMPLETE TASK] Rate limit check failed:', limitError.message);
+      return NextResponse.json({ success: false, error: 'حدث خطأ' }, { status: 503 });
+    }
+
+    const limitResult = Array.isArray(limitData) ? limitData[0] : limitData;
+    if (!limitResult?.allowed) {
+      return NextResponse.json(
+        { success: false, error: 'تم تجاوز الحد المسموح' },
+        { status: 429, headers: { 'Retry-After': String(limitResult?.retry_after ?? 0) } }
+      );
+    }
 
     // 6. Call complete_task_with_rewards with verified member_id using service-role client
     const { data, error } = await supabase.rpc('complete_task_with_rewards', {

@@ -746,6 +746,44 @@ Reserved for future security/reliability work after P1.3. Scope to be determined
 
 ---
 
+## P1.5 — Transaction Hardening & Rate Limiting
+
+| Attribute | Value |
+|---|---|
+| **Status** | **PASS — VERIFIED** |
+| **Date** | 2026-09-26 |
+| **Migration** | `081_security_hardening.sql` |
+
+### Findings Closed
+
+| ID | Finding | Resolution | Evidence |
+|---|---|---|---|
+| **M1** | `approve_gift_redemption` lacks FOR UPDATE row locks | Added `FOR UPDATE OF` on gift_redemptions row | Migration 081; E2E verified `prosrc LIKE '%FOR UPDATE%'` |
+| **M2** | `approve_task_completion` lacks FOR UPDATE row locks | Added `FOR UPDATE OF tc` on task_completions row | Migration 081; E2E verified |
+| **M3** | `approve_task_completion` NULL-caller bypass | Added explicit `IF v_caller_member_id IS NULL THEN RAISE EXCEPTION` | Migration 081; E2E verified |
+| **M4** | XP balance check unfiltered | NOT AN ISSUE — `xp_transactions` has no `status` column; SUM(amount) is canonical | Schema verified: `001_initial_schema.sql:95-103` |
+| **L1** | Missing rate limiting on child mutations | Added rate limiting to `tasks/complete`, `gifts/redeem`, `withdrawals/request` | Code changes; E2E 140/140 PASS |
+| **L2** | OAuth `next` parameter open redirect | Added validation: must start with `/`, reject `//` and absolute URLs | Code change in `auth/callback/route.ts` |
+| **L3** | `setup_family` search_path inconsistency | `ALTER FUNCTION ... SET search_path = public, extensions` | Migration 081; E2E verified |
+| **L4** | `dangerouslySetInnerHTML` in layout.tsx | ACCEPTED — static SW registration, no user input, no XSS risk | Documented |
+| **L5** | 2x DB round-trips per API call | ACCEPTED — validate-then-fetch pattern; acceptable at current scale | Documented |
+| **L6** | Realtime limited to dashboard only | ACCEPTED — intentional design; dashboard is the primary live-update surface | Documented |
+
+### Verification
+
+| Check | Result |
+|---|---|
+| TypeScript | PASS — zero errors |
+| E2E | 140/140 PASS |
+| approve_task_completion FOR UPDATE | PASS — verified in E2E DB |
+| approve_task_completion NULL guard | PASS — verified in E2E DB |
+| approve_gift_redemption FOR UPDATE | PASS — verified in E2E DB (2-arg overload) |
+| setup_family search_path | PASS — `public, extensions` |
+| Rate limiting on child endpoints | PASS — tasks/complete, gifts/redeem, withdrawals/request |
+| OAuth next validation | PASS — rejects `//` and absolute URLs |
+
+---
+
 # GHRS PRODUCT / UI / UX ROADMAP
 
 > **Created:** 2026-09-22

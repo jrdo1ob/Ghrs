@@ -3,6 +3,11 @@ import { createServiceRoleClient } from '@/lib/supabase/service-role';
 import { validateSession } from '@/lib/auth/server-session';
 import { notifyParents } from '@/lib/notifications/helper';
 
+// L1: Rate limit scope for gift redemption
+const RATE_LIMIT_SCOPE = 'gift-redeem:300s';
+const RATE_LIMIT_WINDOW_SECONDS = 300;
+const RATE_LIMIT_MAX_ATTEMPTS = 10;
+
 export async function POST(request: NextRequest) {
   try {
     const session = await validateSession(request);
@@ -28,6 +33,27 @@ export async function POST(request: NextRequest) {
     }
 
     const supabase = createServiceRoleClient();
+
+    // L1: Rate limit — keyed by member_id
+    const { data: limitData, error: limitError } = await supabase.rpc('check_rate_limit', {
+      p_scope: RATE_LIMIT_SCOPE,
+      p_key: member.member_id,
+      p_window_seconds: RATE_LIMIT_WINDOW_SECONDS,
+      p_max_attempts: RATE_LIMIT_MAX_ATTEMPTS,
+    });
+
+    if (limitError) {
+      console.error('[GHRS REDEEM GIFT] Rate limit check failed:', limitError.message);
+      return NextResponse.json({ success: false, error: 'حدث خطأ' }, { status: 503 });
+    }
+
+    const limitResult = Array.isArray(limitData) ? limitData[0] : limitData;
+    if (!limitResult?.allowed) {
+      return NextResponse.json(
+        { success: false, error: 'تم تجاوز الحد المسموح' },
+        { status: 429, headers: { 'Retry-After': String(limitResult?.retry_after ?? 0) } }
+      );
+    }
 
     // Call request_gift_redemption RPC (creates PENDING request, does NOT deduct XP)
     const { data, error } = await supabase.rpc('request_gift_redemption', {

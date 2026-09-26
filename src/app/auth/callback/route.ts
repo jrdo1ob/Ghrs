@@ -14,9 +14,13 @@ const RATE_LIMIT_MAX_ATTEMPTS = 20;
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get('code');
-  const next = searchParams.get('next') ?? '/dashboard';
+  const nextRaw = searchParams.get('next') ?? '/dashboard';
   const error = searchParams.get('error');
   const errorDescription = searchParams.get('error_description');
+
+  // L2: Validate next parameter — must be a safe internal path
+  // Reject absolute URLs (https://...), protocol-relative URLs (//...), and malformed input
+  const next = nextRaw.startsWith('/') && !nextRaw.startsWith('//') ? nextRaw : '/dashboard';
 
   logAuthSuccess('auth.oauth.callback.received');
 
