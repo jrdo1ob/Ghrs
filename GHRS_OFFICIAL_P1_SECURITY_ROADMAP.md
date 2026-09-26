@@ -1064,10 +1064,11 @@ Product Phase 2 is **PASS — PRODUCTION VERIFIED**. Proceed to **Product Phase 
 
 | Attribute | Value |
 |---|---|
-| **Status** | **PASS — In-App Notification Center Implemented** |
+| **Status** | **PASS — PRODUCTION VERIFIED** |
 | **Date** | 2026-09-26 |
 | **Migration** | `080_notifications.sql` (notifications table, RLS, 5 functions, pg_cron) |
-| **E2E** | `e2e/security/p4-notifications.spec.ts` (14 tests) |
+| **Production** | https://ghrs-cyan.vercel.app (Vercel auto-deploy) |
+| **Production DB** | `xcbedqffmknlzjfpuwdr` — migration 080 applied and verified |
 
 **Implemented Items:**
 
@@ -1126,6 +1127,29 @@ Product Phase 2 is **PASS — PRODUCTION VERIFIED**. Proceed to **Product Phase 
 | Dashboard regression | PASS |
 | Child mode regression | PASS |
 | Analytics regression | PASS |
+
+### Production Verification Evidence
+
+| Check | Result |
+|---|---|
+| notifications table exists | PASS |
+| RLS enabled | PASS |
+| Policy notifications_service_only | PASS |
+| anon has NO table grants | PASS |
+| authenticated has NO table grants | PASS |
+| service_role has ALL table grants | PASS |
+| 5 SECURITY DEFINER functions | PASS |
+| All functions have search_path=public | PASS |
+| EXECUTE: anon=false, auth=false, svc=true | PASS (35/35 checks) |
+| pg_cron: cleanup-old-notifications, 04:00 UTC | PASS |
+| 2 indexes (recipient, family) | PASS |
+| No e2e_ functions on Production | PASS |
+| Functional: create notification | PASS |
+| Functional: unread count | PASS |
+| Functional: mark read | PASS |
+| Functional: mark all read | PASS |
+| Functional: family isolation | PASS |
+| Functional: cleanup test data | PASS |
 
 ### Push Notifications — DEFERRED
 

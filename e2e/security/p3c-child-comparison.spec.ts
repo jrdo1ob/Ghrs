@@ -128,7 +128,7 @@ test.describe('P3C: Child Progress Comparison', () => {
     await resetRateLimitsForScope('member-login:300s');
     await loginAsParent(page, family.parentLoginCode, family.parentPin);
     await page.goto('/analytics');
-    await page.waitForTimeout(3000);
+    await page.waitForSelector('text=مقارنة التقدم', { timeout: 15000 });
 
     const body = await page.textContent('body');
     expect(body).toContain('مقارنة التقدم');
@@ -193,12 +193,11 @@ test.describe('P3C: Child Progress Comparison', () => {
     await resetRateLimitsForScope('member-login:300s');
     await loginAsParent(page, family.parentLoginCode, family.parentPin);
     await page.goto('/analytics');
-    await page.waitForTimeout(3000);
+    // Wait for comparison section to appear (analytics data may take time)
+    await page.waitForSelector('text=مقارنة التقدم', { timeout: 15000 });
 
     // Both test children should appear in the comparison section
     const body = await page.textContent('body');
-    // The comparison section should render with child names
-    expect(body).toContain('مقارنة التقدم');
     // At least the first child name should be present
     expect(body).toContain('Test Child');
   });
@@ -249,7 +248,8 @@ test.describe('P3C: Child Progress Comparison', () => {
     await resetRateLimitsForScope('member-login:300s');
     await loginAsParent(page, family.parentLoginCode, family.parentPin);
     await page.goto('/analytics');
-    await page.waitForTimeout(3000);
+    // Wait for stat cards to appear (analytics data may take time)
+    await page.waitForSelector('text=نقاط XP', { timeout: 15000 });
 
     const body = await page.textContent('body');
     expect(body).toContain('نقاط XP');
